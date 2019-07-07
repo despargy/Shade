@@ -37,17 +37,26 @@ class GroundClient:
         down_link_socket.close()
 
 
+    def onClose():
+        pass
     def establish_connection(self):
         """Function to force connectio between client and server"""
         conn_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         #connect to server
-        try:
-            conn_socket.connect((self.host, self.port))
-        except socket.error as e:
-            sys.exit("""
-                    [+] Server is Unavailabe
-                    [+] Exiting ...
-                    """)
+        while(True):
+            try:
+                conn_socket.connect((self.host, self.port))
+                print("""
+                        [+] Success!
+                        [+] Establish Connection
+                        """)
+                break
+            except socket.error as e:
+                print("""
+                        [+] Server is Unavailabe
+                        [+] Try again to connect ...
+                        """)
+                continue
 
         #receive prompt
         prompt = conn_socket.recv(self.BUFFER_SIZE).decode('utf-8')
