@@ -2,7 +2,6 @@
 import socket
 import threading
 import json
-import time
 
 
 class ELinkManager:
