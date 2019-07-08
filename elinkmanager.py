@@ -18,18 +18,18 @@ class ELinkManager:
 
 
     def start(self):
-        """Initialize ELinkManager"""
+        """Initialize ELinkManager. Bind him to await for a connection"""
         while True:
            #start listening
-           client_socket,addr = self.recv_socket.accept()
+           ground_socket,addr = self.recv_socket.accept()
            print("Got a connection from %s" % str(addr))
            #Start Thread to serve client
            threading.Thread(target=self.open_connetion,
-                            args=(client_socket,addr, )).start()
+                            args=(ground_socket,addr, )).start()
 
     def show_prompt(self):
-        """Prompt Message to inform about the actions
-           a client can do"""
+        """Prompt Message to inform about the
+           actions ground software can do"""
         return """
                 >> DMC Available Commands:
                     [+] dep
@@ -52,31 +52,40 @@ class ELinkManager:
                 """
 
 
-    def open_connetion(self,client_socket,addr):
-        """Function to handle communication with client"""
-        #send prompth
-        client_socket.send(self.show_prompt().encode('utf-8'))
+    def open_connetion(self,ground_socket,addr):
+        """
+            @ground_socket : the connection socket between ground and elinkmanager
+            @addr: the ground address
+            Function to handle communication with ground software
+        """
+        #send prompt
+        ground_socket.send(self.show_prompt().encode('utf-8'))
         while(True):
             #get package as json string
-            client_package_json = client_socket.recv(self.BUFFER_SIZE).decode('utf-8')
-            if not client_package_json:
+            ground_package_json = ground_socket.recv(self.BUFFER_SIZE).decode('utf-8')
+            if not ground_package_json:
                 print("Lost connection with %s" % str(addr))
                 break
             #handle the client package
-            server_response = self.handle_package(client_package_json)
+            server_response = self.handle_package(ground_package_json)
             #send repsonse to client
-            client_socket.send(server_response.encode('utf-8'))
+            ground_socket.send(server_response.encode('utf-8'))
 
-        client_socket.close()
+        ground_socket.close()
 
-    def handle_package(self,client_package_json):
-        """Method to analyse client's package
-           and execute the appropriate actions"""
+    def handle_package(self,ground_package_json):
+        """
+            @ground_package_json : the package received from ground
+            Method to analyse ground's package
+            and execute the appropriate actions
+        """
         #json to list
-        client_data = json.loads(client_package_json)
+        client_data = json.loads(ground_package_json)
+
         #get data
         action = client_data["action"]
         subsystem = client_data["subsystem"]
+
         #check action and make the actions
         if action == "dep":
             return self.dep()
