@@ -7,8 +7,8 @@ import sys
 class DownLinkManager:
 
     def __init__(self):
-        self.host = socket.gethostname()
-        self.port = 8888
+        self.host = '192.168.0.103'
+        self.port = 12346
         self.BUFFER_SIZE = 1024
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
@@ -19,7 +19,7 @@ class DownLinkManager:
         print ("Sending "+file_name+" ...")
         with open(file_name, "rb") as imageFile:
             while True:
-                data = imageFile.read(1024)
+                data = imageFile.read(self.BUFFER_SIZE)
                 self.socket.sendto(data, (self.host, self.port))
                 time.sleep(0.02)
                 if not data: break
@@ -27,4 +27,4 @@ class DownLinkManager:
         self.socket.close()
 
 if __name__ == "__main__":
-    DownLinkManager().send_photo('FSM-ADC.png')
+    DownLinkManager().send_photo('test.png')

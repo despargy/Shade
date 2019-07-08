@@ -8,10 +8,5 @@ class Master:
         elinkmanager = ELinkManager()
         threading.Thread(target=elinkmanager.start).start()
 
-        x = input("Enter to Continue")
-
-        elinkmanager.send_photo('FSM-ADC.png')
-
-
 if __name__ == "__main__":
     Master().start()

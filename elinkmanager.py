@@ -8,29 +8,13 @@ import time
 class ELinkManager:
 
     def __init__(self):
-        self.host = socket.gethostname()
-        self.recv_port = 9999
-        self.send_port = 8888
+        self.host = ''
+        self.recv_port = 12345
         self.BUFFER_SIZE = 1024
         self.recv_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.recv_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.recv_socket.bind((self.host, self.recv_port))
         self.recv_socket.listen(5)
-
-
-    def send_photo(self, file_name):
-        #send first filename so client can open file via filename
-        send_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        send_socket.sendto(file_name.encode('utf-8'), (self.host, self.send_port))
-        print ("Sending "+file_name+" ...")
-        with open(file_name, "rb") as imageFile:
-            while True:
-                data = imageFile.read(1024)
-                send_socket.sendto(data, (self.host, self.send_port))
-                time.sleep(0.02)
-                if not data: break
-
-        send_socket.close()
 
 
     def start(self):
