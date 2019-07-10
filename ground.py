@@ -8,8 +8,12 @@ import time
 
 class GroundClient:
 
-    def __init__(self):
-        self.uplink_host = '192.168.0.104'
+    def __init__(self, elinkmanager_ip):
+        if elinkmanager_ip == 'local':
+            self.uplink_host = socket.gethostname()
+        else:
+            self.uplink_host = elinkmanager_ip
+
         self.up_link_port = 12345
         self.down_link_port = 12346
         self.BUFFER_SIZE = 1024
@@ -30,6 +34,7 @@ class GroundClient:
         down_link_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         down_link_socket.bind((downlink_host, self.down_link_port))
         while True:
+            print('awaiting image')
             #wait for connection from downlinkmanager
             data, addr = down_link_socket.recvfrom(self.BUFFER_SIZE)
             if data:
@@ -61,7 +66,7 @@ class GroundClient:
     def establish_connection(self):
         """Main Function to send manual commands to elinkmanager"""
         conn_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        
+
         #connect to server
         while(True):
             try:
@@ -104,8 +109,18 @@ class GroundClient:
 
 
 
-def main():
-    GroundClient().establish_connection()
-
 if __name__ == "__main__":
-    main()
+    if len(sys.argv) != 2:
+        print("""
+              [+] Run ground program with one argument.
+              [+] The argument indicates the ELinkManager IP
+              [+] e.g python ground.py 195.168.0.1
+
+              [+] For Testing purposes use 'local' as argument
+              [+] to simulate a connection locally
+              [+] e.g python ground.py local
+              """)
+
+    else:
+        elinkmanager_ip = sys.argv[1]
+        GroundClient(elinkmanager_ip).establish_connection()

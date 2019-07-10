@@ -59,19 +59,23 @@ class ELinkManager:
             Function to handle communication with ground software
         """
         #send prompt
-        ground_socket.send(self.show_prompt().encode('utf-8'))
-        while(True):
-            #get package as json string
-            ground_package_json = ground_socket.recv(self.BUFFER_SIZE).decode('utf-8')
-            if not ground_package_json:
-                print("Lost connection with %s" % str(addr))
-                break
-            #handle the client package
-            server_response = self.handle_package(ground_package_json)
-            #send repsonse to client
-            ground_socket.send(server_response.encode('utf-8'))
+        try:
+            ground_socket.send(self.show_prompt().encode('utf-8'))
+            while(True):
+                #get package as json string
+                ground_package_json = ground_socket.recv(self.BUFFER_SIZE).decode('utf-8')
+                if not ground_package_json:
+                    print("Lost connection with %s" % str(addr))
+                    break
+                #handle the client package
+                server_response = self.handle_package(ground_package_json)
+                #send repsonse to client
+                ground_socket.send(server_response.encode('utf-8'))
 
-        ground_socket.close()
+            ground_socket.close()
+        except ConnectionResetError:
+            #remove this , add log
+            print('Lost Connection unexpected')
 
     def handle_package(self,ground_package_json):
         """
