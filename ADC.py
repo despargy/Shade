@@ -19,7 +19,7 @@ class ADC(object):
 
     def run_init(self):
         print("ADC run init")
-        time.sleep(10)
+        inp = input("Press any key and >Enter to move in auto-ADC")
 
     def run_auto(self, x, y, c):
         #!! need to add cases !!
@@ -122,12 +122,19 @@ class ADC(object):
 
 def main():
     adc = ADC()
-    #adc.run_init()
-    #adc.run_auto(2, 2, 10)
-    adc.run_auto(2, 5, 10)
-    adc.manual_adc()
-    #adc.scan()
-    print("ok")
+    adc.run_init()
+    while True:
+        print("Enter 'manual' to change in Manual ADC mode\n Or x , y, comp for Auto ADC")
+        inp = input("Wait for manual or x of gondola: \n")
+        if inp == "manual":
+            adc.manual_adc()
+        else:
+            x = int(inp)
+            y = int(input("wait for y of gondola"))
+            c = int(input("wait for compass degrees"))
+            adc.run_auto(x, y, c)
+    adc.close()
+    print("DONE")
 
 
 main()
