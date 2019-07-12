@@ -12,10 +12,9 @@ class Antenna:
         return
     def update_set_by_motor(self, a):
         self.set_by_motor_in = a
-def main():
-    antenna_adc = Antenna("antenna_ADC",1.8)
-    antenna_adc.bdeployed = True
-    print(antenna_adc.bdeployed)
-    antenna_adc.update_set_by_motor(210)
-    print(antenna_adc.set_by_motor_in)
-main()
+    def test(self):
+        self.bdeployed = True
+        print(self.bdeployed)
+        self.update_set_by_motor(210)
+        print(self.set_by_motor_in)
+
