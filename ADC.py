@@ -31,6 +31,7 @@ class ADC():
         self.direction = 1
         self.difference = 0
         self.received = False
+        self.new_angle = 0
 
     #ADC before deployment
     def run_init(self):
@@ -49,8 +50,12 @@ class ADC():
         theta_global_bear = self.find_bear(quartile)
         print("bearing tha gondola sees GS= ", theta_global_bear, "\n")
         #find where the antenna is pointing right now based on motor diver set and the rotation of gondola
-        theta_current_antenna_pointing = (self.antenna_adc.set_by_motor_in + self.compass) % 360    #ckeck what compass returns ex. -30 or 330
+        theta_current_antenna_pointing = (self.antenna_adc.set_by_motor_in + self.compass) % 360
         self.rotation_with_cases(theta_current_antenna_pointing, theta_global_bear)
+        print("base will be rotated = ", self.difference,"\n with direction = ", self.direction)
+        #motor action(self.difference, self.direction)
+        self.antenna_adc.update_set_by_motor(self.new_angle)
+        self.antenna_adc.update_counter_for_overlap()
 
     def find_quartile(self):
         same_ax = 0
@@ -154,39 +159,39 @@ class ADC():
                     self.difference = dif2
                     self.direction = 0 #ani-clockwise
                     new_angle = self.antenna_adc.set_by_motor_in + 360 - self.difference
-                    new_angle = new_angle % 360
-                    if new_angle < 0:
-                        new_angle = 360 - abs(new_angle)
-                    self.antenna_adc.update_set_by_motor(new_angle)
-                    self.antenna_adc.update_counter_for_overlap(self.difference, -1)
+                    self.new_angle = new_angle % 360
+                    if self.new_angle < 0:
+                        self.new_angle = 360 - abs(self.new_angle)
+                    self.antenna_adc.sign_for_counter_overlap = -1
+                    self.antenna_adc.next_plus_angle = self.difference
                 else:
                     self.difference = dif1
                     self.direction = 1 #clockwise
                     new_angle = self.antenna_adc.set_by_motor_in + self.difference
-                    new_angle = new_angle % 360
-                    if new_angle < 0:
-                        new_angle = 360 - abs(new_angle)
-                    self.antenna_adc.update_set_by_motor(new_angle)
-                    self.antenna_adc.update_counter_for_overlap(self.difference, +1)
+                    self.new_angle = new_angle % 360
+                    if self.new_angle < 0:
+                        self.new_angle = 360 - abs(self.new_angle)
+                    self.antenna_adc.sign_for_counter_overlap = +1
+                    self.antenna_adc.next_plus_angle = self.difference
             else:
                 if self.antenna_adc.check_isinoverlap(dif2, -1):  # anti-clockwise
                     self.difference = dif1
                     self.direction = 1 #clockwise
                     new_angle = self.antenna_adc.set_by_motor_in +self.difference
-                    new_angle = new_angle % 360
-                    if new_angle < 0:
-                        new_angle = 360 - abs(new_angle)
-                    self.antenna_adc.update_set_by_motor(new_angle)
-                    self.antenna_adc.update_counter_for_overlap(self.difference, +1)
+                    self.new_angle = new_angle % 360
+                    if self.new_angle < 0:
+                        self.new_angle = 360 - abs(self.new_angle)
+                    self.antenna_adc.sign_for_counter_overlap = +1
+                    self.antenna_adc.next_plus_angle = self.difference
                 else:
                     self.difference = dif2
                     self.direction = 0 #anti-clockwise
                     new_angle = self.antenna_adc.set_by_motor_in + 360 - self.difference
-                    new_angle = new_angle % 360
-                    if new_angle < 0:
-                        new_angle = 360 - abs(new_angle)
-                    self.antenna_adc.update_set_by_motor(new_angle)
-                    self.antenna_adc.update_counter_for_overlap(self.difference, -1)
+                    self.new_angle = new_angle % 360
+                    if self.new_angle < 0:
+                        self.new_angle = 360 - abs(self.new_angle)
+                    self.antenna_adc.sign_for_counter_overlap = -1
+                    self.antenna_adc.next_plus_angle = self.difference
         else:
             dif1 = 360 - theta_current_antenna_pointing + theta_global_bear
             dif2 = theta_current_antenna_pointing - theta_global_bear
@@ -194,48 +199,40 @@ class ADC():
                 if self.antenna_adc.check_isinoverlap(dif1, +1):  # clockwise
                     self.difference = dif2
                     self.direction = 0 #ani-clockwise
-                    # print("dif = ", self.difference,"\n rotation = ", self.direction)
-                    # #motor action(self.difference, self.direction)
                     new_angle = self.antenna_adc.set_by_motor_in - self.difference
-                    new_angle = new_angle % 360
-                    if new_angle < 0:
-                        new_angle = 360 - abs(new_angle)
-                    self.antenna_adc.update_set_by_motor(new_angle)
-                    self.antenna_adc.update_counter_for_overlap(self.difference, -1)
+                    self.new_angle = new_angle % 360
+                    if self.new_angle < 0:
+                        self.new_angle = 360 - abs(self.new_angle)
+                    self.antenna_adc.sign_for_counter_overlap =  -1
+                    self.antenna_adc.next_plus_angle = self.difference
                 else:
                     self.difference = dif1
                     self.direction = 1 #clockwise
-                    # print("dif = ", self.difference,"\n rotation = ", self.direction)
-                    # #motor action(self.difference, self.direction)
                     new_angle = self.antenna_adc.set_by_motor_in + self.difference
-                    new_angle = new_angle % 360
-                    if new_angle < 0:
-                        new_angle = 360 - abs(new_angle)
-                    self.antenna_adc.update_set_by_motor(new_angle)
-                    self.antenna_adc.update_counter_for_overlap(self.difference, +1)
+                    self.new_angle = new_angle % 360
+                    if self.new_angle < 0:
+                        self.new_angle = 360 - abs(self.new_angle)
+                    self.antenna_adc.sign_for_counter_overlap = +1
+                    self.antenna_adc.next_plus_angle = self.difference
             else:
                 if self.antenna_adc.check_isinoverlap(dif2, -1):  # anti-clockwise
                     self.difference = dif1
                     self.direction = 1 #clockwise
-                    # print("dif = ", self.difference,"\n rotation = ", self.direction)
-                    # #motor action(self.difference, self.direction)
                     new_angle = self.antenna_adc.set_by_motor_in +self.difference
-                    new_angle = new_angle % 360
-                    if new_angle < 0:
-                        new_angle = 360 - abs(new_angle)
-                    self.antenna_adc.update_set_by_motor(new_angle)
-                    self.antenna_adc.update_counter_for_overlap(self.difference, +1)
+                    self.new_angle = new_angle % 360
+                    if self.new_angle < 0:
+                        self.new_angle = 360 - abs(self.new_angle)
+                    self.antenna_adc.sign_for_counter_overlap = +1
+                    self.antenna_adc.next_plus_angle = self.difference
                 else:
                     self.difference = dif2
                     self.direction = 0 #anti-clockwise
-                    # print("dif = ", self.difference,"\n rotation = ", self.direction)
-                    # #motor action(self.difference, self.direction)
                     new_angle = self.antenna_adc.set_by_motor_in + 360 - self.difference
-                    new_angle = new_angle % 360
-                    if new_angle < 0:
-                        new_angle = 360 - abs(new_angle)
-                    self.antenna_adc.update_set_by_motor(new_angle)
-                    self.antenna_adc.update_counter_for_overlap(self.difference, -1)
+                    self.new_angle = new_angle % 360
+                    if self.new_angle < 0:
+                        self.new_angle = 360 - abs(self.new_angle)
+                    self.antenna_adc.sign_for_counter_overlap = -1
+                    self.antenna_adc.next_plus_angle = self.difference
 
     #Manual mode of ADC
     def manual_adc(self):
