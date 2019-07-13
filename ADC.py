@@ -4,62 +4,243 @@ import Antenna as antenna
 from threading import Timer
 import signal
 
-class ADC(object):
+#class to represent subsystem's proccess of ADC
+class ADC():
+    #constructor
     def __init__(self):
-        self.bscan = False
-        self.bset = False
-        self.man_adc = False
-        self.auto_adc = True
-        self.angle_to_set = 0
+        """ inauto_adc: bool to define mode
+            inman_auto: bool to define mode
+            inscan: bool to define mode
+            inset: bool to define mode
+            GS: x- axis y-axis of SHADE Ground Station - static
+            gps: x- axis y-axis of Gondola's  current x,y-axis
+            compass: data received from compass, degrees btwn North and Gondola 0,0
+            antenna_adc: object of antenna instance
+            direction: clockwise (1) or anti-clockwise(0) for antenna base rotation
+            difference: degrees which are needed for antenna base rotation
+
+        """
+        self.inauto_adc = False
+        self.inman_adc = False
+        self.inscan = False
+        self.inset = False
         self.GS = [1, 1]
+        self.compass = 0
+        self.gps = self.GS
         self.antenna_adc = antenna.Antenna("antenna-ADC", 1.8)
-        self.rot = 1
-        self.dif = 0
+        self.direction = 1
+        self.difference = 0
         self.received = False
 
+    #ADC before deployment
     def run_init(self):
         print("ADC run init")
-        inp = input("Press any key and >Enter to move in auto-ADC")
+        inp = input("Press any key to move in auto-ADC\n")
 
-    def run_auto(self, x, y, c):
-        #!! need to add cases !!
-        print("ADC run auto")
-        comp = c  # Data.compass()
-        gps = [x, y]  # Data.gps()
-        at = math.atan((gps[1] - self.GS[1]) / (gps[0] - self.GS[0]))
-        theta_global = at*180/math.pi
-        print(theta_global)
-        theta_global_sup = 90 - theta_global
-        theta_cur_point = self.antenna_adc.set_by_motor_in + comp
-        angle_goal = 180 - theta_cur_point + theta_global_sup
-        print(angle_goal)
-        if angle_goal > theta_cur_point :
-            sing = 1
+    #Auto mode of ADC
+    def run_auto(self, x_axis, y_axis, compass_data_):
+        print("ADC run auto\n")
+        self.compass = compass_data_  # Data.compass()
+        self.gps = [x_axis, y_axis]  # Data.gps()
+        #find quartile GS n' gps
+        quartile = self.find_quartile()
+        print("quartile= ", quartile, "\n")
+        #find the angle goal based on global degrees
+        theta_global_bear = self.find_bear(quartile)
+        print("bearing tha gondola sees GS= ", theta_global_bear, "\n")
+        #find where the antenna is pointing right now based on motor diver set and the rotation of gondola
+        theta_current_antenna_pointing = (self.antenna_adc.set_by_motor_in + self.compass) % 360    #ckeck what compass returns ex. -30 or 330
+        self.rotation_with_cases(theta_current_antenna_pointing, theta_global_bear)
+
+    def find_quartile(self):
+        same_ax = 0
+        thresshold = 0.1
+        if self.GS[0] < self.gps[0] and self.GS[1] < self.gps[1]:
+            quartile = 1
+        elif self.GS[0] < self.gps[0] and self.GS[1] > self.gps[1]:
+            quartile = 2
+        elif self.GS[0] > self.gps[0] and self.GS[1] > self.gps[1]:
+            quartile = 3
+        elif self.GS[0] > self.gps[0] and self.GS[1] < self.gps[1]:
+            quartile = 4
         else:
-            sing = -1
-        dif1 = sing*(angle_goal - theta_cur_point)
-        dif2 = 360 - dif1
-        if dif1 < dif2:
-            self.dif = dif1
-            self.rot = 1 #clockwise
-            if sing == -1:
-                self.rot = 0
+            print("almost in same axis")
+            if abs(self.GS[0] - self.gps[0]) < thresshold :
+                #in same y' axis
+                if abs(self.GS[1] - self.gps[1]) < thresshold :
+                    print("almost the same point")
+                    quartile = 5
+                elif self.GS[1] < self.gps[1]:
+                    quartile = 6
+                else:
+                    quartile = 7
+            else:
+                #in same y' axis
+                if abs(self.GS[0] - self.gps[0]) < thresshold :
+                    print("almost the same point")
+                    quartile = 5
+                elif self.GS[0] < self.gps[0]:
+                    quartile = 8
+                else:
+                    quartile = 9
+        return quartile
+
+    def find_bear(self, quartile_):
+        quartile = quartile_
+        if quartile == 1:
+            theta_global_bear = self.case_quartile_1()
+        elif quartile == 2:
+            theta_global_bear = self.case_quartile_2()
+        elif quartile == 3:
+            theta_global_bear = self.case_quartile_3()
+        elif quartile == 4:
+            theta_global_bear = self.case_quartile_4()
+        elif quartile == 5:
+            theta_global_bear = 0
+            print("do nothing")
+        elif quartile == 6:
+            theta_global_bear = 180
+        elif quartile == 7:
+            theta_global_bear = 0
+        elif quartile == 8:
+            theta_global_bear = 270
+        elif quartile == 9:
+            theta_global_bear = 90
+        return theta_global_bear
+
+    def case_quartile_1(self):
+        #find the angle that GS sees the gondola
+        theta_global = math.atan((self.gps[1] - self.GS[1]) / (self.gps[0] - self.GS[0]))*180/math.pi
+        print("theta global = ",theta_global,"\n")
+        #find the supplementary of that angle
+        theta_global_supplementary = 90 - theta_global
+        #angle that gondola sees GS
+        theta_global_bear = theta_global_supplementary + 180
+        #180
+        return theta_global_bear
+
+    def case_quartile_2(self):
+        # find the angle that GS sees the gondola
+        theta_global = math.atan(( self.gps[0] - self.GS[0]) / (self.GS[1] - self.gps[1])) * 180 / math.pi
+        print("theta global = ", theta_global, "\n")
+        #angle that gondola sees GS
+        theta_global_bear = theta_global + 270
+        return theta_global_bear
+
+    def case_quartile_3(self):
+        # find the angle that GS sees the gondola
+        theta_global = math.atan(( self.GS[1] - self.gps[1] ) / (self.GS[0] - self.gps[0])) * 180 / math.pi
+        print("theta global = ", theta_global, "\n")
+        #angle that gondola sees GS
+        theta_global_bear = theta_global
+        return theta_global_bear
+
+    def case_quartile_4(self):
+        # find the angle that GS sees the gondola
+        theta_global = math.atan((self.GS[0] - self.gps[0]) / (self.gps[1] - self.GS[1])) * 180 / math.pi
+        print("theta global = ", theta_global, "\n")
+        # find the supplementary of that angle
+        # angle that gondola sees GS
+        theta_global_bear = 180 - theta_global
+        return theta_global_bear
+
+    def rotation_with_cases(self, theta_current_antenna_pointing, theta_global_bear):
+        #case a of clockwise rotation
+        if theta_current_antenna_pointing < theta_global_bear:
+            dif1 = theta_global_bear - theta_current_antenna_pointing
+            dif2 = 360 - theta_global_bear + theta_current_antenna_pointing
+            if dif1 <= dif2:
+                if self.antenna_adc.check_isinoverlap(dif1, +1):  # clockwise
+                    self.difference = dif2
+                    self.direction = 0 #ani-clockwise
+                    new_angle = self.antenna_adc.set_by_motor_in + 360 - self.difference
+                    new_angle = new_angle % 360
+                    if new_angle < 0:
+                        new_angle = 360 - abs(new_angle)
+                    self.antenna_adc.update_set_by_motor(new_angle)
+                    self.antenna_adc.update_counter_for_overlap(self.difference, -1)
+                else:
+                    self.difference = dif1
+                    self.direction = 1 #clockwise
+                    new_angle = self.antenna_adc.set_by_motor_in + self.difference
+                    new_angle = new_angle % 360
+                    if new_angle < 0:
+                        new_angle = 360 - abs(new_angle)
+                    self.antenna_adc.update_set_by_motor(new_angle)
+                    self.antenna_adc.update_counter_for_overlap(self.difference, +1)
+            else:
+                if self.antenna_adc.check_isinoverlap(dif2, -1):  # anti-clockwise
+                    self.difference = dif1
+                    self.direction = 1 #clockwise
+                    new_angle = self.antenna_adc.set_by_motor_in +self.difference
+                    new_angle = new_angle % 360
+                    if new_angle < 0:
+                        new_angle = 360 - abs(new_angle)
+                    self.antenna_adc.update_set_by_motor(new_angle)
+                    self.antenna_adc.update_counter_for_overlap(self.difference, +1)
+                else:
+                    self.difference = dif2
+                    self.direction = 0 #anti-clockwise
+                    new_angle = self.antenna_adc.set_by_motor_in + 360 - self.difference
+                    new_angle = new_angle % 360
+                    if new_angle < 0:
+                        new_angle = 360 - abs(new_angle)
+                    self.antenna_adc.update_set_by_motor(new_angle)
+                    self.antenna_adc.update_counter_for_overlap(self.difference, -1)
         else:
-            self.dif = dif2
-            self.rot = 0 #anti-clockwise
-            if sing == -1:
-                self.rot = 1
-        print("dif = ", self.dif,"\nrotation = ", self.rot)
-        #motor action(self.dif, self.rot)
-        if self.rot == 1:
-            update_a = self.dif + self.antenna_adc.set_by_motor_in
-        else:
-            update_a = self.antenna_adc.set_by_motor_in - self.dif
-        self.antenna_adc.update_set_by_motor(update_a)
-        print("updated = ",self.antenna_adc.set_by_motor_in)
+            dif1 = 360 - theta_current_antenna_pointing + theta_global_bear
+            dif2 = theta_current_antenna_pointing - theta_global_bear
+            if dif1 <= dif2:
+                if self.antenna_adc.check_isinoverlap(dif1, +1):  # clockwise
+                    self.difference = dif2
+                    self.direction = 0 #ani-clockwise
+                    # print("dif = ", self.difference,"\n rotation = ", self.direction)
+                    # #motor action(self.difference, self.direction)
+                    new_angle = self.antenna_adc.set_by_motor_in - self.difference
+                    new_angle = new_angle % 360
+                    if new_angle < 0:
+                        new_angle = 360 - abs(new_angle)
+                    self.antenna_adc.update_set_by_motor(new_angle)
+                    self.antenna_adc.update_counter_for_overlap(self.difference, -1)
+                else:
+                    self.difference = dif1
+                    self.direction = 1 #clockwise
+                    # print("dif = ", self.difference,"\n rotation = ", self.direction)
+                    # #motor action(self.difference, self.direction)
+                    new_angle = self.antenna_adc.set_by_motor_in + self.difference
+                    new_angle = new_angle % 360
+                    if new_angle < 0:
+                        new_angle = 360 - abs(new_angle)
+                    self.antenna_adc.update_set_by_motor(new_angle)
+                    self.antenna_adc.update_counter_for_overlap(self.difference, +1)
+            else:
+                if self.antenna_adc.check_isinoverlap(dif2, -1):  # anti-clockwise
+                    self.difference = dif1
+                    self.direction = 1 #clockwise
+                    # print("dif = ", self.difference,"\n rotation = ", self.direction)
+                    # #motor action(self.difference, self.direction)
+                    new_angle = self.antenna_adc.set_by_motor_in +self.difference
+                    new_angle = new_angle % 360
+                    if new_angle < 0:
+                        new_angle = 360 - abs(new_angle)
+                    self.antenna_adc.update_set_by_motor(new_angle)
+                    self.antenna_adc.update_counter_for_overlap(self.difference, +1)
+                else:
+                    self.difference = dif2
+                    self.direction = 0 #anti-clockwise
+                    # print("dif = ", self.difference,"\n rotation = ", self.direction)
+                    # #motor action(self.difference, self.direction)
+                    new_angle = self.antenna_adc.set_by_motor_in + 360 - self.difference
+                    new_angle = new_angle % 360
+                    if new_angle < 0:
+                        new_angle = 360 - abs(new_angle)
+                    self.antenna_adc.update_set_by_motor(new_angle)
+                    self.antenna_adc.update_counter_for_overlap(self.difference, -1)
+
+    #Manual mode of ADC
     def manual_adc(self):
         print("ADC in Manual Mode")
-        self.man_adc = True
+        self.inman_adc = True
         #timeout = 1*10
         #def timeout_error(* _):
             #raise TimeoutError
@@ -77,50 +258,53 @@ class ADC(object):
         elif ch == "set":
             print("input set")
             an = input("Enter desired angle in degrees: \n angle 0-360\n")
-            an = int(an)
+            an = float(an)
             if an < 360 and an > 0:
                 self.set(an)
             else:
                 print("Wrong angle input")
         else:
             print("Wrong input")
-        #self.man_adc = False
+        #self.inman_adc = False
+    #Scan mode of Manual ADC
     def scan(self):
         print("Manual in Scan Mode")
-        self.bscan = True
+        self.inscan = True
         #from current point of motor driver go to 0 degrees
-        self.dif = self.antenna_adc.set_by_motor_in
-        self.rot = 0 #anti-clockwise
-        #motor act(self.dif, self.rot)
+        self.difference = abs(self.antenna_adc.counter_for_overlap)
+        if self.antenna_adc.counter_for_overlap < 0:
+            self.direction = 1
+        else:
+            self.direction = 0
+        #motor act(self.difference, self.direction)
         self.antenna_adc.update_set_by_motor(0)
         #turn 360 degrees
-        self.dif = 360
-        self.rot = 1 #clockwise
-        #motor act(self.dif, self.rot)
+        self.difference = 360
+        self.direction = 1 #clockwise
+        #motor act(self.difference, self.direction)
         self.antenna_adc.update_set_by_motor(360)
         #return to 0 degrees
-        self.dif = 360
-        self.rot = 0 #anti-clockwise
-        #motor act(self.dif, self.rot)
-        self.bscan = False
+        self.difference = 360
+        self.direction = 0 #anti-clockwise
+        #motor act(self.difference, self.direction)
+        self.inscan = False
+
+    #Set mode of Manual ADC
     def set(self, ang):
         print("Manual in Set Mode")
-        self.bset = True
-        if ang > self.antenna_adc.set_by_motor_in:
-            self.dif = ang - self.antenna_adc.set_by_motor_in
-            self.rot = 0
-        else:
-            self.dif = self.antenna_adc.set_by_motor_in - ang
-            self.rot = 1
-        #motor act(self.dif, self.rot)
-        print("dif = ", self.dif, "\nrotation = ", self.rot)
-        print("Antenna is set to", ang)
-        self.bset = False
-    def close(self):
+        self.inset = True
+        theta_current_antenna_pointing = self.antenna_adc.set_by_motor_in
+        theta_global_bear = ang
+        self.cases_for_rotation(theta_current_antenna_pointing, theta_global_bear)
+        print("Antenna is set to", self.antenna_adc.set_by_motor_in)
+        self.inset = False
+
+    #function to close the ADC process
+    def onClose(self):
         print("Close ADC")
 
 
-def main():
+if __name__ == '__main__':
     adc = ADC()
     adc.run_init()
     while True:
@@ -129,11 +313,11 @@ def main():
         if inp == "manual":
             adc.manual_adc()
         else:
-            x = int(inp)
-            y = int(input("wait for y of gondola"))
-            c = int(input("wait for compass degrees"))
+            x = float(inp)
+            y = float(input("wait for y of gondola\n"))
+            c = float(input("wait for compass degrees\n"))
             adc.run_auto(x, y, c)
-    adc.close()
+    adc.onClose()
     print("DONE")
 
 
