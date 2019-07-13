@@ -16,7 +16,8 @@ class Antenna:
         self.set_by_motor_in = 0
         self.counter_for_overlap = 0
         self.overlap_thress = 380
-
+        self.sign_for_counter_overlap = 0
+        self.next_plus_angle = 0
     #function to update if antenna is used or not
     def update_state(self, state):
         self.state = state
@@ -27,14 +28,14 @@ class Antenna:
     def update_set_by_motor(self, a):
         self.set_by_motor_in = a
 
-    def check_isinoverlap(self, next_plus_angle, sign):
-        if self.counter_for_overlap + sign*next_plus_angle > self.overlap_thress:
+    def check_isinoverlap(self, sign, next_plus_angle):
+        if self.counter_for_overlap + sign*next_plus_angle > self.overlap_thress or self.counter_for_overlap + sign*next_plus_angle < -(self.overlap_thress - 360):
             return True
         else:
             return False
 
-    def update_counter_for_overlap(self, next_plus_angle, sign):
-        self.counter_for_overlap += sign*next_plus_angle
+    def update_counter_for_overlap(self):
+        self.counter_for_overlap += self.sign_for_counter_overlap*self.next_plus_angle
 
     #function for testing the Antenna class
     def test(self):
