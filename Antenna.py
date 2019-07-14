@@ -25,11 +25,13 @@ class Antenna:
         print(self.state)
 
     #function to update the degrees of antenna's base rotated by motor
-    def update_set_by_motor(self, a):
-        self.set_by_motor_in = a
+    def update_set_by_motor(self, new_angle):
+        self.set_by_motor_in = new_angle
 
-    def check_isinoverlap(self, sign, next_plus_angle):
-        if self.counter_for_overlap + sign*next_plus_angle > self.overlap_thress or self.counter_for_overlap + sign*next_plus_angle < -(self.overlap_thress - 360):
+    def check_isinoverlap(self, next_plus_angle, sign):
+        if self.counter_for_overlap + sign*next_plus_angle > self.overlap_thress:
+            return  True
+        elif self.counter_for_overlap + sign*next_plus_angle < -(self.overlap_thress - 360):
             return True
         else:
             return False
