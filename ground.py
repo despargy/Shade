@@ -15,28 +15,58 @@ class GroundClient:
             self.uplink_host = elinkmanager_ip
 
         self.up_link_port = 12345
-        self.down_link_port = 12346
+        self.images_port = 12346
+        self.data_port = 12347
+        self.logs_port = 12348
         self.BUFFER_SIZE = 1024
         #set timeout 10 seconds
         self.timeout = 10
         # bind ground to down_link_port , to receive images
-        threading.Thread(target=self.open_downlink_connetion).start()
+        threading.Thread(target=self.open_connection, args=(self.logs_port, )).start()
+        threading.Thread(target=self.open_connection, args=(self.data_port, )).start()
+        threading.Thread(target=self.open_image_connection, args=(self.images_port, )).start()
 
+
+    def open_connection(self,port):
+        host = ''
+        elink_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        elink_socket.bind((host, port))
+
+        while True:
+            print('Awaiting data')
+            data, addr = elink_socket.recvfrom(self.BUFFER_SIZE)
+
+            if data:
+                file_name = data.strip().decode('utf-8')
+                print ("File name:"+file_name)
+            else:
+                #received bad package
+                continue
+
+            data, addr = elink_socket.recvfrom(self.BUFFER_SIZE)
+            total_rows = int(data.decode('utf-8'))
+
+            for i in range(total_rows):
+                f = open('test.'+file_name, "a")
+                data, addr = elink_socket.recvfrom(self.BUFFER_SIZE)
+                f.write(data.decode('utf-8')+'\n')
+                f.close()
+                time.sleep(0.2)
 
 
     #TODO: maybe need better error handling
-    def open_downlink_connetion(self):
+    def open_image_connection(self,port):
         """
             Function to bind ground software to down_link_port
             and await for downlink manager to send image.
         """
-        downlink_host = ''
-        down_link_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        down_link_socket.bind((downlink_host, self.down_link_port))
+        image_downlink_host = ''
+        image_downlink_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        image_downlink_socket.bind((image_downlink_host, port))
         while True:
             print('awaiting image')
             #wait for connection from downlinkmanager
-            data, addr = down_link_socket.recvfrom(self.BUFFER_SIZE)
+            data, addr = image_downlink_socket.recvfrom(self.BUFFER_SIZE)
             if data:
                 file_name = data.strip().decode('utf-8')
                 print ("File name:"+file_name)
@@ -44,16 +74,16 @@ class GroundClient:
                 #received bad package
                 continue
             #TODO : check if dir exists. if not create it
-            fh = open('images/'+ file_name, "wb")
+            fh = open('images/test.'+ file_name, "ab")
             #read buffer by BUFFER_SIZE chunks
             while True:
-                data, addr = down_link_socket.recvfrom(self.BUFFER_SIZE)
+                data, addr = image_downlink_socket.recvfrom(self.BUFFER_SIZE)
                 fh.write(data)
                 if not data: break
 
             fh.close()
 
-        down_link_socket.close()
+        image_downlink_socket.close()
 
 
 
