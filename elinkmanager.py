@@ -3,18 +3,65 @@ import socket
 import threading
 import json
 import time
-
+import master
 
 class ELinkManager:
 
     def __init__(self):
         self.host = ''
+        self.ground_host = socket.gethostname()
         self.recv_port = 12345
+        self.data_port = 12347
+        self.logs_port = 12348
         self.BUFFER_SIZE = 1024
         self.recv_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.recv_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.recv_socket.bind((self.host, self.recv_port))
         self.recv_socket.listen(5)
+        threading.Thread(target=self.send_data_logs).start()
+        threading.Thread(target=self.send_logs).start()
+
+    def send_logs(self):
+        file_name = 'info.log'
+        while(True):
+            time.sleep(10)
+            #first send filename
+            logs_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            logs_socket.sendto(file_name.encode('utf-8'), (self.ground_host, self.logs_port))
+
+            print ("Begin sending "+file_name+" ...")
+            unsend_logs, total_rows = master.Master.get_infologger_unsend_data()
+
+            logs_socket.sendto(str(total_rows).encode('utf-8'), (self.ground_host, self.logs_port))
+
+            #TODO: read data as BUFFER_SIZE chungs and not line by line
+            for log in unsend_logs:
+                print(len(log.encode('utf-8')))
+                logs_socket.sendto(log.encode('utf-8'), (self.ground_host, self.logs_port))
+                time.sleep(0.02)
+
+
+    def send_data_logs(self):
+        """
+            @file_name : the filename of image to send.
+            Function to send image to ground software.
+        """
+        file_name = 'data.log'
+        while(True):
+            time.sleep(10)
+            #first send filename
+            data_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            data_socket.sendto(file_name.encode('utf-8'), (self.ground_host, self.data_port))
+            print ("Begin sending "+file_name+" ...")
+            unsend_data, total_rows = master.Master.get_datalogger_unsend_data()
+
+            data_socket.sendto(str(total_rows).encode('utf-8'), (self.ground_host, self.data_port))
+
+            #TODO: read data as BUFFER_SIZE chungs and not line by line
+            for data in unsend_data:
+                print(len(data.encode('utf-8')))
+                data_socket.sendto(data.encode('utf-8'), (self.ground_host, self.data_port))
+                time.sleep(0.02)
 
 
     def start(self):
