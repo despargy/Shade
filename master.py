@@ -1,11 +1,12 @@
 import elinkmanager
-import threading, time
+import threading, time , sys
 from logger import InfoLogger , AdcsLogger, DataLogger
 
 
 class Master:
 
-    def __init__(self):
+    def __init__(self,ground_ip):
+        self.ground_ip = ground_ip
         threading.Thread(target=self.create_dummy_data).start()
 
 
@@ -22,7 +23,7 @@ class Master:
 
 
     def init_elink(self):
-        elink = elinkmanager.ELinkManager()
+        elink = elinkmanager.ELinkManager(self.ground_ip)
         threading.Thread(target=elink.start).start()
 
     @staticmethod
@@ -35,4 +36,16 @@ class Master:
 
 
 if __name__ == "__main__":
-    Master().start()
+    if len(sys.argv) != 2:
+        print("""
+              [+] Run master program with one argument.
+              [+] The argument indicates the ground IP
+              [+] e.g python master.py 195.168.0.1
+
+              [+] For Testing purposes use 'local' as argument
+              [+] to simulate a connection locally
+              [+] e.g python master.py local
+              """)
+    else:
+        ground_ip = sys.argv[1]
+        Master(ground_ip).start()

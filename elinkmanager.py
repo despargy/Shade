@@ -7,9 +7,14 @@ import master
 
 class ELinkManager:
 
-    def __init__(self):
+    def __init__(self, ground_ip):
         self.host = ''
-        self.ground_host = socket.gethostname()
+        
+        if ground_ip == 'local':
+            self.ground_host = socket.gethostname()
+        else:
+            self.ground_host = ground_ip
+
         self.recv_port = 12345
         self.data_port = 12347
         self.logs_port = 12348

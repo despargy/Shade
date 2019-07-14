@@ -93,8 +93,6 @@ class AdcsLogger(Logger):
 
 
 
-
-
 class InfoLogger(Logger):
 
     __instance = None
