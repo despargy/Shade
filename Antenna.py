@@ -1,33 +1,24 @@
 class Antenna:
     #constructor
-    def __init__(self, name, step):
-        """ name: name of antenna
-            step: step size of motor 1.8
-            bdeployed: antenna is deployed
+    def __init__(self):
+        """
             state: is used or not
-            set_by_motor_in: degrees of antenna's base rotated by motor
+            position: degrees of antenna's base rotated by motor
             degrees_counter_for_overlap: counter to check for overlap
             overlap_thress: maximun degrees that antenna is able to rotate = 360 + overlap
         """
-        self.name = name
-        self.step_size = step
-        self.bdeployed = False
-        self.state = True
-        self.set_by_motor_in = 0
-        self.counter_for_overlap = 0
+        self.position = 0
         self.overlap_thress = 380
-        self.sign_for_counter_overlap = 0
-        self.next_plus_angle = 0
+        self.counter_for_overlap = self.position
+        self.sign_for_counter_overlap = +1
     #function to update if antenna is used or not
-    def update_state(self, state):
-        self.state = state
-        print("state updated")
-        print(self.state)
-
-    #function to update the degrees of antenna's base rotated by motor
-    def update_set_by_motor(self, new_angle):
-        self.set_by_motor_in = new_angle
-
+    def update_position(self, difference, sign):
+        self.position = self.position + sign*difference
+        if self.position < 0:
+            self.position = 360 - abs(self.position)
+        elif self.position > 360:
+            self.position -= 360
+        self.counter_for_overlap = self.counter_for_overlap + self.sign_for_counter_overlap*difference
     def check_isinoverlap(self, next_plus_angle, sign):
         if self.counter_for_overlap + sign*next_plus_angle > self.overlap_thress:
             return  True
@@ -35,14 +26,3 @@ class Antenna:
             return True
         else:
             return False
-
-    def update_counter_for_overlap(self):
-        self.counter_for_overlap += self.sign_for_counter_overlap*self.next_plus_angle
-
-    #function for testing the Antenna class
-    def test(self):
-        self.bdeployed = True
-        print(self.bdeployed)
-        self.update_set_by_motor(210)
-        print(self.set_by_motor_in)
-
