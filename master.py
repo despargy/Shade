@@ -1,4 +1,4 @@
-import elinkmanager
+import elinkmanager , datamanager
 import threading, time , sys
 from logger import InfoLogger , AdcsLogger, DataLogger
 
@@ -7,19 +7,19 @@ class Master:
 
     def __init__(self,ground_ip):
         self.ground_ip = ground_ip
-        threading.Thread(target=self.create_dummy_data).start()
 
-
-    def create_dummy_data(self):
-        while True:
-            time.sleep(3)
-            DataLogger.get_instance().write_info('Data1 , Data2 , Data3 , Data 4')
-            InfoLogger.get_instance().write_info('Data1 , Data2 , Data3 , Data 4')
 
     def start(self):
 
         #Init ELinkManager
-        self.init_elink()
+        #self.init_elink()
+        
+        #init_datamanager
+        self.init_datamanager()
+        
+    def init_datamanager(self):
+        data_manager = datamanager.DataManager(self,InfoLogger.get_instance(),DataLogger.get_instance())
+        threading.Thread(target=data_manager.start).start()    
 
 
     def init_elink(self):
