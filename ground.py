@@ -19,8 +19,7 @@ class GroundClient:
         self.data_port = 12347
         self.logs_port = 12348
         self.BUFFER_SIZE = 1024
-        #set timeout 10 seconds
-        self.timeout = 10
+
         # bind ground to down_link_port , to receive images
         threading.Thread(target=self.open_connection, args=(self.logs_port, )).start()
         threading.Thread(target=self.open_connection, args=(self.data_port, )).start()
@@ -33,12 +32,10 @@ class GroundClient:
         elink_socket.bind((host, port))
 
         while True:
-            print('Awaiting data')
             data, addr = elink_socket.recvfrom(self.BUFFER_SIZE)
 
             if data:
                 file_name = data.strip().decode('utf-8')
-                print ("File name:"+file_name)
             else:
                 #received bad package
                 continue
@@ -64,12 +61,10 @@ class GroundClient:
         image_downlink_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         image_downlink_socket.bind((image_downlink_host, port))
         while True:
-            print('awaiting image')
             #wait for connection from downlinkmanager
             data, addr = image_downlink_socket.recvfrom(self.BUFFER_SIZE)
             if data:
                 file_name = data.strip().decode('utf-8')
-                print ("File name:"+file_name)
             else:
                 #received bad package
                 continue
@@ -131,10 +126,14 @@ class GroundClient:
             package = {"action": action , "subsystem":subsystem }
 
             #send data as json string
-            conn_socket.sendall(json.dumps(package).encode('utf-8'))
+            try:
+                conn_socket.sendall(json.dumps(package).encode('utf-8'))
 
-            #get response and print it
-            response = conn_socket.recv(self.BUFFER_SIZE).decode('utf-8')
+                #get response and print it
+                response = conn_socket.recv(self.BUFFER_SIZE).decode('utf-8')
+            except ConnectionAbortedError:
+                print('Lost Connection')
+                break
             print(f"{str(response)}")
 
 
