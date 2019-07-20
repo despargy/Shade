@@ -19,6 +19,7 @@ class HEAT(object):
             self.ison = False
             self.need_heating = False
             self.temp_thresshold = 10
+            self.mean_temp = self.temp_thresshold
             self.max_size = 5
             self.data_queue = queue.Queue(self.max_size)
             self.pin_heaterA = 24 #pin for Heater A
@@ -55,10 +56,10 @@ class HEAT(object):
     def consider_data(self):
         if not self.data_queue.empty():
             l = list(self.data_queue.queue)
-            m = mean(l)
+            self.mean_temp = mean(l)
             print("list = ", l)
-            print(m)
-            return m < self.temp_thresshold
+            print(self.mean_temp)
+            return self.mean_temp < self.temp_thresshold
 
 
     def open_heat(self):
@@ -75,14 +76,11 @@ class HEAT(object):
 
     def threaded_function_data(self):
         while True:
-            temp = random.randrange(-13,30,1)
+            temp = random.randrange(15,30,1)
             #temp = self.datamanager.dictionary['ext_temp']
-            if self.data_queue.full():
-                self.data_queue.get()
-            self.data_queue.put(temp) #put or put_nowait?
-            sleep(1)
+            if type(temp) in [int, float]:
+                if self.data_queue.full():
+                    self.data_queue.get()
+                self.data_queue.put(temp) #put or put_nowait?
+                sleep(1)
 
-
-if __name__ == '__main__':
-    heat = HEAT()
-    heat.start()
