@@ -3,44 +3,62 @@ import math
 import Antenna as antenna
 import MotorADC as motor
 
+
 #class to represent subsystem's proccess of ADC
 class ADC():
+
+    __instance = None
     #constructor
+    #, Master, DataManager
+
     def __init__(self):
-        """
-            GS: x- axis y-axis of SHADE Ground Station - static
-            gps: x- axis y-axis of Gondola's  current x,y-axis
-            compass: data received from compass, degrees btwn North and Gondola 0,0
-            antenna_adc: object of antenna instance
-            direction: clockwise (1) or anti-clockwise(0) for antenna base rotation
-            difference: degrees which are needed for antenna base rotation
-        """
-        self.GS = [1, 1]
-        self.compass = 0
-        self.gps = self.GS
-        self.direction = 1
-        self.difference = 0
-        self.motor_adc = motor.MotorADC()
-        self.antenna_adc = antenna.Antenna()
+        if ADC.__instance != None:
+            raise Exception("This class is a singleton!")
+        else:
+            """
+                GS: x- axis y-axis of SHADE Ground Station - static
+                gps: x- axis y-axis of Gondola's  current x,y-axis
+                compass: data received from compass, degrees btwn North and Gondola 0,0
+                antenna_adc: object of antenna instance
+                direction: clockwise (1) or anti-clockwise(0) for antenna base rotation
+                difference: degrees which are needed for antenna base rotation
+            """
+            self.GS = [1, 1]
+            self.compass = 0
+            self.gps = self.GS
+            self.direction = 1
+            self.difference = 0
+            self.motor_adc = motor.MotorADC()
+            self.antenna_adc = antenna.Antenna()
+            #self.master = master
+            #self.datamanager = datamanager
+            ADC.__instance = self
+
+
+    def get_instance(self):
+        if ADC.__instance == None:
+            ADC()
+        return ADC.__instance
+
 
     def start(self):
-        isDeployed = True #!!!!!!!!!!!
+        isDeployed = True #!!!!!!!!!!! #self.master.isdeployed
         while not isDeployed:
             time.sleep(60)
         self.run_auto()
 
+
     #Auto mode of ADC
     def run_auto(self):
-        isManual = False #!!!!!!!!!!!!!
+        isManual = False #!!!!!!!!!!!!! # #self.master.isdeployed
         while True:
             while isManual:
                 time.sleep(2)
             print("ADC run auto\n")
-            self.compass = self.get_compass_data()
+            self.compass = self.get_compass_data() #self.datamanager.dictionary['angle_c']
             self.gps = self.get_gps_data()
-            #self.antenna_adc.position
-            #or
-            #antenna_pos = get_last_position()
+            #self.gps[0] = self.get_gps_data() #self.datamanager.dictionary['gps_x]
+            #self.gps[1] = self.get_gps_data() #self.datamanager.dictionary['gps_y']
             self.calc_new_position()
             c_step = self.convert_to_steps()
             self.notify_DMC_motor(c_step, self.direction)
@@ -48,21 +66,25 @@ class ADC():
             self.antenna_adc.update_position(c_step*self.motor_adc.step_size, self.direction)
             self.log_last_position(self.antenna_adc.counter_for_overlap)
 
+
     def get_compass_data(self):
         x = float(input("give compass\n"))
+        #x = self.datamanager.dictionary['angle_c']
         return x
+
+
     def get_gps_data(self):
         x = float(input("give gps x\n"))
         y = float(input("give gps y\n"))
         return [x,y]
-    def get_last_pos(self):
-        return self.antenna_adc.position
+
+
     def log_last_position(self, dif):
-        pass
+        pass #
     def notify_DMC_motor(self,a,b):
         pass
     def move_ADC_motor(self,c,d):
-        pass
+        self.motor_adc.act(c,d)
     def convert_to_steps(self):
         c_step = int(self.difference / self.motor_adc.step_size)
         return c_step
@@ -71,7 +93,7 @@ class ADC():
     def scan(self):
         pass
     def calc_new_position(self):
-    ##calc GEOMETRY##
+    #calc GEOMETRY
         thresshold  = 0.1
         if abs(self.GS[0] - self.gps[0]) < thresshold:
             # in same yy' axis
@@ -89,7 +111,7 @@ class ADC():
                 theta = fi #quartile = 3
             else:
                theta = 360 - fi # quartile = 4
-     ## end calc GEOMETRY ##
+     # end calc GEOMETRY
         theta_antenna_pointing = (self.antenna_adc.position + self.compass) % 360
         if theta_antenna_pointing < theta:
             dif1 = theta - theta_antenna_pointing
@@ -139,3 +161,4 @@ class ADC():
 if __name__ == '__main__':
     adc_obj = ADC()
     adc_obj.start()
+

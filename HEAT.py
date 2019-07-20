@@ -75,6 +75,7 @@ class HEAT(object):
 
 
     def threaded_function_data(self):
+        counter = 0
         while True:
             temp = random.randrange(15,30,1)
             #temp = self.datamanager.dictionary['ext_temp']
@@ -84,3 +85,7 @@ class HEAT(object):
                 self.data_queue.put(temp) #put or put_nowait?
                 sleep(1)
 
+
+if __name__ == '__main__':
+    heat = HEAT()
+    heat.start()
