@@ -3,6 +3,7 @@ import RPi.GPIO as GPIO
 
 class MotorADC():
 
+
     __instance = None
 
 
@@ -13,9 +14,9 @@ class MotorADC():
             self.step_size = 1.8
             self.direction = 0
             self.step_counter = 0
-            self.pin_direction = 20 # Direction GPIO Pin
-            self.pin_step = 21  # Step GPIO Pin
-            self.pin_sleep = 22
+            self.pin_direction = 13  # Direction GPIO Pin
+            self.pin_step = 11  # Step GPIO Pin
+            self.pin_sleep = 7 #Sleep Pin
             GPIO.setmode(GPIO.BOARD)
             GPIO.setup(self.pin_direction, GPIO.OUT)
             GPIO.setup(self.pin_step, GPIO.OUT)
@@ -46,7 +47,7 @@ class MotorADC():
     def test(self):
         self.act(10, 1)
         print("18 degrees clockwise: DONE")
-        self.act(10, 1)
+        self.act(10, 0)
         print("18 degrees anti-clockwise: DONE")
         self.act(100,1)
         print("180 degrees clockwise: DONE")
