@@ -1,4 +1,4 @@
-class Antenna:
+class Antenna():
 
 
     __instance = None
@@ -29,7 +29,7 @@ class Antenna:
 
     #function to update if antenna is used or not
     def update_position(self, difference, sign):
-        if type(difference) in [float, int] and (difference > 0) and type(sign) in [-1,+1]:
+        if type(difference) in [float, int] and (difference > 0) and sign in [-1,+1]:
             self.position = self.position + sign*difference
             if self.position < 0:
                 self.position = 360 - abs(self.position)
@@ -39,15 +39,15 @@ class Antenna:
 
 
     def check_isinoverlap(self, next_plus_angle, sign):
-        if type(next_plus_angle) in [float, int] and type(sign) in [int, float]:
+        if type(next_plus_angle) in [float, int] and sign in [-1, +1]:
             if self.counter_for_overlap + sign*next_plus_angle > self.overlap_thress:
-                return  True
+                return True
             elif self.counter_for_overlap + sign*next_plus_angle < -(self.overlap_thress - 360):
                 return True
             else:
                 return False
         else:
-            raise Exception("Wrong type of data  for overlap check")
+            print("Wrong type of data  for overlap check")
 
 
 
