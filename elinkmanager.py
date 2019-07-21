@@ -3,13 +3,13 @@ import socket
 import threading
 import json
 import time
-import master
 
 class ELinkManager:
 
-    def __init__(self, ground_ip):
-        self.host = ''
+    def __init__(self, master, ground_ip):
+        self.master = master
 
+        self.host = ''
         if ground_ip == 'local':
             self.ground_host = socket.gethostname()
         else:
@@ -19,7 +19,7 @@ class ELinkManager:
         self.data_port = 12347
         self.logs_port = 12348
         self.BUFFER_SIZE = 1024
-        
+
         self.recv_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.recv_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.recv_socket.bind((self.host, self.recv_port))
@@ -40,9 +40,9 @@ class ELinkManager:
             print ("Begin sending "+file_name+" ...")
 
             if file_name == 'info.log':
-                unsend_data, total_rows = master.Master.get_infologger_unsend_data()
+                unsend_data, total_rows = self.master.info_logger.get_unsend_data()
             elif file_name == 'data.log':
-                unsend_data, total_rows = master.Master.get_datalogger_unsend_data()
+                unsend_data, total_rows = self.master.data_logger.get_unsend_data()
 
             ground_socket.sendto(str(total_rows).encode('utf-8'), (self.ground_host, port))
 

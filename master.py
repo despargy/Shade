@@ -7,6 +7,9 @@ class Master:
 
     def __init__(self,ground_ip):
         self.ground_ip = ground_ip
+        self.info_logger = InfoLogger.get_instance()
+        self.data_logger = DataLogger.get_instance()
+        self.adcs_logger = AdcsLogger.get_instance()
         threading.Thread(target=self.create_dummy_data).start()
 
 
@@ -23,16 +26,8 @@ class Master:
 
 
     def init_elink(self):
-        elink = elinkmanager.ELinkManager(self.ground_ip)
+        elink = elinkmanager.ELinkManager(self,self.ground_ip)
         threading.Thread(target=elink.start).start()
-
-    @staticmethod
-    def get_datalogger_unsend_data():
-        return DataLogger.get_instance().get_unsend_data()
-
-    @staticmethod
-    def get_infologger_unsend_data():
-        return InfoLogger.get_instance().get_unsend_data()
 
 
 if __name__ == "__main__":
