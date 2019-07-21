@@ -1,4 +1,4 @@
-import elinkmanager , datamanager
+import datamanager
 import threading, time , sys
 from logger import InfoLogger , AdcsLogger, DataLogger
 
@@ -13,13 +13,13 @@ class Master:
 
         #Init ELinkManager
         #self.init_elink()
-        
+
         #init_datamanager
         self.init_datamanager()
-        
+
     def init_datamanager(self):
         data_manager = datamanager.DataManager(self,InfoLogger.get_instance(),DataLogger.get_instance())
-        threading.Thread(target=data_manager.start).start()    
+        threading.Thread(target=data_manager.start).start()
 
 
     def init_elink(self):
