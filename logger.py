@@ -80,7 +80,7 @@ class AdcsLogger(Logger):
          self.handler.setFormatter(self.formatter)
 
          self.logger = logging.getLogger('adcs_logger')
-         self.handler.setLevel(logging.DEBUG)
+         self.logger.setLevel(logging.INFO)
          self.logger.addHandler(self.handler)
          AdcsLogger.__instance = self
 
@@ -108,7 +108,7 @@ class InfoLogger(Logger):
             self.handler.setFormatter(self.formatter)
 
             self.logger = logging.getLogger('info_logger')
-            self.handler.setLevel(logging.DEBUG)
+            self.logger.setLevel(logging.INFO)
             self.logger.addHandler(self.handler)
             InfoLogger.__instance = self
 
@@ -134,7 +134,7 @@ class DataLogger(Logger):
             self.handler.setFormatter(self.formatter)
 
             self.logger = logging.getLogger('data_logger')
-            self.handler.setLevel(logging.DEBUG)
+            self.logger.setLevel(logging.INFO)
             self.logger.addHandler(self.handler)
             DataLogger.__instance = self
 
