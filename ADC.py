@@ -1,17 +1,16 @@
 import time
 import math
 import Antenna as antenna
-import MotorADC as motor
+import MotorADC as motoradc
+#from logger import InfoLogger , AdcsLogger, DataLogger
 
-
-#class to represent subsystem's proccess of ADC
 class ADC():
 
     __instance = None
-    #constructor
     #, Master, DataManager
 
     def __init__(self):
+
         if ADC.__instance != None:
             raise Exception("This class is a singleton!")
         else:
@@ -28,18 +27,17 @@ class ADC():
             self.gps = self.GS
             self.direction = 1
             self.difference = 0
-            self.motor_adc = motor.MotorADC()
-            self.antenna_adc = antenna.Antenna()
+            self.motor_adc = motoradc.MotorADC().get_instance()
+            self.antenna_adc = antenna.Antenna().get_instance()
+            #self.adcs_logger = AdcsLogger.get_instance()
             #self.master = master
             #self.datamanager = datamanager
             ADC.__instance = self
-
 
     def get_instance(self):
         if ADC.__instance == None:
             ADC()
         return ADC.__instance
-
 
     def start(self):
         isDeployed = True #!!!!!!!!!!! #self.master.isdeployed
@@ -47,29 +45,31 @@ class ADC():
             time.sleep(60)
         self.run_auto()
 
-
     #Auto mode of ADC
     def run_auto(self):
+
         isManual = False #!!!!!!!!!!!!! # #self.master.isdeployed
         while True:
+
             while isManual:
                 time.sleep(2)
-            print("ADC run auto\n")
+            #self.adcs_logger.write_info("ADC run auto")
             self.compass = self.get_compass_data() #self.datamanager.dictionary['angle_c']
             self.gps = self.get_gps_data()
-            #self.gps[0] = self.get_gps_data() #self.datamanager.dictionary['gps_x]
-            #self.gps[1] = self.get_gps_data() #self.datamanager.dictionary['gps_y']
+                #self.gps[0] = self.get_gps_data() #self.datamanager.dictionary['gps_x]
+                #self.gps[1] = self.get_gps_data() #self.datamanager.dictionary['gps_y']
             self.calc_new_position()
             c_step = self.convert_to_steps()
+            self.log_last_position_before(self.antenna_adc.counter_for_overlap)
             self.notify_DMC_motor(c_step, self.direction)
             self.move_ADC_motor(c_step, self.direction)
             self.antenna_adc.update_position(c_step*self.motor_adc.step_size, self.direction)
-            self.log_last_position(self.antenna_adc.counter_for_overlap)
+            self.log_last_position_after(self.antenna_adc.counter_for_overlap)
 
 
     def get_compass_data(self):
         x = float(input("give compass\n"))
-        #x = self.datamanager.dictionary['angle_c']
+            #x = self.datamanager.dictionary['angle_c']
         return x
 
 
@@ -79,19 +79,30 @@ class ADC():
         return [x,y]
 
 
-    def log_last_position(self, dif):
-        pass #
+    def log_last_position_before(self, msg):
+        #self.adcs_logger.write_info('WANT:',msg)
+        pass
+
+    def log_last_position_after(self, msg):
+        #self.adcs_logger.write_info('DID:',msg)
+        pass
+
     def notify_DMC_motor(self,a,b):
         pass
+
     def move_ADC_motor(self,c,d):
         self.motor_adc.act(c,d)
+
     def convert_to_steps(self):
         c_step = int(self.difference / self.motor_adc.step_size)
         return c_step
+
     def set_position(self):
         pass
+
     def scan(self):
         pass
+
     def calc_new_position(self):
     #calc GEOMETRY
         thresshold  = 0.1

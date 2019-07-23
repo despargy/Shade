@@ -1,4 +1,4 @@
-class Antenna():
+class Antenna:
 
 
     __instance = None
@@ -21,7 +21,7 @@ class Antenna():
             self.sign_for_counter_overlap = +1
             Antenna.__instance = self
 
-    def get_instace(self):
+    def get_instance(self):
         if Antenna.__instance == None:
              Antenna()
         else:
@@ -47,7 +47,7 @@ class Antenna():
             else:
                 return False
         else:
-            print("Wrong type of data  for overlap check")
+            print("Wrong type of data  for overlap check") #logger
 
 
 
