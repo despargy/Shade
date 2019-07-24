@@ -17,7 +17,6 @@ class Master:
         while True:
             time.sleep(3)
             DataLogger.get_instance().write_info('Data1 , Data2 , Data3 , Data 4')
-            InfoLogger.get_instance().write_info('Data1 , Data2 , Data3 , Data 4')
 
     def start(self):
 

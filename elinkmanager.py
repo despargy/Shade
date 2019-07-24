@@ -37,7 +37,7 @@ class ELinkManager:
             ground_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
             ground_socket.sendto(file_name.encode('utf-8'), (self.ground_host, port))
 
-            print ("Begin sending "+file_name+" ...")
+            #self.master.info_logger.write_info('Start sending {filename}'.format(filename=file_name))
 
             if file_name == 'info.log':
                 unsend_data, total_rows = self.master.info_logger.get_unsend_data()
@@ -46,18 +46,18 @@ class ELinkManager:
 
             ground_socket.sendto(str(total_rows).encode('utf-8'), (self.ground_host, port))
 
+            #TODOS: read file as chucks that have size BUFFER_SIZE
             for log in unsend_data:
-                print(len(log.encode('utf-8')))
+                #print(len(log.encode('utf-8')))
                 ground_socket.sendto(log.encode('utf-8'), (self.ground_host, port))
                 time.sleep(0.02)
-
 
     def start(self):
         """Initialize ELinkManager. Bind him to await for a connection"""
         while True:
            #start listening
            ground_socket,addr = self.recv_socket.accept()
-           print("Got a connection from %s" % str(addr))
+           self.master.info_logger.write_info('Got a connection from {addr}'.format(addr=addr))
            #Start Thread to serve client
            threading.Thread(target=self.open_connetion,
                             args=(ground_socket,addr, )).start()
@@ -91,7 +91,7 @@ class ELinkManager:
         """
             @ground_socket : the connection socket between ground and elinkmanager
             @addr: the ground address
-            Function to handle communication with ground software
+            Function to handle communication with ground software for manual commands
         """
         #send prompt
         try:
@@ -100,7 +100,7 @@ class ELinkManager:
                 #get package as json string
                 ground_package_json = ground_socket.recv(self.BUFFER_SIZE).decode('utf-8')
                 if not ground_package_json:
-                    print("Lost connection with %s" % str(addr))
+                    self.master.info_logger.write_error('Lost connection unexpected from {addr}'.format(addr=addr))
                     break
                 #handle the client package
                 server_response = self.handle_package(ground_package_json)
@@ -110,7 +110,7 @@ class ELinkManager:
             ground_socket.close()
         except ConnectionResetError:
             #remove this , add log
-            print('Lost Connection unexpected')
+            self.master.info_logger.write_error('Lost connection unexpected from {addr}'.format(addr=addr))
 
     def handle_package(self,ground_package_json):
         """
@@ -159,91 +159,91 @@ class ELinkManager:
 
 
     def dep(self):
-        print("Command is deploy")
+        self.master.info_logger.write_info('Received manual command: dep ')
         # Call master to make the actions
         return """
                   [+] Deployed Successfuly
                 """
 
     def dep_abort(self):
-        print("Command is dep_abort")
+        self.master.info_logger.write_info('Received manual command: dep_abort ')
         # Call master to make the actions
         return """
                   [+] Deployment Aborted
                 """
 
     def dep_again(self):
-        print("Command is dep_again")
+        self.master.info_logger.write_info('Received manual command: dep_again ')
         # Call master to make the actions
         return """
                   [+] Try Again to deploy
                 """
 
     def dep_confirm(self):
-        print("Command is dep_confirm")
+        self.master.info_logger.write_info('Received manual command: dep_confirm ')
         # Call master to make the actions
         return """
                   [+] Deployment Confirmed
                 """
 
     def dep_cutoff(self):
-        print("Command is dep_cutoff")
+        self.master.info_logger.write_info('Received manual command: dep_cutoff ')
         # Call master to make the actions
         return """
                   [+]Deployment Cutted Off
                 """
 
     def dep_abort_cutoff(self):
-        print("Command is dep_abort_cutoff")
+        self.master.info_logger.write_info('Received manual command: dep_abort_cutoff ')
         # Call master to make the actions
         return """
                   [+]Deployment Cut Off Aborted
                 """
 
     def dep_retrieve(self):
-        print("Command is dep_retrieve")
+        self.master.info_logger.write_info('Received manual command: dep_retrieve ')
         # Call master to make the actions
         return """
                   [+]Retrieved Successfuly
                 """
 
     def dep_retrieve_again(self):
-        print("Command is dep_retrieve_again")
+        self.master.info_logger.write_info('Received manual command: dep_retrieve_again ')
         # Call master to make the actions
         return """
                   [+]Try to Retrieved Again
                 """
 
     def adcs_set_auto(self):
-        print("Command is adcs_set_auto")
+        self.master.info_logger.write_info('Received manual command: adcs_set_auto ')
         # Call master to make the actions
         return """
                   [+]ADCS in auto mode
                 """
 
     def adcs_set_manual(self):
-        print("Command is adcs_set_manual")
+        self.master.info_logger.write_info('Received manual command: adcs_set_manual ')
         # Call master to make the actions
         return """
                   [+]ADCS in manual mode
                 """
 
     def adcs_scan(self):
-        print("Command is adcs_scan")
+        self.master.info_logger.write_info('Received manual command: adcs_scan ')
         # Call master to make the actions
         return """
                   [+]Scanned Successfuly
                 """
 
     def adcs_set_pos(self):
-        print("Command is adcs_set_pos")
+        self.master.info_logger.write_info('Received manual command: adcs_set_pos ')
         # Call master to make the actions
         return """
                   [+]Possition setted Successfuly
                 """
 
     def tx_stop_emmision(self):
-        print("Command is tx_stop_emmision")
+        self.master.info_logger.write_info('Received manual command: tx_stop_emmision')
         # Call master to make the actions
         return """
                   [+] Emmision Stopped
