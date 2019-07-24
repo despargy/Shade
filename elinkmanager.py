@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-import socket
+import socket , subprocess , platform
 import threading
 import json
 import time
@@ -28,29 +28,43 @@ class ELinkManager:
         threading.Thread(target=self.send_logs, args=('data.log',self.data_port,)).start()
         threading.Thread(target=self.send_logs, args=('info.log',self.logs_port,)).start()
 
-
+    
+    def ping_host(self,host):
+        try:
+            output = subprocess.check_output("ping -{} 1 {}".format('n' if platform.system().lower()=="windows" else 'c', host), shell=True)
+        except:
+            return False
+        
+        return True
+    
     def send_logs(self,file_name,port):
         while(True):
             time.sleep(10)
             #first send filename
+            
+            if(self.ping_host(self.ground_host)):
+                ground_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+                ground_socket.sendto(file_name.encode('utf-8'), (self.ground_host, port))
+                
 
-            ground_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-            ground_socket.sendto(file_name.encode('utf-8'), (self.ground_host, port))
+                #self.master.info_logger.write_info('Start sending {filename}'.format(filename=file_name))
 
-            #self.master.info_logger.write_info('Start sending {filename}'.format(filename=file_name))
+                if file_name == 'info.log':
+                    unsend_data, total_rows = self.master.info_logger.get_unsend_data()
+                elif file_name == 'data.log':
+                    unsend_data, total_rows = self.master.data_logger.get_unsend_data()
 
-            if file_name == 'info.log':
-                unsend_data, total_rows = self.master.info_logger.get_unsend_data()
-            elif file_name == 'data.log':
-                unsend_data, total_rows = self.master.data_logger.get_unsend_data()
+                ground_socket.sendto(str(total_rows).encode('utf-8'), (self.ground_host, port))
 
-            ground_socket.sendto(str(total_rows).encode('utf-8'), (self.ground_host, port))
-
-            #TODOS: read file as chucks that have size BUFFER_SIZE
-            for log in unsend_data:
-                #print(len(log.encode('utf-8')))
-                ground_socket.sendto(log.encode('utf-8'), (self.ground_host, port))
-                time.sleep(0.02)
+                #TODOS: read file as chucks that have size BUFFER_SIZE
+                for log in unsend_data:
+                    #print(len(log.encode('utf-8')))
+                    ground_socket.sendto(log.encode('utf-8'), (self.ground_host, port))
+                    time.sleep(0.02)
+            else:
+                print('Problems')
+            
+                
 
     def start(self):
         """Initialize ELinkManager. Bind him to await for a connection"""
@@ -100,7 +114,7 @@ class ELinkManager:
                 #get package as json string
                 ground_package_json = ground_socket.recv(self.BUFFER_SIZE).decode('utf-8')
                 if not ground_package_json:
-                    self.master.info_logger.write_error('Lost connection unexpected from {addr}'.format(addr=addr))
+                    self.master.info_logger.write_error('Lost connection unexpectedly from {addr}'.format(addr=addr))
                     break
                 #handle the client package
                 server_response = self.handle_package(ground_package_json)
@@ -110,7 +124,7 @@ class ELinkManager:
             ground_socket.close()
         except ConnectionResetError:
             #remove this , add log
-            self.master.info_logger.write_error('Lost connection unexpected from {addr}'.format(addr=addr))
+            self.master.info_logger.write_error('Lost connection unexpectedly from {addr}'.format(addr=addr))
 
     def handle_package(self,ground_package_json):
         """
