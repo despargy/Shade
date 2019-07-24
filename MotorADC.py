@@ -20,7 +20,7 @@ class MotorADC(Motor):
 
     __instance = None
 
-    def __init__(self):
+    def __init__(self, adc):
 
         if MotorADC.__instance != None:
             raise Exception("This class is a singleton!") #logger
@@ -34,8 +34,8 @@ class MotorADC(Motor):
 #            GPIO.setup(self.pin_step, GPIO.OUT)
 #            GPIO.setup(self.pin_sleep, GPIO.OUT)
 #            GPIO.output(self.pin_sleep, GPIO.HIGH)
-            print("motorADC created ") #logger
             MotorADC.__instance = self
+            self.adc = adc
 
     def get_instance(self):
         if MotorADC.__instance == None:
@@ -54,5 +54,5 @@ class MotorADC(Motor):
 #                GPIO.output(self.pin_step, GPIO.LOW)
                 #sleep(self.period*self.p_low)
         else:
-            print("Didn't permit action to motorADC") #logger
+            self.adc.adcslogger.write_warning("Didn't permit action to motorADC")
 

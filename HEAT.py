@@ -77,7 +77,7 @@ class HEAT(object):
     def threaded_function_data(self):
         counter = 0
         while True:
-            temp = random.randrange(15,30,1)
+            temp = random.randrange(-50,60,3)
             #temp = self.datamanager.dictionary['ext_temp']
             if type(temp) in [int, float]:
                 if self.data_queue.full():
