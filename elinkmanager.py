@@ -67,23 +67,26 @@ class ELinkManager:
            actions ground software can do"""
         return """
                 >> DMC Available Commands:
-                    [+] dep
-                    [+] dep_abort
-                    [+] deb_again
-                    [+] dep_confirm
-                    [+] dep_cutoff
-                    [+] dep_abort_cutoff
-                    [+] dep_retrieve
-                    [+] dep_retrieve_again
+                    [+] DEP
+                    [+] DEP_CONF
+                    [+] DEP_AB
+                    [+] DEP_SUCS
+                    [+] RET
+                    [+] RET_CONF
+                    [+] RET_AB
+                    [+] RET SUCS
 
                 >> ADCS Available Commands
-                    [+] adcs_set_auto
-                    [+] adcs_set_manual
-                    [+] adcs_scan
-                    [+] adcs_set_pos
+                    [+] SET
+                    [+] SCAN
+                    [+] ADC_MAN
 
-                >> TX Available Commands
-                    [+] tx_stop_emmision
+                >> Heat Available Commands:
+                    [+] HEAT_SLEEP
+
+                >> Reboot Available Commands:
+                    [+] REBOOT
+                    [+] REBOOT_SLAVE
                 """
 
 
@@ -123,131 +126,18 @@ class ELinkManager:
 
         #get data
         action = client_data["action"]
-        subsystem = client_data["subsystem"]
 
-        #check action and make the actions
-        if action == "dep":
-            return self.dep()
-        elif action == "dep_abort":
-            return self.dep_abort()
-        elif action == "dep_again":
-            return self.dep_again()
-        elif action == "dep_confirm":
-            return self.dep_confirm()
-        elif action == "dep_cutoff":
-            return self.dep_cutoff()
-        elif action == "dep_abort_cutoff":
-            return self.dep_abort_cutoff()
-        elif action == "dep_retrieve":
-            return self.dep_retrieve()
-        elif action == "dep_retrieve_again":
-            return self.dep_retrieve_again()
-        elif action == "adcs_set_auto":
-            return self.adcs_set_auto()
-        elif action == "adcs_set_manual":
-            return self.adcs_set_manual()
-        elif action == "adcs_scan":
-            return self.adcs_scan()
-        elif action == "adcs_set_pos":
-            return self.adcs_set_pos()
-        elif action == "tx_stop_emmision":
-            return self.tx_stop_emmision()
+        if action == 'SET':
+            steps = client_data["steps"]
+            values = {'status': 1 , 'steps' : steps}
+            self.master.vector_command[action] = values
         else:
-            #unrecognised or unavailabe action
-            return "Unrecognised or Unavailabe action"
+            self.master.vector_command[action] = 1
 
-
-
-    def dep(self):
-        self.master.info_logger.write_info('Received manual command: dep ')
-        # Call master to make the actions
         return """
-                  [+] Deployed Successfuly
-                """
-
-    def dep_abort(self):
-        self.master.info_logger.write_info('Received manual command: dep_abort ')
-        # Call master to make the actions
-        return """
-                  [+] Deployment Aborted
-                """
-
-    def dep_again(self):
-        self.master.info_logger.write_info('Received manual command: dep_again ')
-        # Call master to make the actions
-        return """
-                  [+] Try Again to deploy
-                """
-
-    def dep_confirm(self):
-        self.master.info_logger.write_info('Received manual command: dep_confirm ')
-        # Call master to make the actions
-        return """
-                  [+] Deployment Confirmed
-                """
-
-    def dep_cutoff(self):
-        self.master.info_logger.write_info('Received manual command: dep_cutoff ')
-        # Call master to make the actions
-        return """
-                  [+]Deployment Cutted Off
-                """
-
-    def dep_abort_cutoff(self):
-        self.master.info_logger.write_info('Received manual command: dep_abort_cutoff ')
-        # Call master to make the actions
-        return """
-                  [+]Deployment Cut Off Aborted
-                """
-
-    def dep_retrieve(self):
-        self.master.info_logger.write_info('Received manual command: dep_retrieve ')
-        # Call master to make the actions
-        return """
-                  [+]Retrieved Successfuly
-                """
-
-    def dep_retrieve_again(self):
-        self.master.info_logger.write_info('Received manual command: dep_retrieve_again ')
-        # Call master to make the actions
-        return """
-                  [+]Try to Retrieved Again
-                """
-
-    def adcs_set_auto(self):
-        self.master.info_logger.write_info('Received manual command: adcs_set_auto ')
-        # Call master to make the actions
-        return """
-                  [+]ADCS in auto mode
-                """
-
-    def adcs_set_manual(self):
-        self.master.info_logger.write_info('Received manual command: adcs_set_manual ')
-        # Call master to make the actions
-        return """
-                  [+]ADCS in manual mode
-                """
-
-    def adcs_scan(self):
-        self.master.info_logger.write_info('Received manual command: adcs_scan ')
-        # Call master to make the actions
-        return """
-                  [+]Scanned Successfuly
-                """
-
-    def adcs_set_pos(self):
-        self.master.info_logger.write_info('Received manual command: adcs_set_pos ')
-        # Call master to make the actions
-        return """
-                  [+]Possition setted Successfuly
-                """
-
-    def tx_stop_emmision(self):
-        self.master.info_logger.write_info('Received manual command: tx_stop_emmision')
-        # Call master to make the actions
-        return """
-                  [+] Emmision Stopped
-                """
+                 [+] Command {action} Successfuly
+                 [+] changed vector_command
+               """.format(action=action)
 
 
 if __name__ == "__main__":

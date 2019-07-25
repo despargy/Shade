@@ -10,13 +10,23 @@ class Master:
         self.info_logger = InfoLogger.get_instance()
         self.data_logger = DataLogger.get_instance()
         self.adcs_logger = AdcsLogger.get_instance()
+        self.vector_command = {}
         threading.Thread(target=self.create_dummy_data).start()
+
+
+
+    def get_command(self,command):
+        try:
+            return vector_command[command]
+        except:
+            return 0
 
 
     def create_dummy_data(self):
         while True:
             time.sleep(3)
-            DataLogger.get_instance().write_info('Data1 , Data2 , Data3 , Data 4')
+            #DataLogger.get_instance().write_info('Data1 , Data2 , Data3 , Data 4')
+            print(self.vector_command)
 
     def start(self):
 

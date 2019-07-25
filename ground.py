@@ -1,9 +1,9 @@
 #!/usr/bin/python3
-import socket
+import socket , requests
 import json
 import threading
-import sys
-import time
+import sys , time
+from logger import InfoLogger
 
 
 class GroundClient:
@@ -20,6 +20,7 @@ class GroundClient:
         self.logs_port = 12348
         self.BUFFER_SIZE = 1024
 
+        self.info_logger = InfoLogger.get_instance()
         # bind ground to down_link_port , to receive images
         threading.Thread(target=self.open_connection, args=(self.logs_port, )).start()
         threading.Thread(target=self.open_connection, args=(self.data_port, )).start()
@@ -32,6 +33,7 @@ class GroundClient:
         elink_socket.bind((host, port))
 
         while True:
+
             data, addr = elink_socket.recvfrom(self.BUFFER_SIZE)
 
             if data:
@@ -41,10 +43,14 @@ class GroundClient:
                 continue
 
             data, addr = elink_socket.recvfrom(self.BUFFER_SIZE)
-            total_rows = int(data.decode('utf-8'))
+            try:
+                total_rows = int(data.decode('utf-8'))
+            except ValueError:
+                self.info_logger.write_error('Value Error exception on type casting for total rows')
+                continue
 
             for i in range(total_rows):
-                f = open('test.'+file_name, "a")
+                f = open('elink.'+file_name, "a")
                 data, addr = elink_socket.recvfrom(self.BUFFER_SIZE)
                 f.write(data.decode('utf-8')+'\n')
                 f.close()
@@ -66,10 +72,10 @@ class GroundClient:
             if data:
                 file_name = data.strip().decode('utf-8')
             else:
-                #received bad package
+                self.info_logger.write_error('Received bad package from elink. Ignoring.. ')
                 continue
             #TODO : check if dir exists. if not create it
-            fh = open('images/test.'+ file_name, "ab")
+            fh = open('images/elink.'+ file_name, "ab")
             #read buffer by BUFFER_SIZE chunks
             while True:
                 data, addr = image_downlink_socket.recvfrom(self.BUFFER_SIZE)
@@ -87,6 +93,16 @@ class GroundClient:
         pass
 
 
+    def has_internet_connection(self):
+        try:
+            _ = requests.get('http://www.google.com/', timeout=5)
+            return True
+        except requests.ConnectionError:
+            print("""
+                  [+] Lost Internet Connection
+                  [+] Trying to reconnect...
+                 """)
+        return False
 
     def establish_connection(self):
         """Main Function to send manual commands to elinkmanager"""
@@ -102,9 +118,9 @@ class GroundClient:
                         """)
                 break
             except socket.error as e:
-                print(e)
                 print("""
                         [+] Server is Unavailabe
+                        [+] or there is no internet connection.
                         [+] Try again to connect.
                         [+] Reconecting ...
                         """)
@@ -117,22 +133,40 @@ class GroundClient:
 
         while(True):
             action = input("Action: ")
-            if action == "EXIT" or action =="":
+            if action == "EXIT":
                 conn_socket.close()
-                break
+                sys.exit(0)
+            elif action =="":
+                continue
 
             #save data into dictionary
-            subsystem = input("Subsystem: ")
-            package = {"action": action , "subsystem":subsystem }
+            package = {"action": action }
+
+            if action == "SET":
+                package['steps'] = input('Steps: ')
+
+            
+            while(not self.has_internet_connection()): time.sleep(3)
 
             #send data as json string
             try:
                 conn_socket.sendall(json.dumps(package).encode('utf-8'))
-
                 #get response and print it
                 response = conn_socket.recv(self.BUFFER_SIZE).decode('utf-8')
             except ConnectionAbortedError:
-                print('Lost Connection')
+                print("""
+                        [+] Lost Connection.
+                        [+] Unable to send action {action}.
+                        [+] Initialize connection.
+                        [+] Please wait....
+                    """.format(action=action))
+                break
+            except ConnectionResetError:
+                print("""
+                        [+] Unable to send action {action}.
+                        [+] Initialize connection.
+                        [+] Please wait....
+                    """.format(action=action))
                 break
             print(f"{str(response)}")
 
@@ -152,4 +186,6 @@ if __name__ == "__main__":
 
     else:
         elinkmanager_ip = sys.argv[1]
-        GroundClient(elinkmanager_ip).establish_connection()
+        ground = GroundClient(elinkmanager_ip)
+        while(True):
+            ground.establish_connection()
