@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-import socket , subprocess , platform
+import socket, subprocess, platform
 import threading
 import json
 import time
@@ -28,26 +28,29 @@ class ELinkManager:
         threading.Thread(target=self.send_logs, args=('data.log',self.data_port,)).start()
         threading.Thread(target=self.send_logs, args=('info.log',self.logs_port,)).start()
 
-    
+
     def ping_host(self,host):
+        """
+            Function that ecexutes ping (linux command) to check if
+            ground IP exists into network.
+            @carefull : this function dont cover the case where ground is on network
+                        but is not available (bind to port etc)
+        """
         try:
             output = subprocess.check_output("ping -{} 1 {}".format('n' if platform.system().lower()=="windows" else 'c', host), shell=True)
         except:
             return False
-        
+
         return True
-    
+
     def send_logs(self,file_name,port):
         while(True):
             time.sleep(10)
             #first send filename
-            
+
             if(self.ping_host(self.ground_host)):
                 ground_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
                 ground_socket.sendto(file_name.encode('utf-8'), (self.ground_host, port))
-                
-
-                #self.master.info_logger.write_info('Start sending {filename}'.format(filename=file_name))
 
                 if file_name == 'info.log':
                     unsend_data, total_rows = self.master.info_logger.get_unsend_data()
@@ -55,16 +58,15 @@ class ELinkManager:
                     unsend_data, total_rows = self.master.data_logger.get_unsend_data()
 
                 ground_socket.sendto(str(total_rows).encode('utf-8'), (self.ground_host, port))
-
                 #TODOS: read file as chucks that have size BUFFER_SIZE
                 for log in unsend_data:
                     #print(len(log.encode('utf-8')))
                     ground_socket.sendto(log.encode('utf-8'), (self.ground_host, port))
                     time.sleep(0.02)
+
             else:
-                print('Problems')
-            
-                
+                    self.master.info_logger.write_error('Connection error with ground.')
+
 
     def start(self):
         """Initialize ELinkManager. Bind him to await for a connection"""
@@ -140,7 +142,7 @@ class ELinkManager:
 
         #get data
         action = client_data["action"]
-
+        self.master.info_logger.write_info('Action {action} was received from ground.'.format(action=action))
         if action == 'SET':
             steps = client_data["steps"]
             values = {'status': 1 , 'steps' : steps}

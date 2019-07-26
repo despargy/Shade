@@ -25,8 +25,7 @@ class Master:
     def create_dummy_data(self):
         while True:
             time.sleep(3)
-            #DataLogger.get_instance().write_info('Data1 , Data2 , Data3 , Data 4')
-            print(self.vector_command)
+            DataLogger.get_instance().write_info('Data1 , Data2 , Data3 , Data 4')
 
     def start(self):
 
