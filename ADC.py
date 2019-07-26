@@ -35,7 +35,6 @@ class ADC:
             self.valid_data = True
             ADC.__instance = self
             self.motor_dmc = self.master.dmc.motor_dmc
-            self.adcslogger.write_info('START ADC PROCESS')
 
 
     def get_instance(self):
@@ -46,6 +45,7 @@ class ADC:
 
     def start(self):
 
+        self.adcslogger.write_info('START ADC PROCESS')
         while not self.master.status_vector['DEP_SUCS']:
 
             self.adcslogger.write_info('WAIT FOR DEP')

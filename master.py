@@ -20,27 +20,37 @@ class Master:
 
     def init_status_vector(self):
         #Data
-        self.status_vector['GPS'] = 1
-        self.status_vector['COMPASS'] = 1
-        self.status_vector['IMU'] = 1
-        self.status_vector['ALTIMETER'] = 1
-        self.status_vector['TEMP'] = 1
+        self.status_vector['GPS'] = 1       #1
+        self.status_vector['COMPASS'] = 1   #1
+        self.status_vector['IMU'] = 1       #1
+        self.status_vector['ALTIMETER'] = 1 #1
+        self.status_vector['TEMP'] = 1      #1
         #Heat
-        self.status_vector['HEAT_ON'] = 0
+        self.status_vector['HEAT_ON'] = 0   #0
         #Transmition
-        self.status_vector['AMP_ON'] = 0
-        self.status_vector['TX_ON'] = 0
+        self.status_vector['AMP_ON'] = 0    #0
+        self.status_vector['TX_ON'] = 0     #0
         #ADC
-        self.status_vector['ADC_MAN'] = 0
+        self.status_vector['ADC_MAN'] = 0   #0
         #DMC
-        self.status_vector['DEP_READY'] = 0
-        self.status_vector['DEP_CONF'] = 0
-        self.status_vector['DEP_AB'] = 0
-        self.status_vector['DEP_SUCS'] = 1
-        self.status_vector['RET_READY'] = 0
-        self.status_vector['RET_CONF'] = 0
-        self.status_vector['RET_AB'] = 0
-        self.status_vector['RET_SUCS'] = 0
+        self.status_vector['DEP_READY'] = 0 #0
+        self.status_vector['DEP_CONF'] = 0  #0
+        self.status_vector['DEP_AB'] = 0    #0
+        self.status_vector['DEP_SUCS'] = 1  #1
+        self.status_vector['RET_READY'] = 0 #0
+        self.status_vector['RET_CONF'] = 0  #0
+        self.status_vector['RET_AB'] = 0    #0
+        self.status_vector['RET_SUCS'] = 0  #0
+
+        #ONLY FOR TESTING
+        self.command_vector['DEP'] = 1
+        self.command_vector['DEP_AB'] = 1
+        self.command_vector['DEP_CONF'] = 0
+        self.command_vector['DEP_RETRY'] = 0
+        self.command_vector['RET'] = 0
+        #self.command_vector['RET_AB'] = 1
+
+        #
 
     def get_command(self, command):
         try:
@@ -49,9 +59,9 @@ class Master:
             return 0
 
     def init_subsystems(self):
-        thread_adc = threading.Thread(target=self.adc.start).start()
-        #thread_dmc = threading.Thread(target=self.dmc.start).start()
-        thread_heat = threading.Thread(target=self.heat.start).start()
+        #thread_adc = threading.Thread(target=self.adc.start).start()
+        thread_dmc = threading.Thread(target=self.dmc.start).start()
+        #thread_heat = threading.Thread(target=self.heat.start).start()
         #thread_tx =
 
     def start(self):
@@ -60,6 +70,8 @@ class Master:
         self.init_subsystems()
         #self.init_elink()
         #self.init_datamanager()
+        while True:
+            print(self.status_vector['DEP_READY'])
 
 
 

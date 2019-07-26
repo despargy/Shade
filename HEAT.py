@@ -29,7 +29,6 @@ class HEAT(object):
             self.master = master_
             self.infologger = self.master.infologger
             HEAT.__instance = self
-            self.infologger.write_info('HEAT PROCESS START')
 
     def get_instance(self):
 
@@ -47,7 +46,7 @@ class HEAT(object):
             while self.master.get_command('HEAT_SLEEP'):
                 self.infologger.write_info('Reinforce CLOSE HEAT')
                 self.pause_heat()
-                sleep(5)
+                sleep(10)
 
             self.need_heating = self.consider_data()
             if self.need_heating and not self.master.status_vector['HEAT_ON']:
@@ -90,5 +89,5 @@ class HEAT(object):
                 if self.data_queue.full():
                     self.data_queue.get()
                 self.data_queue.put(temp) #put or put_nowait?
-                sleep(1)
+                sleep(5)
 
