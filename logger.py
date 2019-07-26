@@ -2,7 +2,9 @@ import logging
 from abc import ABC, abstractmethod
 from file_read_backwards import FileReadBackwards
 
+
 class Logger(ABC):
+
 
     def __init__(self):
         self.log_id = 0
@@ -10,6 +12,7 @@ class Logger(ABC):
 
     @abstractmethod
     def get_instance(self): pass
+
 
     def get_unsend_data(self):
         unread_logs = []
@@ -85,7 +88,7 @@ class AdcsLogger(Logger):
          AdcsLogger.__instance = self
 
 
-    def get_instance():
+    def get_instance(self):
         if AdcsLogger.__instance == None:
             AdcsLogger()
         return AdcsLogger.__instance
@@ -113,7 +116,7 @@ class InfoLogger(Logger):
             InfoLogger.__instance = self
 
 
-    def get_instance():
+    def get_instance(self):
         if InfoLogger.__instance == None:
             InfoLogger()
         return InfoLogger.__instance
@@ -139,7 +142,7 @@ class DataLogger(Logger):
             DataLogger.__instance = self
 
 
-    def get_instance():
+    def get_instance(self):
         if DataLogger.__instance == None:
             DataLogger()
         return DataLogger.__instance

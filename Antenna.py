@@ -12,7 +12,7 @@ class Antenna:
             degrees_counter_for_overlap: counter to check for overlap
             overlap_thress: maximun degrees that antenna is able to rotate = 360 + overlap
         """
-        if Antenna.__instance != None:
+        if Antenna.__instance is not None:
             raise Exception("This class is a singleton!")
         else:
             self.position = 0
@@ -22,7 +22,7 @@ class Antenna:
             Antenna.__instance = self
 
     def get_instance(self):
-        if Antenna.__instance == None:
+        if Antenna.__instance is None:
              Antenna()
         else:
             return Antenna.__instance
