@@ -8,13 +8,13 @@ import serial
 
 
 class DataManager:
-    #constructor
+    #constructor data
         def __init__(self,master,infologger,datalogger):
                 self.master = master
                 self.infologger = infologger
                 self.datalogger = datalogger
-                self.gps_port = "/dev/ttyACM2"
-                self.imu_port = "/dev/ttyACM3"
+                self.gps_port = "/dev/ttyACM0"
+                self.imu_port = "/dev/ttyACM1"
                 self.bus = smbus.SMBus(1)
                 self.P0 = 1015
                 self.dictionary = dict()
