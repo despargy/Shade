@@ -19,7 +19,6 @@ class ELinkManager:
         self.data_port = 12347
         self.logs_port = 12348
         self.BUFFER_SIZE = 1024
-
         self.recv_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.recv_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.recv_socket.bind((self.host, self.recv_port))
@@ -45,27 +44,38 @@ class ELinkManager:
 
     def send_logs(self,file_name,port):
         while(True):
-            time.sleep(10)
-            #first send filename
+            ground_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            try:
+                ground_socket.connect((self.ground_host, port))
 
-            if(self.ping_host(self.ground_host)):
-                ground_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-                ground_socket.sendto(file_name.encode('utf-8'), (self.ground_host, port))
+                self.master.info_logger.write_info('Connect to ground to port {port} to send {filename}'.format(port=port, filename=file_name))
+            except socket.error as e:
+                self.master.info_logger.write_info('Socket Error when trying to connect to ground to send {filename}'.format(filename=file_name))
+                time.sleep(2) #wait 2 seconds and retry
+                continue
+
+
+            while(True):
+                time.sleep(5)
+                #first send filename
+                ground_socket.sendall(file_name.encode('utf-8'))
+
 
                 if file_name == 'info.log':
                     unsend_data, total_rows = self.master.info_logger.get_unsend_data()
                 elif file_name == 'data.log':
                     unsend_data, total_rows = self.master.data_logger.get_unsend_data()
 
-                ground_socket.sendto(str(total_rows).encode('utf-8'), (self.ground_host, port))
+
+                ground_socket.sendall(str(total_rows).encode('utf-8'))
                 #TODOS: read file as chucks that have size BUFFER_SIZE
                 for log in unsend_data:
                     #print(len(log.encode('utf-8')))
-                    ground_socket.sendto(log.encode('utf-8'), (self.ground_host, port))
-                    time.sleep(0.02)
+                    ground_socket.sendall(log.encode('utf-8'))
+                    time.sleep(0.2)
 
-            else:
-                    self.master.info_logger.write_error('Connection error with ground.')
+
+
 
 
     def start(self):

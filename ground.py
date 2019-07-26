@@ -3,7 +3,7 @@ import socket , requests
 import json
 import threading
 import sys , time
-from logger import InfoLogger
+#from logger import InfoLogger
 
 
 class GroundClient:
@@ -20,7 +20,7 @@ class GroundClient:
         self.logs_port = 12348
         self.BUFFER_SIZE = 1024
 
-        self.info_logger = InfoLogger.get_instance()
+        #self.info_logger = InfoLogger.get_instance()
         # bind ground to down_link_port , to receive images
         threading.Thread(target=self.open_connection, args=(self.logs_port, )).start()
         threading.Thread(target=self.open_connection, args=(self.data_port, )).start()
@@ -29,32 +29,40 @@ class GroundClient:
 
     def open_connection(self,port):
         host = ''
-        elink_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        elink_socket.bind((host, port))
+        log_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        log_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        log_socket.bind((host, port))
+        log_socket.listen(5)
 
         while True:
 
-            data, addr = elink_socket.recvfrom(self.BUFFER_SIZE)
+            log_socket,addr = log_socket.accept()
+            #self.info_logger.write_info('Got a connection from {addr}'.format(addr=addr))
 
-            if data:
-                file_name = data.strip().decode('utf-8')
-            else:
-                #received bad package
-                continue
+            while(True):
 
-            data, addr = elink_socket.recvfrom(self.BUFFER_SIZE)
-            try:
-                total_rows = int(data.decode('utf-8'))
-            except ValueError:
-                self.info_logger.write_error('Value Error exception on type casting for total rows')
-                continue
+                data = log_socket.recv(self.BUFFER_SIZE).decode('utf-8')
+                if not data:
+                    #self.master.info_logger.write_error('Lost connection unexpectedly from {addr}'.format(addr=addr))
+                    break
 
-            for i in range(total_rows):
-                f = open('elink.'+file_name, "a")
-                data, addr = elink_socket.recvfrom(self.BUFFER_SIZE)
-                f.write(data.decode('utf-8')+'\n')
-                f.close()
-                time.sleep(0.2)
+                file_name = data.strip()
+
+                data = log_socket.recv(self.BUFFER_SIZE).decode('utf-8')
+
+                try:
+                    total_rows = int(data)
+                except:
+                    #self.info_logger.write_error('Exception on type casting for total rows. Data : {data}'.format(data=data))
+                    continue
+
+
+                for i in range(total_rows):
+                    f = open('elink.'+file_name, "a")
+                    data = log_socket.recv(self.BUFFER_SIZE).decode('utf-8')
+                    f.write(data+'\n')
+                    f.close()
+                    time.sleep(0.2)
 
 
     #TODO: maybe need better error handling
@@ -72,7 +80,7 @@ class GroundClient:
             if data:
                 file_name = data.strip().decode('utf-8')
             else:
-                self.info_logger.write_error('Received bad package from elink. Ignoring.. ')
+                #self.info_logger.write_error('Received bad package from elink. Ignoring.. ')
                 continue
             #TODO : check if dir exists. if not create it
             fh = open('images/elink.'+ file_name, "ab")
@@ -145,7 +153,7 @@ class GroundClient:
             if action == "SET":
                 package['steps'] = input('Steps: ')
 
-            
+
             while(not self.has_internet_connection()): time.sleep(3)
 
             #send data as json string
