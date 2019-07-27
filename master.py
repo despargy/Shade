@@ -1,10 +1,11 @@
 import ADC as adc
 import HEAT as heat
 import DMC as dmc
+from datamanager import DataManager
+from counterdown import CounterDown
 import threading
-from logger import InfoLogger
+from logger import InfoLogger, DataLogger
 from time import sleep
-from Motor import MotorADC, MotorDMC
 
 class Master:
 
@@ -13,10 +14,13 @@ class Master:
         self.status_vector = dict()
         self.command_vector = dict()
         self.infologger = InfoLogger()
+        self.datalogger = DataLogger()
+        self.datamanager = DataManager(self, self.infologger, self.datalogger)
         self.dmc = dmc.DMC(self)
         self.heat = heat.HEAT(self)
         self.adc = adc.ADC(self)
         #self.tx = tx.TX(self)
+        self.counterdown = CounterDown(self)
 
     def init_status_vector(self):
         #Data
@@ -36,43 +40,56 @@ class Master:
         self.status_vector['DEP_READY'] = 0 #0
         self.status_vector['DEP_CONF'] = 0  #0
         self.status_vector['DEP_AB'] = 0    #0
-        self.status_vector['DEP_SUCS'] = 1  #1
+        self.status_vector['DEP_SUCS'] = 0  #0
         self.status_vector['RET_READY'] = 0 #0
         self.status_vector['RET_CONF'] = 0  #0
         self.status_vector['RET_AB'] = 0    #0
         self.status_vector['RET_SUCS'] = 0  #0
 
         #ONLY FOR TESTING
-        self.command_vector['DEP'] = 1
-        self.command_vector['DEP_AB'] = 1
-        self.command_vector['DEP_CONF'] = 0
-        self.command_vector['DEP_RETRY'] = 0
-        self.command_vector['RET'] = 0
+        #self.command_vector['DEP'] = 1
+        #self.command_vector['DEP_AB'] = 1
+        #self.command_vector['DEP_CONF'] = 0
+        #self.command_vector['DEP_RETRY'] = 0
+        #self.command_vector['RET'] = 0
         #self.command_vector['RET_AB'] = 1
 
         #
+
+    def start(self):
+        self.init_experiment()
+
+        while True:
+
+            if self.status_vector['DEP_SUCS']:
+                self.handle_manual_adc()
+
+    def init_experiment(self):
+        self.init_status_vector()
+        # self.init_elink()
+        self.init_datamanager()
+        self.init_subsystems()
+
+    def init_datamanager(self):
+        thread_datamanager = threading.Thread(target=self.datamanager.start).start()
+
+    def init_subsystems(self):
+        # thread_adc = threading.Thread(target=self.adc.start).start()
+        thread_dmc = threading.Thread(target=self.dmc.start).start()
+        # thread_heat = threading.Thread(target=self.heat.start).start()
+        # thread_tx =
+
+    def handle_manual_adc(self):
+        if self.status_vector['ADC_MAN']:
+            choice = self.counterdown.countdown2(self.counterdown.timeout_cmd, 'SET', 'SCAN')
+            if choice == 2:
+                pass
 
     def get_command(self, command):
         try:
             return self.command_vector[command]
         except:
             return 0
-
-    def init_subsystems(self):
-        #thread_adc = threading.Thread(target=self.adc.start).start()
-        thread_dmc = threading.Thread(target=self.dmc.start).start()
-        #thread_heat = threading.Thread(target=self.heat.start).start()
-        #thread_tx =
-
-    def start(self):
-
-        self.init_status_vector()
-        self.init_subsystems()
-        #self.init_elink()
-        #self.init_datamanager()
-        while True:
-            print(self.status_vector['DEP_READY'])
-
 
 
 if __name__ == '__main__':

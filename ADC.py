@@ -3,6 +3,7 @@ import math
 import Antenna as antenna
 from Motor import MotorADC, MotorDMC
 from logger import AdcsLogger
+from counterdown import CounterDown
 import random
 
 class ADC:
@@ -32,6 +33,8 @@ class ADC:
             self.motor_adc = MotorADC()
             self.adcslogger = AdcsLogger()
             self.master = master_
+            self.datamanager = self.master.datamanager
+            self.counterdown = CounterDown(self.master)
             self.valid_data = True
             ADC.__instance = self
             self.motor_dmc = self.master.dmc.motor_dmc
@@ -49,7 +52,7 @@ class ADC:
         while not self.master.status_vector['DEP_SUCS']:
 
             self.adcslogger.write_info('WAIT FOR DEP')
-            sleep(10)
+            sleep(self.counterdown.adc_time_checks_deploy)
 
         self.run_auto()
 
@@ -61,14 +64,13 @@ class ADC:
 
             while self.master.status_vector['ADC_MAN']:
                 self.adcslogger.write_info('MANUAL ADC')
-                sleep(5)
+                sleep(self.counterdown.adc_wait_manual_ends)
 
             self.adcslogger.write_info('AUTO ADC')
             self.valid_data = True
-            self.get_compass_data() #self.datamanager.dictionary['angle_c']
+            self.get_compass_data()
             self.get_gps_data()
-                #self.gps[0] = self.get_gps_data() #self.datamanager.dictionary['gps_x]
-                #self.gps[1] = self.get_gps_data() #self.datamanager.dictionary['gps_y']
+
             if self.valid_data:
 
                 self.calc_new_position()
@@ -81,30 +83,30 @@ class ADC:
                 self.log_last_position_after()
             else:
                 self.adcslogger.write_warning('NON action: invalid data')
-            sleep(5) #time to run ADC algorithm
+            sleep(self.counterdown.adc_time_runs) #time to run ADC algorithm
             #s = int(input("give step to set\n"))
             #s = random.randrange(0,200,1)
             #self.set_position(s)
 
-
     def get_compass_data(self):
 
-        # x = self.datamanager.dictionary['angle_c']
+        compass = self.datamanager.dictionary["angle_c"]
         #x = float(input("give compass\n"))
-        x = random.randrange(0, 360, 1)
-        if x is None:
+        #x = random.randrange(0, 360, 1)
+        if compass is None:
             self.adcslogger.write_warning('Invalid compass data')
             self.valid_data = False
         else:
-            self.compass = x
+            self.compass = compass
 
     def get_gps_data(self):
 
-        # x = self.datamanager.dictionary['gps_x,y']
         #x = float(input("give gps x\n"))
         #y = float(input("give gps y\n"))
-        x = random.randrange(-14,20,1)
-        y = random.randrange(-14,20,1)
+        #x = random.randrange(-14,20,1)
+        #y = random.randrange(-14,20,1)
+        x = self.datamanager.dictionary["gps_x"]
+        y = self.datamanager.dictionary["gps_y"]
         if x is None or y is None:
             self.adcslogger.write_warning('Invalid gps data')
             self.valid_data = False
