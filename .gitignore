@@ -1,6 +1,7 @@
-.idea
-*.txt
-__*__
 *.png
 *.jpg
+__*__
 *.log
+.idea
+
+
