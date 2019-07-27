@@ -3,7 +3,7 @@ import socket , requests
 import json
 import threading
 import sys , time
-#from logger import InfoLogger
+from logger import InfoLogger
 
 
 class GroundClient:
@@ -20,49 +20,79 @@ class GroundClient:
         self.logs_port = 12348
         self.BUFFER_SIZE = 1024
 
-        #self.info_logger = InfoLogger.get_instance()
+        self.info_logger = InfoLogger.get_instance()
         # bind ground to down_link_port , to receive images
         threading.Thread(target=self.open_connection, args=(self.logs_port, )).start()
         threading.Thread(target=self.open_connection, args=(self.data_port, )).start()
         threading.Thread(target=self.open_image_connection, args=(self.images_port, )).start()
 
 
+    def print_lost_connection(self):
+        print("""
+                  [+] Lost Internet Connection
+                  [+] Trying to reconnect...
+             """)
+
+
     def open_connection(self,port):
-        host = ''
-        log_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        log_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        log_socket.bind((host, port))
-        log_socket.listen(5)
 
         while True:
 
-            log_socket,addr = log_socket.accept()
-            #self.info_logger.write_info('Got a connection from {addr}'.format(addr=addr))
+            host = ''
+            log_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            log_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            log_socket.bind((host, port))
+            log_socket.listen(5)
+
+            while(not self.has_internet_connection()): time.sleep(3)
+            try:
+                log_socket,addr = log_socket.accept()
+            except (OSError) as e:
+                self.print_lost_connection()
+                continue
+
+            self.info_logger.write_info('Got a connection from {addr}'.format(addr=addr))
 
             while(True):
 
-                data = log_socket.recv(self.BUFFER_SIZE).decode('utf-8')
+                try:
+                    data = log_socket.recv(self.BUFFER_SIZE).decode('utf-8')
+                except (ConnectionAbortedError, ConnectionResetError) as e:
+                    self.print_lost_connection()
+                    log_socket.close()
+                    break
+
                 if not data:
-                    #self.master.info_logger.write_error('Lost connection unexpectedly from {addr}'.format(addr=addr))
+                    self.info_logger.write_error('Lost connection unexpectedly from {addr}'.format(addr=addr))
                     break
 
                 file_name = data.strip()
-
-                data = log_socket.recv(self.BUFFER_SIZE).decode('utf-8')
+                try:
+                    data = log_socket.recv(self.BUFFER_SIZE).decode('utf-8')
+                except (ConnectionAbortedError, ConnectionResetError) as e:
+                    self.print_lost_connection()
+                    log_socket.close()
+                    break
 
                 try:
                     total_rows = int(data)
                 except:
-                    #self.info_logger.write_error('Exception on type casting for total rows. Data : {data}'.format(data=data))
+                    self.info_logger.write_error('Exception on type casting for total rows. Data : {data}'.format(data=data))
                     continue
 
+                time.sleep(0.2)
 
                 for i in range(total_rows):
                     f = open('elink.'+file_name, "a")
-                    data = log_socket.recv(self.BUFFER_SIZE).decode('utf-8')
+                    try:
+                        data = log_socket.recv(self.BUFFER_SIZE).decode('utf-8')
+                    except (ConnectionAbortedError, ConnectionResetError) as e:
+                        self.print_lost_connection()
+                        break
                     f.write(data+'\n')
                     f.close()
                     time.sleep(0.2)
+        log_socket.close()
 
 
     #TODO: maybe need better error handling
@@ -106,10 +136,7 @@ class GroundClient:
             _ = requests.get('http://www.google.com/', timeout=5)
             return True
         except requests.ConnectionError:
-            print("""
-                  [+] Lost Internet Connection
-                  [+] Trying to reconnect...
-                 """)
+            self.print_lost_connection()
         return False
 
     def establish_connection(self):
@@ -121,8 +148,8 @@ class GroundClient:
             try:
                 conn_socket.connect((self.uplink_host, self.up_link_port))
                 print("""
-                        [+] Success!
-                        [+] Establish Connection
+                  [+] Success!
+                  [+] Establish Connection
                         """)
                 break
             except socket.error as e:
@@ -161,20 +188,31 @@ class GroundClient:
                 conn_socket.sendall(json.dumps(package).encode('utf-8'))
                 #get response and print it
                 response = conn_socket.recv(self.BUFFER_SIZE).decode('utf-8')
-            except ConnectionAbortedError:
+            except ConnectionAbortedError as e:
+                print(e)
                 print("""
-                        [+] Lost Connection.
-                        [+] Unable to send action {action}.
-                        [+] Initialize connection.
-                        [+] Please wait....
+                    [+] Lost Connection.
+                    [+] Unable to send action {action}.
+                    [+] Initialize connection.
+                    [+] Please wait....
                     """.format(action=action))
                 break
-            except ConnectionResetError:
+            except ConnectionResetError as e:
+                print(e)
                 print("""
-                        [+] Unable to send action {action}.
-                        [+] Initialize connection.
-                        [+] Please wait....
+                  [+] Unable to send action {action}.
+                  [+] Initialize connection.
+                  [+] Please wait....
                     """.format(action=action))
+                break
+            except TimeoutError as e:
+                print(e)
+                print("""
+                  [+] ElinkManager is unreachable
+                  [+] Something went wrong!
+                  [+] Try to reconnect...
+
+                    """)
                 break
             print(f"{str(response)}")
 
