@@ -142,7 +142,7 @@ class DataLogger(Logger):
             DataLogger.__instance = self
 
 
-    def get_instance(self):
+    def get_instance():
         if DataLogger.__instance == None:
             DataLogger()
         return DataLogger.__instance
