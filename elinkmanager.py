@@ -43,36 +43,39 @@ class ELinkManager:
         return True
 
     def send_logs(self,file_name,port):
+
+
         while(True):
+            time.sleep(5)
             ground_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             try:
                 ground_socket.connect((self.ground_host, port))
-
                 self.master.info_logger.write_info('Connect to ground to port {port} to send {filename}'.format(port=port, filename=file_name))
-            except socket.error as e:
+            except (socket.error , socket.timeout)  as e:
+                print(e)
                 self.master.info_logger.write_info('Socket Error when trying to connect to ground to send {filename}'.format(filename=file_name))
                 time.sleep(2) #wait 2 seconds and retry
                 continue
 
 
-            while(True):
-                time.sleep(5)
-                #first send filename
-                ground_socket.sendall(file_name.encode('utf-8'))
+            #first send filename
+            ground_socket.sendall(file_name.encode('utf-8'))
 
 
-                if file_name == 'info.log':
-                    unsend_data, total_rows = self.master.info_logger.get_unsend_data()
-                elif file_name == 'data.log':
-                    unsend_data, total_rows = self.master.data_logger.get_unsend_data()
+            if file_name == 'info.log':
+                unsend_data, total_rows = self.master.info_logger.get_unsend_data()
+            elif file_name == 'data.log':
+                unsend_data, total_rows = self.master.data_logger.get_unsend_data()
 
+            ground_socket.sendall(str(total_rows).encode('utf-8'))
+            time.sleep(0.2)
+            #TODOS: read file as chucks that have size BUFFER_SIZE
+            for log in unsend_data:
+                #print(len(log.encode('utf-8')))
+                ground_socket.sendall(log.encode('utf-8'))
+                time.sleep(0.2)
 
-                ground_socket.sendall(str(total_rows).encode('utf-8'))
-                #TODOS: read file as chucks that have size BUFFER_SIZE
-                for log in unsend_data:
-                    #print(len(log.encode('utf-8')))
-                    ground_socket.sendall(log.encode('utf-8'))
-                    time.sleep(0.2)
+            ground_socket.close()
 
 
 
