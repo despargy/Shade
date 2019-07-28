@@ -21,7 +21,8 @@ class Antenna:
             self.sign_for_counter = +1
             Antenna.__instance = self
 
-    def get_instance(self):
+    @staticmethod
+    def get_instance():
         if Antenna.__instance is None:
              Antenna()
         else:

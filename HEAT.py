@@ -3,6 +3,7 @@ from time import sleep
 import queue
 from statistics import mean
 from counterdown import CounterDown
+from master import Master
 import random
 #import RPi.GPIO as GPIO
 
@@ -11,15 +12,15 @@ class HEAT(object):
 
     __instance = None
 
-    def __init__(self, master_):
+    def __init__(self):
 
         if HEAT.__instance is not None:
             raise Exception("This class is a singleton!")
         else:
-            self.master = master_
-            self.infologger = self.master.infologger
+            self.master = Master.get_instance()
             self.datamanager = self.master.datamanager
-            self.counterdown = CounterDown(self.master)
+            self.infologger = self.master.infologger
+            self.counterdown = CounterDown()
             self.need_heating = False
             self.temp_thresshold = 10
             self.mean_temp = self.temp_thresshold
@@ -30,13 +31,13 @@ class HEAT(object):
             #GPIO.setmode(GPIO.BOARD)
             #GPIO.setup(self.pin_heaterA, GPIO.OUT)
             #GPIO.setup(self.pin_heaterB, GPIO.OUT)
-
             HEAT.__instance = self
 
-    def get_instance(self):
+    @staticmethod
+    def get_instance():
 
         if HEAT.__instance is None:
-            HEAT(None)
+            HEAT()
         return HEAT.__instance
 
     def start(self):
@@ -44,7 +45,7 @@ class HEAT(object):
         self.infologger.write_info("START HEAT PROCESS")
         thread_data = Thread(target=self.threaded_function_data)
         thread_data.start()
-        while True:
+        while not self.master.status_vector['RET_SUCS']:
 
             while self.master.get_command("HEAT_SLEEP"):
                 self.infologger.write_info("Reinforce CLOSE HEAT")
@@ -83,9 +84,9 @@ class HEAT(object):
 
     def threaded_function_data(self):
 
-        while True:
+        while not self.master.status_vector['RET_SUCS']:
             #temp = random.randrange(-14,20,1)
-            temp = self.datamanager.dictionary["ext_temp"]
+            temp = self.datamanager.get_data("ext_temp")
             if temp is None:
                 self.infologger.write_warning("Invalid temperature data HEAT")
             else:

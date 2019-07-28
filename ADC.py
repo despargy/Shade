@@ -1,6 +1,7 @@
 from time import sleep
 import math
-import Antenna as antenna
+from Antenna import Antenna
+from master import Master
 from Motor import MotorADC, MotorDMC
 from logger import AdcsLogger
 from counterdown import CounterDown
@@ -10,7 +11,7 @@ class ADC:
 
     __instance = None
 
-    def __init__(self, master_):
+    def __init__(self):
 
         if ADC.__instance is not None:
 
@@ -24,32 +25,33 @@ class ADC:
                 direction: clockwise (1) or anti-clockwise(0) for antenna base rotation
                 difference: degrees which are needed for antenna base rotation
             """
+            self.master = Master.get_instance()
+            self.antenna_adc = Antenna.get_instance()
+            self.motor_adc = MotorADC.get_instance()
+            self.motor_dmc = MotorDMC.get_instance()
+            self.datamanager = self.master.datamanager
+            self.adcslogger = AdcsLogger()
+            self.counterdown = CounterDown()
             self.GS = [1, 1]
             self.compass = 0
             self.gps = self.GS
             self.direction = 1
             self.difference = 0
-            self.antenna_adc = antenna.Antenna()
-            self.motor_adc = MotorADC()
-            self.adcslogger = AdcsLogger()
-            self.master = master_
-            self.datamanager = self.master.datamanager
-            self.counterdown = CounterDown(self.master)
             self.valid_data = True
             ADC.__instance = self
-            self.motor_dmc = self.master.dmc.motor_dmc
 
 
-    def get_instance(self):
+    @staticmethod
+    def get_instance():
 
         if ADC.__instance is None:
-            ADC(None)
+            ADC()
         return ADC.__instance
 
     def start(self):
 
         self.adcslogger.write_info('START ADC PROCESS')
-        while not self.master.status_vector['DEP_SUCS']:
+        while not self.master.status_vector['DEP_SUCS'] and not self.master.command_vector['STOP']:
 
             self.adcslogger.write_info('WAIT FOR DEP')
             sleep(self.counterdown.adc_time_checks_deploy)
@@ -60,7 +62,7 @@ class ADC:
     #Auto mode of ADC
     def run_auto(self):
 
-        while True:
+        while not self.master.get_command('STOP'):
 
             while self.master.status_vector['ADC_MAN']:
                 self.adcslogger.write_info('MANUAL ADC')
@@ -90,7 +92,7 @@ class ADC:
 
     def get_compass_data(self):
 
-        compass = self.datamanager.dictionary["angle_c"]
+        compass = self.datamanager.get_data("angle_c")
         #x = float(input("give compass\n"))
         #x = random.randrange(0, 360, 1)
         if compass is None:
@@ -105,8 +107,8 @@ class ADC:
         #y = float(input("give gps y\n"))
         #x = random.randrange(-14,20,1)
         #y = random.randrange(-14,20,1)
-        x = self.datamanager.dictionary["gps_x"]
-        y = self.datamanager.dictionary["gps_y"]
+        x = self.datamanager.get_data("gps_x")
+        y = self.datamanager.get_data("gps_y")
         if x is None or y is None:
             self.adcslogger.write_warning('Invalid gps data')
             self.valid_data = False

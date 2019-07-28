@@ -36,7 +36,8 @@ class MotorADC(Motor):
 #            GPIO.output(self.pin_sleep, GPIO.HIGH)
             MotorADC.__instance = self
 
-    def get_instance(self):
+    @staticmethod
+    def get_instance():
         if MotorADC.__instance is None:
             MotorADC()
         return MotorADC.__instance
@@ -82,8 +83,8 @@ class MotorDMC(Motor):
             #GPIO.output(self.pin_sleep, GPIO.HIGH)
             MotorDMC.__instance = self
 
-
-    def get_instance(self):
+    @staticmethod
+    def get_instance():
         if MotorDMC.__instance is None:
             MotorDMC()
         return MotorDMC.__instance

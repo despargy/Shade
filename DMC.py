@@ -1,4 +1,5 @@
 import time
+from master import Master
 from Motor import MotorDMC
 from counterdown import CounterDown
 from logger import InfoLogger
@@ -7,42 +8,43 @@ class DMC:
 
     __instance = None
 
-    def __init__(self, master_):
+    def __init__(self):
 
         if DMC.__instance is not None:
 
             raise Exception('This class is a singleton!')
         else:
-            self.master = master_
+            self.master = Master.get_instance()
+            self.motor_dmc = MotorDMC.get_instance()
             self.datamanager = self.master.datamanager
-            self.counterdown = CounterDown(self.master)
-            self.motor_dmc = MotorDMC()
             self.infologger = self.master.infologger
+            self.counterdown = CounterDown()
             self.alti_thresshold = 1000 #1km
+            DMC.__instance = self
 
-
-    def get_instance(self):
+    @staticmethod
+    def get_instance():
 
         if DMC.__instance is None:
-            DMC(None)
+            DMC()
         return DMC.__instance
 
     def start(self):
         self.master.infologger.write_info('START DMC  PROCESS')
 
-        while not self.master.status_vector['DEP_CONF']:
+        while not self.master.status_vector['DEP_CONF'] and not self.master.get_command('STOP'):
             self.phase_zero()
             self.phase_ready_for_deploy()
 
-        while not self.master.status_vector['DEP_SUCS']:
+        while not self.master.status_vector['DEP_SUCS'] and not self.master.get_command('STOP'):
             self.phase_deploy()
         self.phase_sleep()
 
-        while not self.master.status_vector['RET_READY']:
+        while not self.master.status_vector['RET_READY'] and not self.master.get_command('STOP'):
             self.phase_check()
         self.phase_warn_retrieve()
 
-        while not self.master.get_command('RET_SUCS'):
+        while not self.master.get_command('RET_SUCS') and not self.master.get_command('STOP'):
             self.phase_retrieve()
         self.master.infologger.write_info('END DMC PROCESS')
 
@@ -84,7 +86,7 @@ class DMC:
     def phase_check(self):
         self.infologger.write_info('PHASE CHECK')
         time.sleep(1)
-        altitude = self.datamanager.dictionary['alti']
+        altitude = self.datamanager.get_data('alti')
         if self.master.status_vector['ALTIMETER'] and (altitude < self.alti_thresshold) :
             self.master.status_vector['RET_READY'] = 1
             choice = self.counterdown.countdown2(self.counterdown.timeout_cmd, 'RET_CONF', 'RET_AB')
@@ -100,8 +102,8 @@ class DMC:
 
     def phase_warn_retrieve(self):
         self.infologger.write_warning('PHASE RET READY')
-        #kill adc, amp, tx
-        time.sleep(1) #wait master to kill or dmc kills
+        self.master.command_vector['STOP'] = 1
+        time.sleep(self.counterdown.dmc_wait_others_to_killed) #wait master to kill or dmc kills
 
 
     def phase_retrieve(self):
