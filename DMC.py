@@ -1,5 +1,4 @@
 import time
-from master import Master
 from Motor import MotorDMC
 from counterdown import CounterDown
 from logger import InfoLogger
@@ -8,25 +7,25 @@ class DMC:
 
     __instance = None
 
-    def __init__(self):
+    def __init__(self, master_):
 
         if DMC.__instance is not None:
 
             raise Exception('This class is a singleton!')
         else:
-            self.master = Master.get_instance()
+            self.master = master_
             self.motor_dmc = MotorDMC.get_instance()
             self.datamanager = self.master.datamanager
             self.infologger = self.master.infologger
-            self.counterdown = CounterDown()
+            self.counterdown = CounterDown(master_)
             self.alti_thresshold = 1000 #1km
             DMC.__instance = self
 
     @staticmethod
-    def get_instance():
+    def get_instance(master_):
 
         if DMC.__instance is None:
-            DMC()
+            DMC(master_)
         return DMC.__instance
 
     def start(self):

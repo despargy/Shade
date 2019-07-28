@@ -3,7 +3,6 @@ from time import sleep
 import queue
 from statistics import mean
 from counterdown import CounterDown
-from master import Master
 import random
 #import RPi.GPIO as GPIO
 
@@ -12,15 +11,15 @@ class HEAT(object):
 
     __instance = None
 
-    def __init__(self):
+    def __init__(self, master_):
 
         if HEAT.__instance is not None:
             raise Exception("This class is a singleton!")
         else:
-            self.master = Master.get_instance()
+            self.master = master_
             self.datamanager = self.master.datamanager
             self.infologger = self.master.infologger
-            self.counterdown = CounterDown()
+            self.counterdown = CounterDown(master_)
             self.need_heating = False
             self.temp_thresshold = 10
             self.mean_temp = self.temp_thresshold
@@ -34,10 +33,10 @@ class HEAT(object):
             HEAT.__instance = self
 
     @staticmethod
-    def get_instance():
+    def get_instance(master_):
 
         if HEAT.__instance is None:
-            HEAT()
+            HEAT(master_)
         return HEAT.__instance
 
     def start(self):

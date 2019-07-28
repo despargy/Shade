@@ -18,15 +18,15 @@ class Master:
         self.infologger = InfoLogger()
         self.datalogger = DataLogger()
         self.datamanager = DataManager(self, self.infologger, self.datalogger)
-        self.dmc = dmc.DMC()
+        self.dmc = dmc.DMC(self)
         self.thread_dmc = None
-        self.heat = heat.HEAT()
+        self.heat = heat.HEAT(self)
         self.thread_heat = None
-        self.adc = adc.ADC()
+        self.adc = adc.ADC(self)
         self.thread_adc = None
         #self.tx = tx.TX()
         #self.thread_tx = None
-        self.counterdown = CounterDown()
+        self.counterdown = CounterDown(self)
         self.step_of_set = 1234
         Master.__instance = self
 

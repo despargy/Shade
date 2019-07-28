@@ -1,10 +1,9 @@
 from time import sleep
-from master import Master
 
 class CounterDown:
 
-    def __init__(self):
-        self.master = Master.get_instance()
+    def __init__(self, master_):
+        self.master = master_
         self.heat_time_check_awake = 3*60
         self.heat_time_runs = 50
         self.heat_time_updates_data = 10

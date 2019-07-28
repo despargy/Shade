@@ -1,7 +1,6 @@
 from time import sleep
 import math
 from Antenna import Antenna
-from master import Master
 from Motor import MotorADC, MotorDMC
 from logger import AdcsLogger
 from counterdown import CounterDown
@@ -11,7 +10,7 @@ class ADC:
 
     __instance = None
 
-    def __init__(self):
+    def __init__(self, master_):
 
         if ADC.__instance is not None:
 
@@ -25,13 +24,13 @@ class ADC:
                 direction: clockwise (1) or anti-clockwise(0) for antenna base rotation
                 difference: degrees which are needed for antenna base rotation
             """
-            self.master = Master.get_instance()
+            self.master = master_
             self.antenna_adc = Antenna.get_instance()
             self.motor_adc = MotorADC.get_instance()
             self.motor_dmc = MotorDMC.get_instance()
             self.datamanager = self.master.datamanager
             self.adcslogger = AdcsLogger()
-            self.counterdown = CounterDown()
+            self.counterdown = CounterDown(master_)
             self.GS = [1, 1]
             self.compass = 0
             self.gps = self.GS
@@ -42,10 +41,10 @@ class ADC:
 
 
     @staticmethod
-    def get_instance():
+    def get_instance(master_):
 
         if ADC.__instance is None:
-            ADC()
+            ADC(master_)
         return ADC.__instance
 
     def start(self):
@@ -93,8 +92,8 @@ class ADC:
     def get_compass_data(self):
 
         compass = self.datamanager.get_data("angle_c")
-        #x = float(input("give compass\n"))
-        #x = random.randrange(0, 360, 1)
+        #compass = float(input("give compass\n"))
+        #compass = random.randrange(0, 360, 1)
         if compass is None:
             self.adcslogger.write_warning('Invalid compass data')
             self.valid_data = False
