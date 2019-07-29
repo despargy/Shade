@@ -18,6 +18,7 @@ class CounterDown:
         self.master_time_breaks_adc_man = 10
         self.master_time_checks_adc_man_cmd = 2
         self.timeout_cmd = 2
+        self.tx_time_checks_deploy = 3
 
     def countdown0(self, t):
         while t:

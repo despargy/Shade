@@ -1,6 +1,7 @@
 import ADC as adc
 import HEAT as heat
 import DMC as dmc
+import TX as tx
 #from datamanager import DataManager
 from counterdown import CounterDown
 import threading
@@ -25,8 +26,8 @@ class Master:
         self.thread_heat = None
         self.adc = adc.ADC(self)
         self.thread_adc = None
-        #self.tx = tx.TX()
-        #self.thread_tx = None
+        self.tx = tx.TX(self)
+        self.thread_tx = None
         self.counterdown = CounterDown(self)
         self.step_of_set = 1234
         Master.__instance = self
@@ -49,6 +50,7 @@ class Master:
         #Heat
         self.status_vector['HEAT_ON'] = 0   #0
         #Transmition
+        self.status_vector['FORCE_TX_CLOSE'] = 0 #0
         self.status_vector['AMP_ON'] = 0    #0
         self.status_vector['TX_ON'] = 0     #0
         #ADC
@@ -114,8 +116,8 @@ class Master:
         #wait for threads before kill them
         if self.thread_adc is not None:
             self.thread_adc.join()
-        #if self.thread_tx is not None:
-            #self.thread_tx.join()
+        if self.thread_tx is not None:
+            self.thread_tx.join()
         if self.thread_dmc is not None:
             self.thread_dmc.join()
 
@@ -141,7 +143,7 @@ class Master:
         self.thread_adc = threading.Thread(target=self.adc.start).start()
         self.thread_dmc = threading.Thread(target=self.dmc.start).start()
         self.thread_heat = threading.Thread(target=self.heat.start).start()
-        # self.thread_tx =
+        self.thread_tx = threading.Thread(target=self.tx.start).start()
 
     def handle_manual_adc(self):
         while self.get_command('ADC_MAN'):
