@@ -12,6 +12,11 @@ class Motor:
         self.pin_step = None  # Step GPIO Pin
         self.pin_sleep = None  # Sleep Pin
 
+    def go_to_zero_based_on_direction(self, direction):
+        pass
+
+    def go_to_zero_based_on_current_position(self, current_possition):
+        pass
 
 class MotorADC(Motor):
 
@@ -55,7 +60,6 @@ class MotorADC(Motor):
             pass
             #self.adc.adcslogger.write_warning("Didn't permit action to motorADC")
 
-
 class MotorDMC(Motor):
 
     __instance = None
@@ -96,7 +100,7 @@ class MotorDMC(Motor):
             #sleep(self.period*self.p_high)
             #GPIO.output(self.pin_step, GPIO.LOW)
             #sleep(self.period*self.p_low)
-        print('DEPLOYED')
+        print('DMC MOTOR DEPLOYED')
 
     def motor_retrieve(self):
         #GPIO.output(self.pin_direction, self.retrieve_direction)
@@ -105,7 +109,7 @@ class MotorDMC(Motor):
             #sleep(self.period*self.p_high)
             #GPIO.output(self.pin_step, GPIO.LOW)
             #sleep(self.period*self.p_low)
-        print('RETRIEVED')
+        print('DMC MOTOR RETRIEVED')
 
     def motor_push(self):
 
@@ -115,7 +119,7 @@ class MotorDMC(Motor):
         # sleep(self.period*self.p_high)
         # GPIO.output(self.pin_step, GPIO.LOW)
         # sleep(self.period*self.p_low)
-        print('PUSH')
+        print('DMC MOTOR PUSH')
 
     def motor_pull(self):
         # GPIO.output(self.pin_direction, self.retrieve_direction)
@@ -124,4 +128,4 @@ class MotorDMC(Motor):
             # sleep(self.period*self.p_high)
             # GPIO.output(self.pin_step, GPIO.LOW)
             # sleep(self.period*self.p_low)
-            print('PULL')
+            print('DMC MOTOR PULL')

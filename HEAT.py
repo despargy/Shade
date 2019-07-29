@@ -17,8 +17,8 @@ class HEAT(object):
             raise Exception("This class is a singleton!")
         else:
             self.master = master_
-            self.datamanager = self.master.datamanager
-            self.infologger = self.master.infologger
+            #self.data_manager = self.master.data_manager
+            self.info_logger = self.master.info_logger
             self.counterdown = CounterDown(master_)
             self.need_heating = False
             self.temp_thresshold = 10
@@ -33,21 +33,21 @@ class HEAT(object):
             HEAT.__instance = self
 
     @staticmethod
-    def get_instance(master_):
+    def get_instance():
 
         if HEAT.__instance is None:
-            HEAT(master_)
+            HEAT(None)
         return HEAT.__instance
 
     def start(self):
 
-        self.infologger.write_info("START HEAT PROCESS")
+        self.info_logger.write_info("START HEAT PROCESS")
         thread_data = Thread(target=self.threaded_function_data)
         thread_data.start()
         while not self.master.status_vector['RET_SUCS']:
 
             while self.master.get_command("HEAT_SLEEP"):
-                self.infologger.write_info("Reinforce CLOSE HEAT")
+                self.info_logger.write_info("Reinforce CLOSE HEAT")
                 self.pause_heat()
                 sleep(self.counterdown.heat_time_check_awake)
                 #self.counterdown.countdown0(self.counterdown.time_check_sleep_heat)
@@ -64,30 +64,30 @@ class HEAT(object):
 
         if not self.data_queue.empty():
             self.mean_temp = mean(list(self.data_queue.queue))
-            self.infologger.write_info("MEAN TEMP {}".format(self.mean_temp))
+            self.info_logger.write_info("MEAN TEMP {}".format(self.mean_temp))
             return self.mean_temp < self.temp_thresshold
 
     def open_heat(self):
 
         #GPIO.output(self.pin_heaterA, GPIO.HIGH)
         #GPIO.output(self.pin_heaterB, GPIO.HIGH)
-        self.infologger.write_info("HEAT ON")
+        self.info_logger.write_info("HEAT ON")
         self.master.status_vector["HEAT_ON"] = 1
 
     def pause_heat(self):
 
         #GPIO.output(self.pin_heaterA, GPIO.LOW)
         #GPIO.output(self.pin_heaterB, GPIO.LOW)
-        self.infologger.write_info("HEAT OFF")
+        self.info_logger.write_info("HEAT OFF")
         self.master.status_vector["HEAT_ON"] = 0
 
     def threaded_function_data(self):
 
         while not self.master.status_vector['RET_SUCS']:
-            #temp = random.randrange(-14,20,1)
-            temp = self.datamanager.get_data("ext_temp")
+            temp = random.randrange(-14,20,1)
+            #temp = self.data_manager.get_data("ext_temp")
             if temp is None:
-                self.infologger.write_warning("Invalid temperature data HEAT")
+                self.info_logger.write_warning("Invalid temperature data HEAT")
             else:
                 if self.data_queue.full():
                     self.data_queue.get()

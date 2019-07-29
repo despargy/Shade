@@ -25,11 +25,11 @@ class ADC:
                 difference: degrees which are needed for antenna base rotation
             """
             self.master = master_
-            self.antenna_adc = Antenna.get_instance()
+            self.antenna_adc = Antenna()
             self.motor_adc = MotorADC.get_instance()
             self.motor_dmc = MotorDMC.get_instance()
-            self.datamanager = self.master.datamanager
-            self.adcslogger = AdcsLogger()
+            #self.data_manager = self.master.data_manager
+            self.adcs_logger = AdcsLogger()
             self.counterdown = CounterDown(master_)
             self.GS = [1, 1]
             self.compass = 0
@@ -41,18 +41,18 @@ class ADC:
 
 
     @staticmethod
-    def get_instance(master_):
+    def get_instance():
 
         if ADC.__instance is None:
-            ADC(master_)
+            ADC(None)
         return ADC.__instance
 
     def start(self):
 
-        self.adcslogger.write_info('START ADC PROCESS')
-        while not self.master.status_vector['DEP_SUCS'] and not self.master.command_vector['STOP']:
+        self.adcs_logger.write_info('START ADC PROCESS')
+        while not self.master.status_vector['DEP_SUCS']:
 
-            self.adcslogger.write_info('WAIT FOR DEP')
+            self.adcs_logger.write_info('WAIT FOR DEP')
             sleep(self.counterdown.adc_time_checks_deploy)
 
         self.run_auto()
@@ -61,13 +61,13 @@ class ADC:
     #Auto mode of ADC
     def run_auto(self):
 
-        while not self.master.get_command('STOP'):
+        while not self.master.status_vector['RET_CONF']:
 
             while self.master.status_vector['ADC_MAN']:
-                self.adcslogger.write_info('MANUAL ADC')
+                self.adcs_logger.write_info('MANUAL ADC')
                 sleep(self.counterdown.adc_wait_manual_ends)
 
-            self.adcslogger.write_info('AUTO ADC')
+            self.adcs_logger.write_info('AUTO ADC')
             self.valid_data = True
             self.get_compass_data()
             self.get_gps_data()
@@ -83,19 +83,21 @@ class ADC:
                 self.antenna_adc.update_position(c_step*self.motor_adc.step_size, self.direction)
                 self.log_last_position_after()
             else:
-                self.adcslogger.write_warning('NON action: invalid data')
+                self.adcs_logger.write_warning('NON action: invalid data')
             sleep(self.counterdown.adc_time_runs) #time to run ADC algorithm
             #s = int(input("give step to set\n"))
             #s = random.randrange(0,200,1)
             #self.set_position(s)
+        self.adcs_logger.write_info('END OF ADC PROCESS')
+        print('end of adc process')
 
     def get_compass_data(self):
 
-        compass = self.datamanager.get_data("angle_c")
+        #compass = self.data_manager.get_data("angle_c")
         #compass = float(input("give compass\n"))
-        #compass = random.randrange(0, 360, 1)
+        compass = random.randrange(0, 360, 1)
         if compass is None:
-            self.adcslogger.write_warning('Invalid compass data')
+            self.adcs_logger.write_warning('Invalid compass data')
             self.valid_data = False
         else:
             self.compass = compass
@@ -104,23 +106,23 @@ class ADC:
 
         #x = float(input("give gps x\n"))
         #y = float(input("give gps y\n"))
-        #x = random.randrange(-14,20,1)
-        #y = random.randrange(-14,20,1)
-        x = self.datamanager.get_data("gps_x")
-        y = self.datamanager.get_data("gps_y")
+        x = random.randrange(-14,20,1)
+        y = random.randrange(-14,20,1)
+        #x = self.data_manager.get_data("gps_x")
+        #y = self.data_manager.get_data("gps_y")
         if x is None or y is None:
-            self.adcslogger.write_warning('Invalid gps data')
+            self.adcs_logger.write_warning('Invalid gps data')
             self.valid_data = False
         else:
             self.gps = [x, y]
 
     def log_last_position_before(self, c_step):
-        self.adcslogger.write_info('STEPS\t {} TO DO'.format(c_step))
-        self.adcslogger.write_info('DEGREES {} TO DO'.format(self.difference))
-        self.adcslogger.write_info('ACT FROM: {} WITH {}'.format(self.antenna_adc.counter_for_overlap, self.direction))
+        self.adcs_logger.write_info('STEPS\t {} TO DO'.format(c_step))
+        self.adcs_logger.write_info('DEGREES {} TO DO'.format(self.difference))
+        self.adcs_logger.write_info('ACT FROM: {} WITH {}'.format(self.antenna_adc.counter_for_overlap, self.direction))
 
     def log_last_position_after(self):
-        self.adcslogger.write_info('DONE: {}'.format(self.antenna_adc.counter_for_overlap))
+        self.adcs_logger.write_info('DONE: {}'.format(self.antenna_adc.counter_for_overlap))
 
     def push_DMC_motor(self):
         self.motor_dmc.motor_push()
@@ -136,35 +138,36 @@ class ADC:
             c_step = int(dif / self.motor_adc.step_size)
             return c_step
         else:
-            self.adcslogger.write_warning('TRY division /0: check step size')
+            self.adcs_logger.write_warning('TRY division /0: check step size')
             return 0
 
     def set_position(self, set_step):
 
+        print('set')
         if 0 <= set_step <= (360/self.motor_adc.step_size):
             self.init_motor_pose()
             direction = 1
             self.motor_adc.act(set_step, direction)
             self.antenna_adc.update_position(set_step*self.motor_adc.step_size, direction)
-            self.adcslogger.write_info('SET: ANTENNA AT {}'.format(self.antenna_adc.position))
+            self.adcs_logger.write_info('SET: ANTENNA AT {}'.format(self.antenna_adc.position))
         else:
-            self.adcslogger.write_warning('Invalid SET_STEP')
+            self.adcs_logger.write_warning('Invalid SET_STEP')
 
     def scan(self):
-
+        print('scan')
         self.init_motor_pose()
         direction = 1
         steps_per_time = 10
-        times = int((360/1.8)/steps_per_time)
-        for x in times:
+        times_per_scan = int((360/1.8)/steps_per_time)
+        for x in range(0,times_per_scan):
             self.motor_adc.act(steps_per_time, direction)
             self.antenna_adc.update_position(steps_per_time*1.8, direction)
-            self.adcslogger.write_info('SCAN: ANTENNA AT {}'.format(self.antenna_adc.position))
+            self.adcs_logger.write_info('SCAN: ANTENNA AT {}'.format(self.antenna_adc.position))
         direction = 0
-        for x in times:
+        for x in range(0,times_per_scan):
             self.motor_adc.act(steps_per_time, direction)
             self.antenna_adc.update_position(steps_per_time*1.8, direction)
-            self.adcslogger.write_info('SCAN: ANTENNA AT {}'.format(self.antenna_adc.position))
+            self.adcs_logger.write_info('SCAN: ANTENNA AT {}'.format(self.antenna_adc.position))
 
     def init_motor_pose(self):
 
@@ -174,9 +177,9 @@ class ADC:
         else:
             direction = 0 # anti-clockwise
         self.motor_adc.act(c_steps, direction)
-        self.adcslogger.write_info('INIT MOTOR POSE')
+        self.adcs_logger.write_info('INIT MOTOR POSE')
         self.antenna_adc.update_position(c_steps*self.motor_adc.step_size, direction)
-        self.adcslogger.write_info('antenna updated to {} with counter {}'.format(self.antenna_adc.position, self.antenna_adc.counter_for_overlap))
+        self.adcs_logger.write_info('antenna updated to {} with counter {}'.format(self.antenna_adc.position, self.antenna_adc.counter_for_overlap))
 
     def calc_new_position(self):
     #calc GEOMETRY
@@ -238,5 +241,5 @@ class ADC:
                     self.difference = dif2
                     self.direction = 0  # anti-clockwise
 
-        self.adcslogger.write_info('Difference {} Direction {}'.format( self.difference, self.direction))
+        self.adcs_logger.write_info('Difference {} Direction {}'.format( self.difference, self.direction))
 
