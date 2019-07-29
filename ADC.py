@@ -29,7 +29,7 @@ class ADC:
             self.motor_adc = MotorADC.get_instance()
             self.motor_dmc = MotorDMC.get_instance()
             #self.data_manager = self.master.data_manager
-            self.adcs_logger = AdcsLogger()
+            self.adcs_logger = self.master.adcs_logger
             self.counterdown = CounterDown(master_)
             self.GS = [1, 1]
             self.compass = 0

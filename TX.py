@@ -64,9 +64,12 @@ class TX:
             self.master.command_vector['TX_AWAKE'] = 0
             self.master.status_vector['TX_ON'] = 1
             self.open_amplifier()
+            self.transmite(self.file_name_temperature)
 
             while not self.master.get_command('PRE'):
-                self.transmite(self.file_name_temperature)
+                pass
+                #wait trans
+            #kill process of varvariggos
 
             self.transmite(self.file_name_predefined_data)
             self.master.command_vector['PRE'] = 0

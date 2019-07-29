@@ -5,7 +5,7 @@ import TX as tx
 #from datamanager import DataManager
 from counterdown import CounterDown
 import threading
-from logger import InfoLogger, DataLogger
+from logger import InfoLogger, DataLogger, AdcsLogger
 from time import sleep
 
 class Master:
@@ -18,6 +18,7 @@ class Master:
         self.command_vector = dict()
         self.info_logger = InfoLogger()
         self.data_logger = DataLogger()
+        self.adcs_logger = AdcsLogger()
         #self.data_manager = DataManager(self, self.info_logger, self.data_logger)
         #self.thread_data_manager = None
         self.dmc = dmc.DMC(self)
@@ -68,7 +69,6 @@ class Master:
         self.status_vector['KILL'] = 0
         self.status_vector['EXIT'] = 0
 
-
     def init_command_vector(self):
         #ADC
         self.command_vector['ADC_MAN'] = 0
@@ -99,8 +99,6 @@ class Master:
         #self.command_vector['EXIT'] = 0
         self.command_vector['AGAIN'] = 0
         self.command_vector['EXIT'] = 0
-
-
 
         #ONLY FOR TESTING
         #self.command_vector['DEP'] = 1
@@ -166,7 +164,7 @@ class Master:
             if choice == 1:
                 self.adc.adcs_logger.write_info('FROM MASTER IN SET')
                 self.counterdown.countdown0(self.counterdown.timeout_cmd)
-                #@TOCHECK INT SET - RIGHT INTERRUPT GET CMD
+                #@TODO AUTO ADC WAIT
                 self.step_of_set = self.get_step()
                 if type(self.step_of_set) in [int] and self.step_of_set != 1234:
                     self.adc.set_position(self.step_of_set)
