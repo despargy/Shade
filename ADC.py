@@ -61,7 +61,7 @@ class ADC:
     #Auto mode of ADC
     def run_auto(self):
 
-        while not self.master.status_vector['RET_CONF']:
+        while not self.master.status_vector['KILL']:
 
             while self.master.status_vector['ADC_MAN']:
                 self.adcs_logger.write_info('MANUAL ADC')

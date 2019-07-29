@@ -46,11 +46,15 @@ class HEAT(object):
         thread_data.start()
         while not self.master.status_vector['RET_SUCS']:
 
-            while self.master.get_command("HEAT_SLEEP"):
+            while self.master.get_command("HEAT_SLEEP") and not self.master.get_command('HEAT_AWAKE'):
+                self.master.status_vector['HEAT_SLEEP'] = 1
                 self.info_logger.write_info("Reinforce CLOSE HEAT")
                 self.pause_heat()
                 sleep(self.counterdown.heat_time_check_awake)
-                #self.counterdown.countdown0(self.counterdown.time_check_sleep_heat)
+
+            self.master.status_vector['HEAT_SLEEP'] = 0
+            self.master.command_vector['HEAT_SLEEP'] = 0
+            self.master.command_vector['HEAT_AWAKE'] = 0
 
             self.need_heating = self.consider_data()
             if self.need_heating and not self.master.status_vector["HEAT_ON"]:
@@ -58,7 +62,6 @@ class HEAT(object):
             elif not self.need_heating and self.master.status_vector["HEAT_ON"]:
                 self.pause_heat()
             sleep(self.counterdown.heat_time_runs)
-            #self.counterdown.countdown0(self.counterdown.time_heat_checks)
 
     def consider_data(self):
 

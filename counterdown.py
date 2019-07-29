@@ -14,6 +14,7 @@ class CounterDown:
         self.dmc_timeout_cmd = 3  # ex. 1 min
         self.dmc_time_to_sleep = 60  # ex. 2hours
         self.dmc_wait_others_to_killed = 5
+        self.dmc_time_checks_altitude = 10
         self.master_checks_dep_sucs = 2
         self.master_time_breaks_adc_man = 10
         self.master_time_checks_adc_man_cmd = 2

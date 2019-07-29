@@ -38,12 +38,13 @@ class DMC:
         while not self.master.status_vector['DEP_SUCS']:
             self.phase_deploy()
         self.phase_sleep()
+        self.master.status_vector['DMC_SLEEP'] = 0
 
-        while not self.master.status_vector['RET_READY']:
+        while not self.master.status_vector['RET_CONF']:
             self.phase_check()
-        self.phase_warn_retrieve()
+        self.phase_kill_before_retrieve()
 
-        while not self.master.get_command('RET_SUCS'):
+        while not self.master.status_vector['RET_SUCS']:
             self.phase_retrieve()
         self.master.info_logger.write_info('END DMC PROCESS')
         print('end dmc process')
@@ -85,12 +86,13 @@ class DMC:
     def phase_sleep(self):
         self.info_logger.write_info('PHASE SLEEP')
         print('phase sleep')
+        self.master.status_vector['DMC_SLEEP'] = 1
         self.counterdown.countdown1(self.counterdown.dmc_time_to_sleep, 'DMC_AWAKE')
 
     def phase_check(self):
         self.info_logger.write_info('PHASE CHECK')
         print('phase check')
-        time.sleep(1)
+        time.sleep(self.counterdown.dmc_time_checks_altitude)
         altitude = 200
         #altitude = self.data_manager.get_data('alti')
         if self.master.status_vector['ALTIMETER'] and (altitude < self.alti_thresshold) :
@@ -102,15 +104,15 @@ class DMC:
                 self.info_logger.write_info('PHASE ABORT RETRIEVE')
             else:
                 self.master.status_vector['RET_CONF'] = 1
-        elif self.master.get_command('RET'):
+        if self.master.get_command('RET'):
             self.master.status_vector['RET_READY'] = 1
             self.master.status_vector['RET_CONF'] = 1
             print('ret')
 
-    def phase_warn_retrieve(self):
+    def phase_kill_before_retrieve(self):
         self.info_logger.write_warning('PHASE RET READY')
         print('phase ret ready')
-        self.master.command_vector['STOP'] = 1
+        self.master.status_vector['KILL'] = 1
         time.sleep(self.counterdown.dmc_wait_others_to_killed) #wait master to kill or dmc kills
 
 

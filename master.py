@@ -49,15 +49,15 @@ class Master:
         self.status_vector['TEMP'] = 1      #1
         #Heat
         self.status_vector['HEAT_ON'] = 0   #0
+        self.status_vector['HEAT_SLEEP'] = 0
         #Transmition
-        self.status_vector['FORCE_TX_CLOSE'] = 0 #0
         self.status_vector['AMP_ON'] = 0    #0
         self.status_vector['TX_ON'] = 0     #0
         #ADC
         self.status_vector['ADC_MAN'] = 0   #0
         #DMC
+        self.status_vector['DMC_SLEEP'] = 0 #0
         self.status_vector['DEP_CONF'] = 0  #0
-        self.status_vector['DEP_AB'] = 0    #0
         self.status_vector['DEP_SUCS'] = 0  #0
         self.status_vector['DEP_READY'] = 0 #0
         self.status_vector['RET_READY'] = 0 #0
@@ -65,7 +65,9 @@ class Master:
         self.status_vector['RET_AB'] = 0    #0
         self.status_vector['RET_SUCS'] = 0  #0
         #Experiment
-        self.status_vector['CLOSE'] = 0
+        self.status_vector['KILL'] = 0
+        self.status_vector['EXIT'] = 0
+
 
     def init_command_vector(self):
         #ADC
@@ -75,22 +77,28 @@ class Master:
         self.command_vector['SCAN'] = 0
         #HEAT
         self.command_vector['HEAT_SLEEP'] = 0
+        self.command_vector['HEAT_AWAKE'] = 0
         #DMC
+        self.command_vector['DMC_AWAKE'] = 0
         self.command_vector['DEP'] = 0
         self.command_vector['DEP_CONF'] = 0
         self.command_vector['DEP_AB'] = 0
         self.command_vector['DEP_SUCS'] = 0
         self.command_vector['DEP_RETRY'] = 0
-        self.command_vector['DMC_AWAKE'] = 0
         self.command_vector['RET_CONF'] = 0
         self.command_vector['RET_AB'] = 0
         self.command_vector['RET'] = 0
         self.command_vector['RET_SUCS'] = 0
         self.command_vector['RET_RETRY'] = 0
+        #TX
+        self.command_vector['TX_SLEEP'] = 0
+        self.command_vector['TX_AWAKE'] = 0
+        self.command_vector['PRE'] = 0
+
         #Experiment
         #self.command_vector['EXIT'] = 0
-        #self.command_vector['SHADE'] = 0
-        self.command_vector['CLOSE'] = 0
+        self.command_vector['AGAIN'] = 0
+        self.command_vector['EXIT'] = 0
 
 
 
@@ -108,10 +116,12 @@ class Master:
 
         self.init_experiment()
 
-        while not self.get_command('CLOSE'):
+        while not self.get_command('CLOSE') or not self.status_vector['RET_CONF']:
             sleep(self.counterdown.master_checks_dep_sucs)
             if self.status_vector['DEP_SUCS']:
-                self.handle_manual_adc()
+
+                while not self.status_vector['KILL']:
+                    self.handle_manual_adc()
 
         #wait for threads before kill them
         if self.thread_adc is not None:
@@ -121,10 +131,12 @@ class Master:
         if self.thread_dmc is not None:
             self.thread_dmc.join()
 
-        choice = self.counterdown.countdown2(self.counterdown.timeout_cmd, 'EXIT', 'SHADE')
+        choice = self.counterdown.countdown2(self.counterdown.timeout_cmd, 'EXIT', 'AGAIN')
         if choice == 1:
             self.status_vector['EXIT'] = 1
+            self.command_vector['EXIT'] = 0
             self.info_logger.write_warning('SHADE IS TERMINATED')
+            #@TODO RESTART SHADE n REBOOT
 
 
 
@@ -146,7 +158,7 @@ class Master:
         self.thread_tx = threading.Thread(target=self.tx.start).start()
 
     def handle_manual_adc(self):
-        while self.get_command('ADC_MAN'):
+        while self.get_command('ADC_MAN') and not self.status_vector['KILL']:
             sleep(self.counterdown.master_time_checks_adc_man_cmd)
             self.status_vector['ADC_MAN'] = 1
             self.command_vector['ADC_AUTO'] = 0  # re-init
