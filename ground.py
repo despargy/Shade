@@ -3,6 +3,7 @@ import socket , requests
 import json
 import threading
 import sys , time
+from file_read_backwards import FileReadBackwards
 from logger import InfoLogger
 
 
@@ -83,14 +84,17 @@ class GroundClient:
                 time.sleep(0.2)
 
                 for i in range(total_rows):
-                    f = open('elink.'+file_name, "a")
-                    try:
-                        data = log_socket.recv(self.BUFFER_SIZE).decode('utf-8')
-                    except (ConnectionAbortedError, ConnectionResetError) as e:
-                        self.print_lost_connection()
-                        break
-                    f.write(data+'\n')
-                    f.close()
+                    with open('elink.'+file_name , 'a') as f:
+                        #f = open('elink.'+file_name,
+                        try:
+                            data = log_socket.recv(self.BUFFER_SIZE).decode('utf-8')
+                        except (ConnectionAbortedError, ConnectionResetError) as e:
+                            self.info_logger.write_error('Lost connection when reading log :  {log}'.format(log=data))
+                            self.print_lost_connection()
+                            break
+
+                        f.write(data+'\n')
+                    #f.close()
                     time.sleep(0.2)
         log_socket.close()
 
@@ -132,10 +136,14 @@ class GroundClient:
 
 
     def has_internet_connection(self):
+        """
+            Function to check internet connection.
+        """
         try:
             _ = requests.get('http://www.google.com/', timeout=5)
             return True
-        except requests.ConnectionError:
+        except:
+            self.info_logger.write_warning('Lost internet connection.')
             self.print_lost_connection()
         return False
 
@@ -188,7 +196,7 @@ class GroundClient:
                 conn_socket.sendall(json.dumps(package).encode('utf-8'))
                 #get response and print it
                 response = conn_socket.recv(self.BUFFER_SIZE).decode('utf-8')
-            except ConnectionAbortedError as e:
+            except (ConnectionAbortedError, ConnectionResetError) as e:
                 print(e)
                 print("""
                     [+] Lost Connection.
@@ -211,7 +219,6 @@ class GroundClient:
                   [+] ElinkManager is unreachable
                   [+] Something went wrong!
                   [+] Try to reconnect...
-
                     """)
                 break
             print(f"{str(response)}")
