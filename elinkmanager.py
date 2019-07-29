@@ -71,8 +71,11 @@ class ELinkManager:
             time.sleep(0.2)
             #TODOS: read file as chucks that have size BUFFER_SIZE
             for log in unsend_data:
-                #print(len(log.encode('utf-8')))
-                ground_socket.sendall(log.encode('utf-8'))
+                try:
+                    ground_socket.sendall(log.encode('utf-8'))
+                except (ConnectionResetError , ConnectionAbortedError) as e:
+                    self.master.info_logger('Lost Connection. Unable to send log {log}'.format(log=log))
+                    break
                 time.sleep(0.2)
 
             ground_socket.close()
