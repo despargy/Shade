@@ -2,23 +2,28 @@ import ADC as adc
 import HEAT as heat
 import DMC as dmc
 import TX as tx
+import elinkmanager
 #from datamanager import DataManager
 from counterdown import CounterDown
 import threading
 from logger import InfoLogger, DataLogger, AdcsLogger
 from time import sleep
+import sys
 
 class Master:
 
     __instance = None
 
-    def __init__(self):
+    def __init__(self, ground_ip):
 
         self.status_vector = dict()
         self.command_vector = dict()
+        self.ground_ip = ground_ip
         self.info_logger = InfoLogger()
         self.data_logger = DataLogger()
         self.adcs_logger = AdcsLogger()
+        self.elink = elinkmanager.ELinkManager(self,self.ground_ip)
+        self.thread_elink = None
         #self.data_manager = DataManager(self, self.info_logger, self.data_logger)
         #self.thread_data_manager = None
         self.dmc = dmc.DMC(self)
@@ -110,10 +115,16 @@ class Master:
 
         #
 
+
+    def create_dummy_data(self):
+        while True:
+            sleep(3)
+            DataLogger.get_instance().write_info('Data1 , Data2 , Data3 , Data 4')
+
     def start(self):
 
         self.init_experiment()
-
+#        threading.Thread(target=self.create_dummy_data).start()
         while not self.get_command('CLOSE') or not self.status_vector['RET_CONF']:
             sleep(self.counterdown.master_checks_dep_sucs)
             if self.status_vector['DEP_SUCS']:
@@ -141,9 +152,12 @@ class Master:
     def init_experiment(self):
         self.init_status_vector()
         self.init_command_vector()
-        # self.init_elink()
+        self.init_elink()
         #self.init_data_manager()
         self.init_subsystems()
+
+    def init_elink(self):
+        self.thread_elink = threading.Thread(target=self.elink.start).start()
 
     def init_data_manager(self):
         pass
@@ -195,6 +209,18 @@ class Master:
     def get_step(self):
         return self.step_of_set
 
-if __name__ == '__main__':
-    master = Master()
-    master.start()
+
+if __name__ == "__main__":
+    if len(sys.argv) != 2:
+        print("""
+              [+] Run master program with one argument.
+              [+] The argument indicates the ground IP
+              [+] e.g python master.py 195.168.0.1
+
+              [+] For Testing purposes use 'local' as argument
+              [+] to simulate a connection locally
+              [+] e.g python master.py local
+              """)
+    else:
+        ground_ip = sys.argv[1]
+        Master(ground_ip).start()
