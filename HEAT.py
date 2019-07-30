@@ -49,6 +49,7 @@ class HEAT(object):
             while self.master.get_command("HEAT_SLEEP") and not self.master.get_command('HEAT_AWAKE'):
                 self.master.status_vector['HEAT_SLEEP'] = 1
                 self.info_logger.write_info("Reinforce CLOSE HEAT")
+                print('Reinforce CLOSE HEAT')
                 self.pause_heat()
                 sleep(self.counterdown.heat_time_check_awake)
 
@@ -68,6 +69,7 @@ class HEAT(object):
         if not self.data_queue.empty():
             self.mean_temp = mean(list(self.data_queue.queue))
             self.info_logger.write_info("MEAN TEMP {}".format(self.mean_temp))
+            print("MEAN TEMP {}".format(self.mean_temp))
             return self.mean_temp < self.temp_thresshold
 
     def open_heat(self):
@@ -75,6 +77,7 @@ class HEAT(object):
         #GPIO.output(self.pin_heaterA, GPIO.HIGH)
         #GPIO.output(self.pin_heaterB, GPIO.HIGH)
         self.info_logger.write_info("HEAT ON")
+        print("HEAT ON")
         self.master.status_vector["HEAT_ON"] = 1
 
     def pause_heat(self):
@@ -82,6 +85,7 @@ class HEAT(object):
         #GPIO.output(self.pin_heaterA, GPIO.LOW)
         #GPIO.output(self.pin_heaterB, GPIO.LOW)
         self.info_logger.write_info("HEAT OFF")
+        print("HEAT OFF")
         self.master.status_vector["HEAT_ON"] = 0
 
     def threaded_function_data(self):

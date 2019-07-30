@@ -165,9 +165,9 @@ class Master:
 
     def init_subsystems(self):
         self.thread_adc = threading.Thread(target=self.adc.start).start()
-        self.thread_dmc = threading.Thread(target=self.dmc.start).start()
-        self.thread_heat = threading.Thread(target=self.heat.start).start()
-        self.thread_tx = threading.Thread(target=self.tx.start).start()
+        #self.thread_dmc = threading.Thread(target=self.dmc.start).start()
+        #self.thread_heat = threading.Thread(target=self.heat.start).start()
+        #self.thread_tx = threading.Thread(target=self.tx.start).start()
 
     def handle_manual_adc(self):
         while self.get_command('ADC_MAN') and not self.status_vector['KILL']:

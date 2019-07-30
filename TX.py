@@ -35,6 +35,7 @@ class TX:
     def transmite(self, file):
         self.info_logger.write_info('TX TRANSMITE'.format(file))
         print('TX TRANSMITE'.format(file))
+        #@TODO FILE RUN
         pass
 
     def open_amplifier(self):
@@ -59,6 +60,7 @@ class TX:
                 self.master.status_vector['TX_ON'] = 0
                 # self.master.status_vector['AMP_ON'] = 0 ???
                 self.info_logger.write_warning('FORCE_TX_CLOSED')
+                print('FORCE_TX_CLOSED')
 
             self.master.command_vector['TX_SLEEP'] = 0
             self.master.command_vector['TX_AWAKE'] = 0
