@@ -8,7 +8,7 @@ class CounterDown:
         self.heat_time_runs = 3
         self.heat_time_updates_data = 2
         self.adc_time_checks_deploy = 1
-        self.adc_wait_manual_ends = 10
+        self.adc_wait_manual_ends = 3
         self.adc_time_runs = 2
         self.dmc_time_left_auto_deploy = 30  # 2*60*60 #ex. 2hours
         self.dmc_timeout_cmd = 30  # ex. 1 min
@@ -16,10 +16,13 @@ class CounterDown:
         self.dmc_wait_others_to_killed = 1
         self.dmc_time_checks_altitude = 1
         self.master_checks_dep_sucs = 2
-        self.master_time_breaks_adc_man = 10
-        self.master_time_checks_adc_man_cmd = 2
+        self.master_time_breaks_adc_man = 20
+        self.master_time_adc_man_runs = 3
+        self.master_timeout_to_set_or_scan = 15
         self.timeout_cmd = 20
+        self.timeout_cmd_steps = 8
         self.tx_time_checks_deploy = 3
+        self.tx_check_to_stop = 3
 
     def countdown0(self, t):
         while t:

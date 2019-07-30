@@ -68,6 +68,7 @@ class ADC:
                 sleep(self.counterdown.adc_wait_manual_ends)
 
             self.adcs_logger.write_info('AUTO ADC')
+            print('auto adc')
             self.valid_data = True
             self.get_compass_data()
             self.get_gps_data()
