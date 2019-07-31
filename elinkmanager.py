@@ -32,8 +32,8 @@ class ELinkManager:
     def start_log_threads(self):
         self.data_log_thread = threading.Thread(target=self.send_logs, args=('data.log',self.data_port,))
         self.data_log_thread.start()
-        #self.info_log_thread = threading.Thread(target=self.send_logs, args=('info.log',self.logs_port,))
-        #self.info_log_thread.start()
+        self.info_log_thread = threading.Thread(target=self.send_logs, args=('info.log',self.logs_port,))
+        self.info_log_thread.start()
 
     def ping_host(self,host):
         """
@@ -54,7 +54,8 @@ class ELinkManager:
 
         while(True):
             if self.stop_log_threads : break
-            time.sleep(1)
+
+            time.sleep(5)
             print('Before socket {file_name}'.format(file_name=file_name))
             ground_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
@@ -94,12 +95,12 @@ class ELinkManager:
                     #print('Before send log for {file_name}'.format(file_name=file_name))
                     log = '{log}\n'.format(log=log)
                     ground_socket.sendall(log.encode('utf-8'))
-                    #TODO: set last_send_index here
+                    logger.set_last_sended_index(curr_id)
                     print('After send log for {file_name}'.format(file_name=file_name))
                 except (ConnectionResetError , ConnectionAbortedError) as e:
                     self.master.info_logger('Lost Connection. Unable to send log {log}'.format(log=log))
                     break
-                time.sleep(0.4)
+                time.sleep(0.2)
 
             ground_socket.close()
 
@@ -144,6 +145,7 @@ class ELinkManager:
                     [+] REBOOT_SLAVE
 
                 >> Recovery Commands
+                    [+] RELOAD_CONN
                     [+] RESTART_LOGS
                 """
 
@@ -189,17 +191,19 @@ class ELinkManager:
             self.stop_log_threads = True
             if self.data_log_thread.isAlive():
                 self.data_log_thread.join()
-            #if self.info_log_thread.isAlive():
-                #self.info_log_thread.join()
-
-            print('------ RESTARTED LOG THREADS -------')
+            if self.info_log_thread.isAlive():
+                self.info_log_thread.join()
             self.stop_log_threads = False
             self.start_log_threads()
             return """
                  [+] Command {action} Successfuly
                  [+] restarted log threads
                """.format(action=action)
-
+        elif action == "RELOAD_CONN":
+            return """
+                 [+] Command {action} successfuly
+                 [+] reload connection
+               """.format(action=action)
         elif action == 'SET':
             steps = client_data["steps"]
             values = {'status': 1 , 'steps' : steps}
