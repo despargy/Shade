@@ -1,7 +1,4 @@
 import ADC as adc
-import HEAT as heat
-import DMC as dmc
-import TX as tx
 import elinkmanager
 # from datamanager import DataManager
 from counterdown import CounterDown
@@ -27,14 +24,8 @@ class Master:
         self.thread_elink = None
         # self.data_manager = DataManager(self, self.info_logger, self.data_logger)
         # self.thread_data_manager = None
-        self.dmc = dmc.DMC(self)
-        self.thread_dmc = None
-        self.heat = heat.HEAT(self)
-        self.thread_heat = None
         self.adc = adc.ADC(self)
         self.thread_adc = None
-        self.tx = tx.TX(self)
-        self.thread_tx = None
         self.counterdown = CounterDown(self)
         Master.__instance = self
 
@@ -52,23 +43,12 @@ class Master:
         self.status_vector['IMU'] = 1       # 1
         self.status_vector['ALTIMETER'] = 1 # 1
         self.status_vector['TEMP'] = 1      # 1
-        # Heat
-        self.status_vector['HEAT_ON'] = 0   # 0
-        self.status_vector['HEAT_SLEEP'] = 0
-        # Transmition
-        self.status_vector['AMP_ON'] = 0    # 0
-        self.status_vector['TX_ON'] = 0     # 0
         # ADC
         self.status_vector['ADC_MAN'] = 0   # 0
         # DMC
-        self.status_vector['DMC_SLEEP'] = 0 # 0
-        self.status_vector['DEP_CONF'] = 0  # 0
-        self.status_vector['DEP_SUCS'] = 0  # 0
-        self.status_vector['DEP_READY'] = 0 # 0
-        self.status_vector['RET_READY'] = 0 # 0
-        self.status_vector['RET_CONF'] = 0  # 0
-        self.status_vector['RET_AB'] = 0    # 0
-        self.status_vector['RET_SUCS'] = 0  # 0
+
+        self.status_vector['DEP_SUCS'] = 1  # 0
+
         # Experiment
         self.status_vector['KILL'] = 0
 
@@ -78,47 +58,14 @@ class Master:
         self.command_vector['ADC_AUTO'] = 0
         self.command_vector['SET'] = 0
         self.command_vector['SCAN'] = 0
-        # HEAT
-        self.command_vector['HEAT_SLEEP'] = 0
-        self.command_vector['HEAT_AWAKE'] = 0
-        # DMC
-        self.command_vector['DMC_AWAKE'] = 0
-        self.command_vector['DEP'] = 0
-        self.command_vector['DEP_CONF'] = 0
-        self.command_vector['DEP_AB'] = 0
-        self.command_vector['DEP_SUCS'] = 0
-        self.command_vector['DEP_RETRY'] = 0
-        self.command_vector['RET_CONF'] = 0
-        self.command_vector['RET_AB'] = 0
-        self.command_vector['RET'] = 0
-        self.command_vector['RET_SUCS'] = 0
-        self.command_vector['RET_RETRY'] = 0
-        # TX
-        self.command_vector['TX_SLEEP'] = 0
-        self.command_vector['TX_AWAKE'] = 0
-        self.command_vector['PRE'] = 0
 
     def start(self):
 
         self.init_experiment()
-
-        while not self.status_vector['RET_CONF'] and not self.get_command('KILL'):
-            sleep(self.counterdown.master_time_runs)
-            if self.get_command('REBOOT_SLAVE'):
-                pass
-
+        while not self.get_command('KILL'):
+            pass
         self.status_vector['KILL'] = 1
-        pass  # kill threads
-        self.info_logger.write_info('KILLED ADC + TX')
-        print('killed adc + tx')
-
-        # @ TODO wait DMC and then kill DMC n' HEAT n' ?Elink n' ?Data
-        if self.thread_dmc is not None:
-            self.thread_dmc.join()
-
-        self.info_logger.write_warning('SHADE IS TERMINATED')
-        print('shade is terminated')
-        # @TODO RESTART SHADE n REBOOT
+        print('end')
 
     def init_experiment(self):
         self.init_status_vector()
@@ -136,9 +83,6 @@ class Master:
 
     def init_subsystems(self):
         self.thread_adc = threading.Thread(target=self.adc.start).start()
-        self.thread_dmc = threading.Thread(target=self.dmc.start).start()
-        self.thread_heat = threading.Thread(target=self.heat.start).start()
-        #self.thread_tx = threading.Thread(target=self.tx.start).start()
 
     def get_command(self, command):
         try:
@@ -149,17 +93,30 @@ class Master:
 
 if __name__ == "__main__":
 
+    __again = True
+
     if len(sys.argv) != 2:
         print("""
               [+] Run master program with one argument.
               [+] The argument indicates the ground IP
-              [+] e.g python master.py 195.168.0.1
+              [+] e.g python simulation_master_adc_datamanager.py 195.168.0.1
 
               [+] For Testing purposes use 'local' as argument
               [+] to simulate a connection locally
-              [+] e.g python master.py local
+              [+] e.g python simulation_master_adc_datamanager.py local
               """)
     else:
+        print("""
+        This is a program to test only ADC control.
+            Use commands:
+            [+] ADC_MAN #to change in manual ADC control
+            [+] SET # set antenna's base in a specific step - operation of manual ADC only
+            [+] SCAN # antenna's base turn 360 n back - operation of manual ADC only
+            [+] ADC_AUTO #to recall auto mode of ADC control
+            [+] KILL #to kill program 
+            Choose where to collect data (random or from data_manager) via the ADC class 
+                - get_compass_data()
+                - get_gps_data()
+        """)
         ground_ip = sys.argv[1]
         Master(ground_ip).start()
-

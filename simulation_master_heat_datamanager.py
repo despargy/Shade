@@ -6,7 +6,6 @@ import threading
 from logger import InfoLogger, DataLogger, AdcsLogger
 import sys
 
-
 class Master:
 
     __instance = None
@@ -96,12 +95,21 @@ if __name__ == "__main__":
         print("""
               [+] Run master program with one argument.
               [+] The argument indicates the ground IP
-              [+] e.g python master.py 195.168.0.1
+              [+] e.g python simulation_master_heat_datamanager.py 195.168.0.1
 
               [+] For Testing purposes use 'local' as argument
               [+] to simulate a connection locally
-              [+] e.g python master.py local
+              [+] e.g python simulation_master_heat_datamanager.py local
               """)
     else:
+        print("""
+            This is a program to test only heating control.
+            Use commands:
+            [+] HEAT_SLEEP #to force close the heating control
+            [+] HEAT_AWAKE #to recall auto mode of heating control
+            [+] KILL #to kill program 
+            Choose where to collect data (random or from data_manager) via the HEAT class 
+                - threaded_function_data()
+            """)
         ground_ip = sys.argv[1]
         Master(ground_ip).start()
