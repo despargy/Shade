@@ -23,10 +23,17 @@ class ELinkManager:
         self.recv_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.recv_socket.bind((self.host, self.recv_port))
         self.recv_socket.listen(5)
+        self.stop_log_threads = False
 
-        threading.Thread(target=self.send_logs, args=('data.log',self.data_port,)).start()
-        threading.Thread(target=self.send_logs, args=('info.log',self.logs_port,)).start()
+        self.start_log_threads()
 
+
+
+    def start_log_threads(self):
+        self.data_log_thread = threading.Thread(target=self.send_logs, args=('data.log',self.data_port,))
+        self.data_log_thread.start()
+        self.info_log_thread = threading.Thread(target=self.send_logs, args=('info.log',self.logs_port,))
+        self.info_log_thread.start()
 
     def ping_host(self,host):
         """
@@ -46,10 +53,17 @@ class ELinkManager:
 
 
         while(True):
+            if self.stop_log_threads : break
+
             time.sleep(5)
+            print('Before socket {file_name}'.format(file_name=file_name))
             ground_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
             try:
+                print('Before connect {file_name}'.format(file_name=file_name))
+                ground_socket.settimeout(5)
                 ground_socket.connect((self.ground_host, port))
+
                 self.master.info_logger.write_info('Connect to ground to port {port} to send {filename}'.format(port=port, filename=file_name))
             except (socket.error , socket.timeout)  as e:
                 print(e)
@@ -59,20 +73,30 @@ class ELinkManager:
 
 
             #first send filename
+            print('Before send filename {file_name}'.format(file_name=file_name))
             ground_socket.sendall(file_name.encode('utf-8'))
 
 
             if file_name == 'info.log':
-                unsend_data, total_rows = self.master.info_logger.get_unsend_data()
+                logger = self.master.info_logger
             elif file_name == 'data.log':
-                unsend_data, total_rows = self.master.data_logger.get_unsend_data()
+                logger = self.master.data_logger
+
+
+            unsend_data, total_rows = logger.get_unsend_data()
 
             ground_socket.sendall(str(total_rows).encode('utf-8'))
             time.sleep(0.2)
-            #TODOS: read file as chucks that have size BUFFER_SIZE
+
             for log in unsend_data:
+
+                curr_id = log.split(',')[0]
                 try:
+                    #print('Before send log for {file_name}'.format(file_name=file_name))
+                    log = '{log}\n'.format(log=log)
                     ground_socket.sendall(log.encode('utf-8'))
+                    logger.set_last_sended_index(curr_id)
+                    print('After send log for {file_name}'.format(file_name=file_name))
                 except (ConnectionResetError , ConnectionAbortedError) as e:
                     self.master.info_logger('Lost Connection. Unable to send log {log}'.format(log=log))
                     break
@@ -119,6 +143,10 @@ class ELinkManager:
                 >> Reboot Available Commands:
                     [+] REBOOT
                     [+] REBOOT_SLAVE
+
+                >> Recovery Commands
+                    [+] RELOAD_CONN
+                    [+] RESTART_LOGS
                 """
 
 
@@ -136,7 +164,7 @@ class ELinkManager:
                 ground_package_json = ground_socket.recv(self.BUFFER_SIZE).decode('utf-8')
                 if not ground_package_json:
                     self.master.info_logger.write_error('Lost connection unexpectedly from {addr}'.format(addr=addr))
-                    break
+                    breakself
                 #handle the client package
                 server_response = self.handle_package(ground_package_json)
                 #send repsonse to client
@@ -159,7 +187,24 @@ class ELinkManager:
         #get data
         action = client_data["action"]
         self.master.info_logger.write_info('Action {action} was received from ground.'.format(action=action))
-        if action == 'SET':
+        if action == 'RESTART_LOGS':
+            self.stop_log_threads = True
+            if self.data_log_thread.isAlive():
+                self.data_log_thread.join()
+            if self.info_log_thread.isAlive():
+                self.info_log_thread.join()
+            self.stop_log_threads = False
+            self.start_log_threads()
+            return """
+                 [+] Command {action} Successfuly
+                 [+] restarted log threads
+               """.format(action=action)
+        elif action == "RELOAD_CONN":
+            return """
+                 [+] Command {action} successfuly
+                 [+] reload connection
+               """.format(action=action)
+        elif action == 'SET':
             steps = client_data["steps"]
             values = {'status': 1 , 'steps' : steps}
             self.master.vector_command[action] = values
