@@ -153,11 +153,11 @@ if __name__ == "__main__":
         print("""
               [+] Run master program with one argument.
               [+] The argument indicates the ground IP
-              [+] e.g python master.py 195.168.0.1
+              [+] e.g python master_esrange.py 195.168.0.1
 
               [+] For Testing purposes use 'local' as argument
               [+] to simulate a connection locally
-              [+] e.g python master.py local
+              [+] e.g python master_esrange.py local
               """)
     else:
         ground_ip = sys.argv[1]
