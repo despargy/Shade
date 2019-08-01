@@ -121,7 +121,7 @@ class DMC:
 
     def phase_kill_before_retrieve(self):
         self.info_logger.write_warning('PHASE KILLING')
-        print('kill')
+        print('kill status true')
         self.master.status_vector['KILL'] = 1
         time.sleep(self.counterdown.dmc_wait_others_to_killed)  # wait master to kill or dmc kills
 
