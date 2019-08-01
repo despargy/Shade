@@ -89,8 +89,6 @@ class Master:
 
 if __name__ == "__main__":
 
-    __again = True
-
     if len(sys.argv) != 2:
         print("""
               [+] Run master program with one argument.

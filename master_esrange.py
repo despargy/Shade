@@ -97,6 +97,8 @@ class Master:
         self.command_vector['TX_SLEEP'] = 0
         self.command_vector['TX_AWAKE'] = 0
         self.command_vector['PRE'] = 0
+        #REBOOT
+        self.command_vector['REBOOT_SLAVE'] = 0
 
     def start(self):
 
@@ -105,10 +107,13 @@ class Master:
         while not self.status_vector['RET_CONF'] and not self.get_command('KILL'):
             sleep(self.counterdown.master_time_runs)
             if self.get_command('REBOOT_SLAVE'):
+                self.command_vector['REBOOT_SLAVE'] = 0
+                self.reboot_slave()
+            if self.get_command('REBOOT'):
                 pass
 
+        # kill threads
         self.status_vector['KILL'] = 1
-        pass  # kill threads
         self.info_logger.write_info('KILLED ADC + TX')
         print('killed adc + tx')
 
@@ -145,6 +150,10 @@ class Master:
             return self.command_vector[command]
         except:
             return 0
+
+    def reboot_slave(self):
+        pass
+        #power off and power on the other ras
 
 
 if __name__ == "__main__":

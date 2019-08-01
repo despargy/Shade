@@ -56,8 +56,10 @@ class MotorADC(Motor):
                 #sleep(self.period*self.p_high)
                 #GPIO.output(self.pin_step, GPIO.LOW)
                 #sleep(self.period*self.p_low)
+            print('act')
         else:
             pass
+            print('error in action')
             #self.adc.adcslogger.write_warning("Didn't permit action to motorADC")
 
 class MotorDMC(Motor):
@@ -139,6 +141,8 @@ class MotorDMC(Motor):
                 #sleep(self.period*self.p_high)
                 #GPIO.output(self.pin_step, GPIO.LOW)
                 #sleep(self.period*self.p_low)
+            print('act')
         else:
             pass
+            print('error in action')
 
