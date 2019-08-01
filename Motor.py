@@ -129,3 +129,16 @@ class MotorDMC(Motor):
             # GPIO.output(self.pin_step, GPIO.LOW)
             # sleep(self.period*self.p_low)
             print('DMC MOTOR PULL')
+
+    def act(self, count_steps, direction):
+        if type(count_steps) in [int] and not count_steps<0 and direction in [0,1]:
+            self.direction = direction
+            #GPIO.output(self.pin_direction, self.direction)
+            #for x in range(count_steps):
+                #GPIO.output(self.pin_step, GPIO.HIGH)
+                #sleep(self.period*self.p_high)
+                #GPIO.output(self.pin_step, GPIO.LOW)
+                #sleep(self.period*self.p_low)
+        else:
+            pass
+
