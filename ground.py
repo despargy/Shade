@@ -67,7 +67,7 @@ class GroundClient:
                     self.info_logger.write_error('Lost connection unexpectedly from {addr}'.format(addr=addr))
                     break
 
-                file_name = data.strip()
+                file_name = data
                 try:
                     data = log_socket.recv(self.BUFFER_SIZE).decode('utf-8')
                 except (ConnectionAbortedError, ConnectionResetError) as e:
@@ -79,6 +79,7 @@ class GroundClient:
                     total_rows = int(data)
                 except:
                     self.info_logger.write_error('Exception on type casting for total rows. Data : {data}'.format(data=data))
+                    
                     continue
 
                 time.sleep(0.2)
@@ -93,7 +94,7 @@ class GroundClient:
                             self.print_lost_connection()
                             break
 
-                        f.write(data+'\n')
+                        f.write(data)
                     #f.close()
                     time.sleep(0.2)
         log_socket.close()
