@@ -50,25 +50,28 @@ class ADC:
     def start(self):
 
         self.adcs_logger.write_info('START ADC PROCESS')
-        while not self.master.status_vector['DEP_SUCS']:
+        while not self.master.status_vector['DEP_SUCS'] and not self.master.status_vector['KILL']:
 
             self.adcs_logger.write_info('WAIT FOR DEP')
             sleep(self.counterdown.adc_time_checks_deploy)
 
-        self.run_auto()
+        while not self.master.status_vector['KILL']:
+            self.run_ADC_auto()
+            self.run_ADC_manual()
+
+        self.adcs_logger.write_info('END OF ADC PROCESS')
+        print('end of adc process')
 
 
     #Auto mode of ADC
-    def run_auto(self):
+    def run_ADC_auto(self):
 
-        while not self.master.status_vector['KILL']:
+        self.adcs_logger.write_info('AUTO ADC')
+        print('auto adc')
+        self.master.status_vector['ADC_MAN'] = 0   # 0
+        self.master.command_vector['ADC_MAN'] = 0
+        while not self.master.get_command('ADC_MAN') and not self.master.status_vector['KILL']:
 
-            while self.master.status_vector['ADC_MAN']:
-                self.adcs_logger.write_info('MANUAL ADC')
-                sleep(self.counterdown.adc_wait_manual_ends)
-
-            self.adcs_logger.write_info('AUTO ADC')
-            print('auto adc')
             self.valid_data = True
             self.get_compass_data()
             self.get_gps_data()
@@ -85,12 +88,51 @@ class ADC:
                 self.log_last_position_after()
             else:
                 self.adcs_logger.write_warning('NON action: invalid data')
-            sleep(self.counterdown.adc_time_runs) #time to run ADC algorithm
+            sleep(self.counterdown.adc_auto_time_runs) #time to run ADC algorithm
             #s = int(input("give step to set\n"))
             #s = random.randrange(0,200,1)
             #self.set_position(s)
-        self.adcs_logger.write_info('END OF ADC PROCESS')
-        print('end of adc process')
+
+
+    def run_ADC_manual(self):
+
+        while self.master.get_command('ADC_MAN') and not self.master.status_vector['KILL']:
+            self.master.info_logger.write_info('IN ADC MAN: SET OR SCAN')
+            print('in adc man: set or scan')
+            self.master.status_vector['ADC_MAN'] = 1
+            self.master.command_vector['ADC_AUTO'] = 0   # re-init
+            self.master.command_vector['SET'] = 0  # re-init
+            self.master.command_vector['SCAN'] = 0  # re-init
+            choice = self.counterdown.countdown2(self.counterdown.adc_man_timeout_to_set_or_scan, 'SET', 'SCAN')
+            if choice == 1:
+                self.adcs_logger.write_info('IN SET')
+                print('in set')
+                #@TODO AUTO ADC WAIT
+                try:
+                    steps = int(self.master.command_vector['SET']['steps'])
+                    self.set_position(steps)
+                except:
+                    self.adcs_logger.write_warning('INVALID STEP INPUT')
+            elif choice == 2:
+                self.adcs_logger.write_info('IN SCAN')
+                print('in scan')
+                self.scan()
+            self.master.command_vector['SET'] = 0  # re-init
+            self.master.command_vector['SCAN'] = 0  # re-init
+            self.master.command_vector['ADC_AUTO'] = 0  # re-init
+            self.master.command_vector['ADC_MAN'] = 0  # re-init
+            self.adcs_logger.write_info('WAITING FOR ADC MAN OR AUTO')
+            print('waiting for adc man or auto')
+            choice = self.counterdown.countdown2(self.counterdown.adc_man_time_breaks, 'ADC_AUTO', 'ADC_MAN')
+            if choice == 2:
+                self.adcs_logger.write_info('CONT ADC MAN')
+                print('cont adc man')
+            else:
+                self.master.command_vector['ADC_MAN'] = 0 # re-init
+                self.master.status_vector['ADC_MAN'] = 0 # re-init
+                self.adcs_logger.write_info('BREAK ADC MAN')
+                print('break adc man')
+        sleep(self.counterdown.adc_man_time_runs)
 
     def get_compass_data(self):
 

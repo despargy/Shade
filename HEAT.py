@@ -44,7 +44,7 @@ class HEAT(object):
         self.info_logger.write_info("START HEAT PROCESS")
         thread_data = Thread(target=self.threaded_function_data)
         thread_data.start()
-        while not self.master.status_vector['RET_SUCS']:
+        while not self.master.status_vector['RET_SUCS'] and not self.master.status_vector['KILL']:
 
             while self.master.get_command("HEAT_SLEEP") and not self.master.get_command('HEAT_AWAKE'):
                 self.master.status_vector['HEAT_SLEEP'] = 1
@@ -63,6 +63,7 @@ class HEAT(object):
             elif not self.need_heating and self.master.status_vector["HEAT_ON"]:
                 self.pause_heat()
             sleep(self.counterdown.heat_time_runs)
+        return 0
 
     def consider_data(self):
 
@@ -90,7 +91,7 @@ class HEAT(object):
 
     def threaded_function_data(self):
 
-        while not self.master.status_vector['RET_SUCS']:
+        while not self.master.status_vector['RET_SUCS'] and not self.master.status_vector['KILL']:
             temp = random.randrange(-14,20,1)
             #temp = self.data_manager.get_data("ext_temp")
             if temp is None:
