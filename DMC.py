@@ -74,9 +74,6 @@ class DMC:
         self.info_logger.write_info('PHASE DEPLOY')
         print('phase deploy')
         # in that phase status_vector DEP_READY = 1 & DEP_CONF = 1
-        if self.master.status_vector['DEP_READY'] != 1 or self.master.status_vector['DEP_CONF'] != 1:
-            self.info_logger.write_error('CHECK CONDITIONS FOR DEP')
-            print('CHECK CONDITIONS FOR DEP')
         self.motor_dmc.motor_deploy()
         self.master.command_vector['DEP_SUCS'] = 0  # re-init if a new cmd come
         self.master.command_vector['DEP_RETRY'] = 0  # re-init if a new cmd come
