@@ -21,7 +21,7 @@ class GroundClient:
         self.logs_port = 12348
         self.BUFFER_SIZE = 1024
 
-        self.info_logger = InfoLogger.get_instance()
+        self.info_logger = InfoLogger('groud.info.log')
         # bind ground to down_link_port , to receive images
         threading.Thread(target=self.open_connection, args=(self.logs_port, )).start()
         threading.Thread(target=self.open_connection, args=(self.data_port, )).start()
@@ -79,7 +79,7 @@ class GroundClient:
                     total_rows = int(data)
                 except:
                     self.info_logger.write_error('Exception on type casting for total rows. Data : {data}'.format(data=data))
-                    
+
                     continue
 
                 time.sleep(0.2)

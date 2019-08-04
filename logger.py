@@ -79,12 +79,12 @@ class AdcsLogger(Logger):
 
     __instance = None
 
-    def __init__(self):
+    def __init__(self, filename = 'adcs.log'):
       if AdcsLogger.__instance != None:
          raise Exception("This class is a singleton!")
       else:
          super(AdcsLogger, self).__init__()
-         self.file_name = 'adcs.log'
+         self.file_name = filename
          self.formatter = logging.Formatter('%(log_id)s,%(asctime)s %(levelname)s %(message)s')
          self.handler = logging.FileHandler(self.file_name)
          self.handler.setFormatter(self.formatter)
@@ -107,12 +107,12 @@ class InfoLogger(Logger):
 
     __instance = None
 
-    def __init__(self):
+    def __init__(self, filename = 'info.log'):
         if InfoLogger.__instance != None:
             raise Exception("This class is a singleton!")
         else:
             super(InfoLogger, self).__init__()
-            self.file_name = 'info.log'
+            self.file_name = filename
             self.formatter = logging.Formatter('%(log_id)s,%(asctime)s %(levelname)s %(message)s')
             self.handler = logging.FileHandler(self.file_name)
             self.handler.setFormatter(self.formatter)
@@ -133,12 +133,12 @@ class DataLogger(Logger):
 
     __instance = None
 
-    def __init__(self):
+    def __init__(self, filename = 'data.log'):
         if DataLogger.__instance != None:
             raise Exception("This class is a singleton!")
         else:
             super(DataLogger, self).__init__()
-            self.file_name = 'data.log'
+            self.file_name = filename
             self.formatter = logging.Formatter('%(log_id)s,%(message)s')
             self.handler = logging.FileHandler(self.file_name)
             self.handler.setFormatter(self.formatter)
