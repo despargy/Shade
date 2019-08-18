@@ -95,11 +95,16 @@ class ELinkManager:
                     log = '{log}\n'.format(log=log)
                     ground_socket.sendall(log.encode('utf-8'))
                     response = ground_socket.recv(self.BUFFER_SIZE).decode('utf-8')
+                    print("Response is "+response)
+                    if response != 'Received': break
                     logger.set_last_sended_index(curr_id)
                     print('After send log for {file_name}'.format(file_name=file_name))
-                except (ConnectionResetError , ConnectionAbortedError, socket.timeout) as e:
+                except (ConnectionResetError , ConnectionAbortedError) as e:
                     print('Error when sending log')
                     self.master.info_logger('Lost Connection. Unable to send log {log}'.format(log=log))
+                    break
+                except socket.timeout:
+                    print('Socket Error')
                     break
                 time.sleep(0.2)
 
