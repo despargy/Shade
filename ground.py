@@ -23,11 +23,17 @@ class GroundClient:
 
         self.info_logger = InfoLogger('groud.info.log')
         # bind ground to down_link_port , to receive images
-        threading.Thread(target=self.open_connection, args=(self.logs_port, )).start()
-        threading.Thread(target=self.open_connection, args=(self.data_port, )).start()
+        self.stop_log_threads = False
+        self.start_log_threads()
         threading.Thread(target=self.open_image_connection, args=(self.images_port, )).start()
 
 
+    def start_log_threads(self):
+        self.data_log_thread  = threading.Thread(target=self.open_connection, args=(self.logs_port, ))
+        self.data_log_thread.start()
+        self.info_log_thread = threading.Thread(target=self.open_connection, args=(self.data_port, ))
+        self.info_log_thread.start()
+        
     def print_lost_connection(self):
         print("""
                   [+] Lost Internet Connection
@@ -38,6 +44,9 @@ class GroundClient:
     def open_connection(self,port):
 
         while True:
+
+            #force thread to stop
+            if self.stop_log_threads : break
 
             host = ''
             log_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -131,7 +140,7 @@ class GroundClient:
 
 
 
-    def onClose():
+    def onClose(self):
         """Function to handle properly the shutdown of the Ground Software"""
         pass
 
@@ -182,6 +191,15 @@ class GroundClient:
                 sys.exit(0)
             elif action =="":
                 continue
+            elif action == "RESTART_GROUND_LOGS":
+                self.stop_log_threads = True
+                if self.data_log_thread.isAlive():
+                    self.data_log_thread.join()
+                if self.info_log_thread.isAlive():
+                    self.info_log_thread.join()
+                self.stop_log_threads = False
+                self.start_log_threads()
+
 
             #save data into dictionary
             package = {"action": action }
@@ -197,8 +215,7 @@ class GroundClient:
                 conn_socket.sendall(json.dumps(package).encode('utf-8'))
                 #get response and print it
                 response = conn_socket.recv(self.BUFFER_SIZE).decode('utf-8')
-            except (ConnectionAbortedError, ConnectionResetError) as e:
-                print(e)
+            except ConnectionAbortedError as e:
                 print("""
                     [+] Lost Connection.
                     [+] Unable to send action {action}.
@@ -207,7 +224,6 @@ class GroundClient:
                     """.format(action=action))
                 break
             except ConnectionResetError as e:
-                print(e)
                 print("""
                   [+] Unable to send action {action}.
                   [+] Initialize connection.
@@ -215,7 +231,6 @@ class GroundClient:
                     """.format(action=action))
                 break
             except TimeoutError as e:
-                print(e)
                 print("""
                   [+] ElinkManager is unreachable
                   [+] Something went wrong!

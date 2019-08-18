@@ -16,7 +16,7 @@ class Reader(ABC):
         self.last_line_read = ''
         self.total_inactivity_time = 0
         self.error_logs = []
-        self.is_successively = lambda prev_id , id : prev_id != (id - 1)
+        self.is_not_successively = lambda prev_id , id : prev_id != (id - 1)
         self.has_big_delay = lambda : self.total_inactivity_time >= (2* self.READ_TIME)
 
 
@@ -71,7 +71,11 @@ class Reader(ABC):
             if first_line:
                 try:
                     last_line_id = self.get_id(self.last_line_read)
-                    if self.is_successively(last_line_id,curr_log_id):
+                    #if log were written two times , skip
+                    if last_line_id == curr_log_id: continue
+                    
+                    #if is not successively, count lost logs
+                    if self.is_not_successively(last_line_id,curr_log_id):
                         lost_logs = curr_log_id - last_line_id - 1
                         self.total_lost_logs += lost_logs
                 except:
@@ -81,8 +85,12 @@ class Reader(ABC):
                 continue
 
             prev_log_id = self.get_id(prev_log)
+            
+            #if log were written two times , skip
+            if prev_log_id == curr_log_id: continue
 
-            if self.is_successively(prev_log_id,curr_log_id):
+            #if is not successively, count lost logs     
+            if self.is_not_successively(prev_log_id,curr_log_id):
                 lost_logs = curr_log_id - prev_log_id - 1
                 self.total_lost_logs += lost_logs
 
@@ -150,7 +158,6 @@ def print_statistics(readers):
     for reader in readers:
         print('--------- {name} ---------'.format(name=reader.name))
         reader.print_lost_log_rate()
-        reader.print_error_logs()
         if reader.has_big_delay():
             reader.print_innactivity_time()
 
