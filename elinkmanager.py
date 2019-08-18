@@ -91,7 +91,7 @@ class ELinkManager:
             for log in unsend_data:
 
                 curr_id = log.split(',')[0]
-                try:                    
+                try:
                     log = '{log}\n'.format(log=log)
                     ground_socket.sendall(log.encode('utf-8'))
                     response = ground_socket.recv(self.BUFFER_SIZE).decode('utf-8')
@@ -170,7 +170,7 @@ class ELinkManager:
                 ground_package_json = ground_socket.recv(self.BUFFER_SIZE).decode('utf-8')
                 if not ground_package_json:
                     self.master.info_logger.write_error('Lost connection unexpectedly from {addr}'.format(addr=addr))
-                    breakself
+                    break
                 #handle the client package
                 server_response = self.handle_package(ground_package_json)
                 #send repsonse to client
