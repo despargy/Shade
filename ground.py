@@ -86,9 +86,9 @@ class GroundClient:
 
                 for i in range(total_rows):
                     with open('elink.'+file_name , 'a') as f:
-                        #f = open('elink.'+file_name,
                         try:
                             data = log_socket.recv(self.BUFFER_SIZE).decode('utf-8')
+                            log_socket.sendall("Received".encode('utf-8'))
                         except (ConnectionAbortedError, ConnectionResetError) as e:
                             self.info_logger.write_error('Lost connection when reading log :  {log}'.format(log=data))
                             self.print_lost_connection()

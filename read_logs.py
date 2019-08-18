@@ -23,8 +23,8 @@ class Reader(ABC):
     def get_unread_logs(self):
         last_index = -1
         unread_logs = []
-        with FileReadBackwards(self.file_name, encoding="utf-8") as BigFile:
-            for line in BigFile:
+        with FileReadBackwards(self.file_name, encoding="utf-8") as log_file:
+            for line in log_file:
                 line_index = self.get_id(line)
                 if last_index == -1 :
                     last_index = line_index
