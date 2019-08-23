@@ -2,6 +2,9 @@ from file_read_backwards import FileReadBackwards
 from abc import ABC, abstractmethod
 import time , threading
 import sys
+import matplotlib.pyplot as plt
+import matplotlib.animation as animation
+from matplotlib import style
 
 class Reader(ABC):
 
@@ -46,7 +49,7 @@ class Reader(ABC):
         logs = self.get_unread_logs()
         self.calc_lost_log_rate(logs)
         self.read_error_logs(logs)
-
+        
 
     def read_error_logs(self,logs):
         self.error_logs = filter(lambda log: 'error' in log.lower(), logs)
@@ -122,6 +125,39 @@ class Reader(ABC):
 
 
 
+
+def plot_heat():
+        style.use('ggplot')
+    
+        fig = plt.figure()
+        ax1 = fig.add_subplot(111)
+        lim = 0
+        def animate(i):
+            graph_data = open('info.log','r').read()
+            lines = graph_data.split('\n')
+            xs = []
+            ys = []
+            for line in lines:
+                if len(line) > 1:
+                    data = line.split()[3]
+                    x,y = data.split(',')
+                    xs.append(float(x))
+                    ys.append(float(y))
+            
+
+            ax1.clear()
+            x = float(x)
+            y = float(y)
+            ax1.set_xlim([max(0,x-100), x])
+            color = 'b'
+            if y > 50:
+                color = 'r'
+            ax1.plot(xs,ys, color=color)
+
+        
+        ani = animation.FuncAnimation(fig, animate , interval=1000)
+        plt.show()
+
 def print_prompt():
     print("""
           [+] Run Reader program with one argument.
@@ -167,6 +203,9 @@ if __name__ == '__main__':
         print_prompt()
         sys.exit(0)
 
+    if(sys.argv[1] == 'heat'):
+        plot_heat()
+        sys.exit(0)
     seconds = get_args()
     readers = create_readers(seconds)
 

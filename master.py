@@ -1,6 +1,7 @@
 import elinkmanager
 import threading, time , sys
 from logger import InfoLogger , AdcsLogger, DataLogger
+import random
 
 
 class Master:
@@ -23,9 +24,14 @@ class Master:
 
 
     def create_dummy_data(self):
+        count = 0
         while True:
-            time.sleep(3)
-            DataLogger.get_instance().write_info('Data1 , Data2 , Data3 , Data 4')
+            time.sleep(0.5)
+
+            ran1 = random.randint(-10,21)
+            ran2 = random.randint(-10,21)
+            self.data_logger.write_info('{},{}'.format(count,ran2))
+            count += 1
 
     def start(self):
 
@@ -51,4 +57,5 @@ if __name__ == "__main__":
               """)
     else:
         ground_ip = sys.argv[1]
-        Master(ground_ip).start()
+        #Master(ground_ip).start()
+        Master(ground_ip)
