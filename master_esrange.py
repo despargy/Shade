@@ -36,6 +36,9 @@ class Master:
         self.tx = tx.TX(self)
         self.thread_tx = None
         self.counterdown = CounterDown(self)
+        self.pin_powerB = 12 # @TODO change it in boot/config.txt
+        # GPIO.setmode(GPIO.BOARD)
+        # GPIO.setup(self.pin_powerB, GPIO.OUT)
         Master.__instance = self
 
     @staticmethod
@@ -154,6 +157,8 @@ class Master:
     def reboot_slave(self):
         pass
         #power off and power on the other ras
+        # GPIO.output(self.pin_powerB, GPIO.LOW)
+        # GPIO.output(self.pin_powerB, GPIO.HIGH)
 
 
 if __name__ == "__main__":

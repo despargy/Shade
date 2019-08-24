@@ -37,6 +37,13 @@ class ADC:
             self.direction = 1
             self.difference = 0
             self.valid_data = True
+            ###color
+            self.color_thress = 5
+            self.red_reference_point = 0
+            self.green_reference_point = 120
+            self.blue_reference_point = 240
+            self.color_string = None
+            ###
             ADC.__instance = self
 
 
@@ -188,7 +195,7 @@ class ADC:
 
         print('set')
         if 0 <= set_step <= (360/self.motor_adc.step_size):
-            self.init_motor_pose()
+            #self.init_motor_pose()
             direction = 1
             self.motor_adc.act(set_step, direction)
             self.antenna_adc.update_position(set_step*self.motor_adc.step_size, direction)
@@ -198,7 +205,7 @@ class ADC:
 
     def scan(self):
         print('scan')
-        self.init_motor_pose()
+        #self.init_motor_pose()
         direction = 1
         steps_per_time = 10
         times_per_scan = int((360/1.8)/steps_per_time)
@@ -223,6 +230,7 @@ class ADC:
         self.adcs_logger.write_info('INIT MOTOR POSE')
         self.antenna_adc.update_position(c_steps*self.motor_adc.step_size, direction)
         self.adcs_logger.write_info('antenna updated to {} with counter {}'.format(self.antenna_adc.position, self.antenna_adc.counter_for_overlap))
+
 
     def calc_new_position(self):
     #calc GEOMETRY
@@ -285,4 +293,43 @@ class ADC:
                     self.direction = 0  # anti-clockwise
 
         self.adcs_logger.write_info('Difference {} Direction {}'.format( self.difference, self.direction))
+
+
+    def get_color_data(self):
+
+        #color = self.data_manager.get_data("color")
+        color_list = ['RED', 'GREEN', 'BLUE', None]
+        color = random.choice(color_list)
+        if color is None:
+            self.adcs_logger.write_warning('Invalid color data')
+        else:
+            self.color_string = color
+
+    def go_to_zero_position(self):
+
+        if self.antenna_adc.counter_for_overlap > 360 :
+            self.motor_adc.act(110,0) #anti-clockwise
+            self.antenna_adc.update_position(110*self.motor_adc.step_size,0) #anti-clockwise
+        self.direction = 1
+        in_zero_point = False
+        some_steps = 5
+        if self.antenna_adc.counter_for_overlap < 0 :
+            self.direction = 0
+        while not in_zero_point:
+            self.get_color_data()
+            if ( self.color_string == "RED" ) :
+                #self.red_reference_point - self.color_thress < self.antenna_adc.counter_for_overlap < self.red_reference_point - self.color_thress +
+                self.adcs_logger.write_info("saw red")
+                self.adcs_logger.write_info("ZERO POSITION IS SET")
+                in_zero_point = True
+            elif ( self.color_string == "GREEN" ) :
+                self.direction = 1
+                self.adcs_logger.write_info("saw green")
+            elif ( self.color_string == "BLUE" ):
+                self.direction = 1
+                self.adcs_logger.write_info("saw blue")
+
+            self.motor_adc.act(some_steps, self.direction)  # anti-clockwise
+            self.antenna_adc.update_position(some_steps * self.motor_adc.step_size, self.direction)  # anti-clockwise
+
 

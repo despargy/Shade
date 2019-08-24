@@ -68,6 +68,7 @@ class TX:
 
     def transmit(self, file):
         self.info_logger.write_info('TX TRANSMIT'.format(file))
+        self.master.status_vector['TX_ON'] = 1
         print('TX TRANSMIT'.format(file))
         try:
             self.sdr_process = subprocess.call([sys.executable, os.path.join(get_script_dir(), 'sdr_code.py')])
