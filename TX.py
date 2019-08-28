@@ -20,7 +20,7 @@ class TX:
             self.info_logger = self.master.info_logger
             self.counterdown = CounterDown(master_)
             self.sdr_process = None
-            self.file_name_temperature = 'tx_temperature_file.txt'
+            self.file_name_temperature = 'tx_file.txt'
             self.file_name_predefined_data = 'tx_predefined_data.txt'
 
     @staticmethod
