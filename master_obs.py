@@ -1,5 +1,5 @@
 import elinkmanager
-import Observation as observation
+import OBCS as obcs
 import threading
 from time import sleep
 import sys
@@ -20,11 +20,11 @@ class Master_Obs:
         self.info_logger = InfoLogger()
         self.elink = elinkmanager.ELinkManager(self,self.ground_ip)
         self.thread_elink = None
-        self.observation = observation.Observation(self)
-        self.thread_observation = None
+        self.obcs = obcs.OBCS(self)
+        self.thread_obcs = None
         self.pin_powerA = 9999999 # @TODO change it in boot/config.txt
         # GPIO.setmode(GPIO.BOARD)
-        # GPIO.setup(self.pin_powerB, GPIO.OUT)
+        # GPIO.setup(self.pin_powerA, GPIO.OUT)
         Master_Obs.__instance = self
 
 
@@ -73,15 +73,13 @@ class Master_Obs:
         self.init_status_vector()
         self.init_command_vector()
         self.init_elink()
-        self.init_observation()
+        self.init_obcs()
 
     def init_elink(self):
         self.thread_elink = threading.Thread(target=self.elink.start).start()
 
-    def init_observation(self):
-        self.thread_obseravtion = threading.Thread(target=self.observation.start).start()
-
-
+    def init_obcs(self):
+        self.thread_obcs = threading.Thread(target=self.obcs.start).start()
 
     def get_command(self, command):
         try:
@@ -92,8 +90,8 @@ class Master_Obs:
     def reboot_slave(self):
         pass
         #power off and power on the other ras
-        # GPIO.output(self.pin_powerB, GPIO.LOW)
-        # GPIO.output(self.pin_powerB, GPIO.HIGH)
+        # GPIO.output(self.pin_powerA, GPIO.LOW)
+        # GPIO.output(self.pin_powerA, GPIO.HIGH)
 
 
 if __name__ == "__main__":

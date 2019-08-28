@@ -4,13 +4,13 @@ from pypylon import genicam
 from time import sleep
 import sys
 
-class Observation:
+class OBCS:
 
     __instance = None
 
     def __init__(self, master_):
 
-        if Observation.__instance is not None:
+        if OBCS.__instance is not None:
 
             raise Exception('This class is a singleton!')
         else:
@@ -21,19 +21,19 @@ class Observation:
             # The exit code of the sample application.
             self.exitCode = 0
             self.img_counter = 0
-            Observation.__instance = self
+            OBCS.__instance = self
 
     @staticmethod
     def get_instance():
 
-        if Observation.__instance is None:
-            Observation(None)
-        return Observation.__instance
+        if OBCS.__instance is None:
+            OBCS(None)
+        return OBCS.__instance
 
     def start(self):
 
-        self.master.info_logger.write_info('START OBSERVATION')
-        print('START OBSERVATION')
+        self.master.info_logger.write_info('START OBCS')
+        print('START OBCS')
         try:
             img = pylon.PylonImage()
             tlf = pylon.TlFactory.GetInstance()

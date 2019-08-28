@@ -250,11 +250,13 @@ class ADC:
             if self.GS[0] < self.gps[0] and self.GS[1] < self.gps[1]:
                 theta = 180 + fi #quartile = 1
             elif self.GS[0] < self.gps[0] and self.GS[1] > self.gps[1]:
-                theta = 180 - fi #quartile = 2
+                #OLD theta = 180 - fi #quartile = 2
+                theta = 360 - fi #quartile = 2
             elif self.GS[0] > self.gps[0] and self.GS[1] > self.gps[1]:
                 theta = fi #quartile = 3
             else:
-               theta = 360 - fi # quartile = 4
+               #OLD theta = 360 - fi # quartile = 4
+               theta = 180 - fi # quartile = 4
      # end calc GEOMETRY
         theta_antenna_pointing = (self.antenna_adc.position + self.compass) % 360
         if theta_antenna_pointing < theta:
