@@ -9,6 +9,7 @@ import threading
 from logger import InfoLogger, DataLogger, AdcsLogger
 from time import sleep
 import sys
+#import RPi.GPIO as GPIO
 
 
 class Master:

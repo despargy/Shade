@@ -5,7 +5,6 @@ from time import sleep
 class Motor:
 
     def __init__(self):
-        self.step_size = 1.8
         self.direction = 0
         self.step_counter = 0
         self.pin_direction = None  # Direction GPIO Pin
@@ -28,12 +27,13 @@ class MotorADC(Motor):
             raise Exception("This class is a singleton!") #logger
         else:
             super(MotorADC, self).__init__()
-            self.pin_direction = 13  # Direction GPIO Pin
-            self.pin_step = 11  # Step GPIO Pin
+            self.step_size = 1.8
+            self.pin_direction = 32  # Direction GPIO Pin OK
+            self.pin_step = 21  # Step GPIO Pin OK
             self.pin_sleep = 7  # Sleep Pin
-            self.period = .005
-            self.p_high = 0.95
-            self.p_low = 0.05
+            self.period = .0025
+            self.p_high = 0.8
+            self.p_low = 0.2
 #            GPIO.setmode(GPIO.BOARD)
 #            GPIO.setup(self.pin_direction, GPIO.OUT)
 #            GPIO.setup(self.pin_step, GPIO.OUT)
@@ -72,9 +72,10 @@ class MotorDMC(Motor):
             raise Exception("This class is a singleton!")  # logger
         else:
             super(MotorDMC, self).__init__()
-            self.pin_direction = 14  # Direction GPIO Pin
-            self.pin_step = 12  # Step GPIO Pin
-            self.pin_sleep = 8  # Sleep Pin
+            self.step_size = 1.8
+            self.pin_direction = 31  # Direction GPIO Pin OK
+            self.pin_step = 26  # Step GPIO Pin OK
+            self.pin_sleep = 8  # Sleep Pin NON-USE
             self.period = .005
             self.p_high = 0.95
             self.p_low = 0.05
