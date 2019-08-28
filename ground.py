@@ -199,6 +199,7 @@ class GroundClient:
                     self.info_log_thread.join()
                 self.stop_log_threads = False
                 self.start_log_threads()
+                continue
 
 
             #save data into dictionary
