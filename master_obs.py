@@ -22,7 +22,7 @@ class Master_Obs:
         self.thread_elink = None
         self.obcs = obcs.OBCS(self)
         self.thread_obcs = None
-        self.pin_powerA = 9999999 # @TODO change it in boot/config.txt
+        self.pin_powerA = 40 # @TODO change it in boot/config.txt
         # GPIO.setmode(GPIO.BOARD)
         # GPIO.setup(self.pin_powerA, GPIO.OUT)
         Master_Obs.__instance = self

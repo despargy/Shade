@@ -37,7 +37,7 @@ class Master:
         self.tx = tx.TX(self)
         self.thread_tx = None
         self.counterdown = CounterDown(self)
-        self.pin_powerB = 12 # @TODO change it in boot/config.txt
+        self.pin_powerB = 40 # @TODO change it in boot/config.txt
         # GPIO.setmode(GPIO.BOARD)
         # GPIO.setup(self.pin_powerB, GPIO.OUT)
         Master.__instance = self

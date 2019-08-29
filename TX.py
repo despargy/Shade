@@ -71,7 +71,7 @@ class TX:
         self.master.status_vector['TX_ON'] = 1
         print('TX TRANSMIT'.format(file))
         try:
-            self.sdr_process = subprocess.call([sys.executable, os.path.join(get_script_dir(), 'sdr_code.py')])
+            #self.sdr_process = subprocess.call([sys.executable, os.path.join(get_script_dir(), 'sdr_code.py')])
             cmd = 'python3 sdr_code.py'
             self.sdr_process = subprocess.Popen(cmd, stdout=subprocess.PIPE,shell=True, preexec_fn=os.setsid)
             #subprocess.call("/home/despina/Dropbox/BEAM/Software/Shade/sdr_simulation.py", shell=True)

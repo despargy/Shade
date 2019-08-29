@@ -47,7 +47,7 @@ class Master:
         self.status_vector['AMP_ON'] = 0    # 0
         self.status_vector['TX_ON'] = 0     # 0
         # DMC
-        self.status_vector['DEP_SUCS'] = 0  # 0
+        self.status_vector['DEP_SUCS'] = 1  # 0
         # Experiment
         self.status_vector['KILL'] = 0
 
