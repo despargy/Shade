@@ -28,7 +28,7 @@ class ADC:
             self.antenna_adc = Antenna()
             self.motor_adc = MotorADC.get_instance()
             self.motor_dmc = MotorDMC.get_instance()
-            #self.data_manager = self.master.data_manager
+            self.data_manager = self.master.data_manager
             self.adcs_logger = self.master.adcs_logger
             self.counterdown = CounterDown(master_)
             self.GS = [1, 1]
@@ -143,9 +143,9 @@ class ADC:
 
     def get_compass_data(self):
 
-        #compass = self.data_manager.get_data("angle_c")
+        compass = self.data_manager.get_data("angle_c")
         #compass = float(input("give compass\n"))
-        compass = random.randrange(0, 360, 1)
+        #compass = random.randrange(0, 360, 1)
         if compass is None:
             self.adcs_logger.write_warning('Invalid compass data')
             self.valid_data = False
@@ -156,10 +156,10 @@ class ADC:
 
         #x = float(input("give gps x\n"))
         #y = float(input("give gps y\n"))
-        x = random.randrange(-14,20,1)
-        y = random.randrange(-14,20,1)
-        #x = self.data_manager.get_data("gps_x")
-        #y = self.data_manager.get_data("gps_y")
+        #x = random.randrange(-14,20,1)
+        #y = random.randrange(-14,20,1)
+        x = self.data_manager.get_data("gps_x")
+        y = self.data_manager.get_data("gps_y")
         if x is None or y is None:
             self.adcs_logger.write_warning('Invalid gps data')
             self.valid_data = False

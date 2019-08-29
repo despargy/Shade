@@ -15,7 +15,7 @@ class DMC:
         else:
             self.master = master_
             self.motor_dmc = MotorDMC.get_instance()
-            #self.data_manager = self.master.data_manager
+            self.data_manager = self.master.data_manager
             self.info_logger = self.master.info_logger
             self.counterdown = CounterDown(master_)
             self.alti_thresshold = 1000  # 1km

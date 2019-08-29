@@ -1,5 +1,5 @@
 from time import sleep
-#import RPi.GPIO as GPIO
+import RPi.GPIO as GPIO
 
 
 class Motor:
@@ -34,11 +34,11 @@ class MotorADC(Motor):
             self.period = .0025
             self.p_high = 0.8
             self.p_low = 0.2
-#            GPIO.setmode(GPIO.BOARD)
-#            GPIO.setup(self.pin_direction, GPIO.OUT)
-#            GPIO.setup(self.pin_step, GPIO.OUT)
-#            GPIO.setup(self.pin_sleep, GPIO.OUT)
-#            GPIO.output(self.pin_sleep, GPIO.HIGH)
+            GPIO.setmode(GPIO.BOARD)
+            GPIO.setup(self.pin_direction, GPIO.OUT)
+            GPIO.setup(self.pin_step, GPIO.OUT)
+            GPIO.setup(self.pin_sleep, GPIO.OUT)
+            GPIO.output(self.pin_sleep, GPIO.HIGH)
             MotorADC.__instance = self
 
     @staticmethod
@@ -50,17 +50,17 @@ class MotorADC(Motor):
     def act(self, count_steps, direction):
         if type(count_steps) in [int] and not count_steps<0 and direction in [0,1]:
             self.direction = direction
-            #GPIO.output(self.pin_direction, self.direction)
-            #for x in range(count_steps):
-                #GPIO.output(self.pin_step, GPIO.HIGH)
-                #sleep(self.period*self.p_high)
-                #GPIO.output(self.pin_step, GPIO.LOW)
-                #sleep(self.period*self.p_low)
+            GPIO.output(self.pin_direction, self.direction)
+            for x in range(count_steps):
+                GPIO.output(self.pin_step, GPIO.HIGH)
+                sleep(self.period*self.p_high)
+                GPIO.output(self.pin_step, GPIO.LOW)
+                sleep(self.period*self.p_low)
             print('act')
         else:
             pass
             print('error in action')
-            #self.adc.adcslogger.write_warning("Didn't permit action to motorADC")
+            self.adc.adcslogger.write_warning("Didn't permit action to motorADC")
 
 class MotorDMC(Motor):
 
@@ -83,11 +83,11 @@ class MotorDMC(Motor):
             self.retrieve_direction = 0
             self.deploy_steps = 300
             self.small_steps = 3
-            #GPIO.setmode(GPIO.BOARD)
-            #GPIO.setup(self.pin_direction, GPIO.OUT)
-            #GPIO.setup(self.pin_step, GPIO.OUT)
-            #GPIO.setup(self.pin_sleep, GPIO.OUT)
-            #GPIO.output(self.pin_sleep, GPIO.HIGH)
+            GPIO.setmode(GPIO.BOARD)
+            GPIO.setup(self.pin_direction, GPIO.OUT)
+            GPIO.setup(self.pin_step, GPIO.OUT)
+            GPIO.setup(self.pin_sleep, GPIO.OUT)
+            GPIO.output(self.pin_sleep, GPIO.HIGH)
             MotorDMC.__instance = self
 
     @staticmethod
@@ -97,51 +97,51 @@ class MotorDMC(Motor):
         return MotorDMC.__instance
 
     def motor_deploy(self):
-        #GPIO.output(self.pin_direction, self.deploy_direction)
-        #for x in range(self.deploy_steps):
-            #GPIO.output(self.pin_step, GPIO.HIGH)
-            #sleep(self.period*self.p_high)
-            #GPIO.output(self.pin_step, GPIO.LOW)
-            #sleep(self.period*self.p_low)
+        GPIO.output(self.pin_direction, self.deploy_direction)
+        for x in range(self.deploy_steps):
+            GPIO.output(self.pin_step, GPIO.HIGH)
+            sleep(self.period*self.p_high)
+            GPIO.output(self.pin_step, GPIO.LOW)
+            sleep(self.period*self.p_low)
         print('DMC MOTOR DEPLOYED')
 
     def motor_retrieve(self):
-        #GPIO.output(self.pin_direction, self.retrieve_direction)
-        #for x in range(self.deploy_steps):
-            #GPIO.output(self.pin_step, GPIO.HIGH)
-            #sleep(self.period*self.p_high)
-            #GPIO.output(self.pin_step, GPIO.LOW)
-            #sleep(self.period*self.p_low)
+        GPIO.output(self.pin_direction, self.retrieve_direction)
+        for x in range(self.deploy_steps):
+            GPIO.output(self.pin_step, GPIO.HIGH)
+            sleep(self.period*self.p_high)
+            GPIO.output(self.pin_step, GPIO.LOW)
+            sleep(self.period*self.p_low)
         print('DMC MOTOR RETRIEVED')
 
     def motor_push(self):
 
-        # GPIO.output(self.pin_direction, self.deploy_direction)
-        # for x in range(self.small_steps):
-        # GPIO.output(self.pin_step, GPIO.HIGH)
-        # sleep(self.period*self.p_high)
-        # GPIO.output(self.pin_step, GPIO.LOW)
-        # sleep(self.period*self.p_low)
+        GPIO.output(self.pin_direction, self.deploy_direction)
+        for x in range(self.small_steps):
+            GPIO.output(self.pin_step, GPIO.HIGH)
+            sleep(self.period*self.p_high)
+            GPIO.output(self.pin_step, GPIO.LOW)
+            sleep(self.period*self.p_low)
         print('DMC MOTOR PUSH')
 
     def motor_pull(self):
-        # GPIO.output(self.pin_direction, self.retrieve_direction)
-        # for x in range(self.small_steps):
-            # GPIO.output(self.pin_step, GPIO.HIGH)
-            # sleep(self.period*self.p_high)
-            # GPIO.output(self.pin_step, GPIO.LOW)
-            # sleep(self.period*self.p_low)
+        GPIO.output(self.pin_direction, self.retrieve_direction)
+        for x in range(self.small_steps):
+            GPIO.output(self.pin_step, GPIO.HIGH)
+            sleep(self.period*self.p_high)
+            GPIO.output(self.pin_step, GPIO.LOW)
+            sleep(self.period*self.p_low)
             print('DMC MOTOR PULL')
 
     def act(self, count_steps, direction):
         if type(count_steps) in [int] and not count_steps<0 and direction in [0,1]:
             self.direction = direction
-            #GPIO.output(self.pin_direction, self.direction)
-            #for x in range(count_steps):
-                #GPIO.output(self.pin_step, GPIO.HIGH)
-                #sleep(self.period*self.p_high)
-                #GPIO.output(self.pin_step, GPIO.LOW)
-                #sleep(self.period*self.p_low)
+            GPIO.output(self.pin_direction, self.direction)
+            for x in range(count_steps):
+                GPIO.output(self.pin_step, GPIO.HIGH)
+                sleep(self.period*self.p_high)
+                GPIO.output(self.pin_step, GPIO.LOW)
+                sleep(self.period*self.p_low)
             print('act')
         else:
             pass

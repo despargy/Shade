@@ -3,13 +3,13 @@ import HEAT as heat
 import DMC as dmc
 import TX as tx
 import elinkmanager
-# from datamanager import DataManager
+from datamanager import DataManager
 from counterdown import CounterDown
 import threading
 from logger import InfoLogger, DataLogger, AdcsLogger
 from time import sleep
 import sys
-#import RPi.GPIO as GPIO
+import RPi.GPIO as GPIO
 
 
 class Master:
@@ -26,8 +26,8 @@ class Master:
         self.adcs_logger = AdcsLogger()
         self.elink = elinkmanager.ELinkManager(self,self.ground_ip)
         self.thread_elink = None
-        # self.data_manager = DataManager(self, self.info_logger, self.data_logger)
-        # self.thread_data_manager = None
+        self.data_manager = DataManager(self, self.info_logger, self.data_logger)
+        self.thread_data_manager = None
         self.dmc = dmc.DMC(self)
         self.thread_dmc = None
         self.heat = heat.HEAT(self)
@@ -38,8 +38,8 @@ class Master:
         self.thread_tx = None
         self.counterdown = CounterDown(self)
         self.pin_powerB = 40 # @TODO change it in boot/config.txt
-        # GPIO.setmode(GPIO.BOARD)
-        # GPIO.setup(self.pin_powerB, GPIO.OUT)
+        GPIO.setmode(GPIO.BOARD)
+        GPIO.setup(self.pin_powerB, GPIO.OUT)
         Master.__instance = self
 
     @staticmethod
@@ -133,7 +133,7 @@ class Master:
         self.init_status_vector()
         self.init_command_vector()
         self.init_elink()
-        # self.init_data_manager()
+        self.init_data_manager()
         self.init_subsystems()
 
     def init_elink(self):
@@ -141,7 +141,7 @@ class Master:
 
     def init_data_manager(self):
         pass
-        # self.thread_data_manager = threading.Thread(target=self.data_manager.start).start()
+        self.thread_data_manager = threading.Thread(target=self.data_manager.start).start()
 
     def init_subsystems(self):
         self.thread_adc = threading.Thread(target=self.adc.start).start()
@@ -158,8 +158,8 @@ class Master:
     def reboot_slave(self):
         pass
         #power off and power on the other ras
-        # GPIO.output(self.pin_powerB, GPIO.LOW)
-        # GPIO.output(self.pin_powerB, GPIO.HIGH)
+        GPIO.output(self.pin_powerB, GPIO.LOW)
+        GPIO.output(self.pin_powerB, GPIO.HIGH)
 
 
 if __name__ == "__main__":
