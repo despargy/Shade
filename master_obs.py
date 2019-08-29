@@ -4,7 +4,7 @@ import threading
 from time import sleep
 import sys
 from logger import InfoLogger
-#import RPi.GPIO as GPIO
+import RPi.GPIO as GPIO
 
 class Master_Obs:
 
@@ -23,8 +23,8 @@ class Master_Obs:
         self.obcs = obcs.OBCS(self)
         self.thread_obcs = None
         self.pin_powerA = 40 # @TODO change it in boot/config.txt
-        # GPIO.setmode(GPIO.BOARD)
-        # GPIO.setup(self.pin_powerA, GPIO.OUT)
+        GPIO.setmode(GPIO.BOARD)
+        GPIO.setup(self.pin_powerA, GPIO.OUT)
         Master_Obs.__instance = self
 
 
@@ -90,8 +90,8 @@ class Master_Obs:
     def reboot_slave(self):
         pass
         #power off and power on the other ras
-        # GPIO.output(self.pin_powerA, GPIO.LOW)
-        # GPIO.output(self.pin_powerA, GPIO.HIGH)
+        GPIO.output(self.pin_powerA, GPIO.LOW)
+        GPIO.output(self.pin_powerA, GPIO.HIGH)
 
 
 if __name__ == "__main__":
