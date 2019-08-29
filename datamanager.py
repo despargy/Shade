@@ -49,6 +49,7 @@ class DataManager:
                         self.master.status_vector["IMU"] = 0
                         		
         def start(self):
+                self.init_dict()
                 while True:
                         self.read_temp()
                         self.read_altitude(self.P0)
@@ -84,6 +85,27 @@ class DataManager:
                  self.dictionary["magY"],
                  self.dictionary["magZ"]
                )
+
+        def init_dict(self):
+                self.dictionary["ext_temp"] = None
+                self.dictionary["int_temp"] = None
+                self.dictionary["pressure"] = None
+                self.dictionary["altitude"] = None
+                self.dictionary["time_gps"] = None
+                self.dictionary["gps_y"] = None
+                self.dictionary["gps_x"] = None
+                self.dictionary["altitude_gps"] = None
+                self.dictionary["angle_c"] = None
+                self.dictionary["time_imu"] = None
+                self.dictionary["accelX"] = None
+                self.dictionary["accelY"] = None
+                self.dictionary["accelZ"] = None
+                self.dictionary["gyroX"] = None
+                self.dictionary["gyroY"] = None
+                self.dictionary["gyroZ"] = None
+                self.dictionary["magX"] = None
+                self.dictionary["magY"] = None
+                self.dictionary["magZ"] = None
        
         def get_data(self, name):
                 try:
