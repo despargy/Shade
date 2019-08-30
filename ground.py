@@ -243,7 +243,7 @@ class GroundClient:
                   [+] Try to reconnect...
                     """)
                 break
-            print(f"{str(response)}")
+            #print(f"{str(response)}")
 
 
 
