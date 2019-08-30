@@ -30,61 +30,64 @@ class ELinkManager:
 
 
     def start_log_threads(self):
+        """Starts log threads and 
+            stores them as object attributes
+        """
         self.data_log_thread = threading.Thread(target=self.send_logs, args=('data.log',self.data_port,))
         self.data_log_thread.start()
         self.info_log_thread = threading.Thread(target=self.send_logs, args=('info.log',self.logs_port,))
         self.info_log_thread.start()
 
     def ping_host(self,host):
-        """
-            Function that ecexutes ping (linux command) to check if
+        """Function that ecexutes ping (linux command) to check if
             ground IP exists into network.
+
             @carefull : this function dont cover the case where ground is on network
-                        but is not available (bind to port etc)
+                    but is not available (bind to port etc)
+        
+        Arguments:
+            host {string} -- a hostname
+        
+        Returns:
+            [boolean] -- True: got internet connection
+                         False: got no internet connection
         """
         try:
-            output = subprocess.check_output("ping -{} 1 {}".format('n' if platform.system().lower()=="windows" else 'c', host), shell=True)
+            subprocess.check_output("ping -{} 1 {}".format('n' if platform.system().lower()=="windows" else 'c', host), shell=True)
         except:
             return False
 
         return True
 
     def send_logs(self,file_name,port):
-
-
+        """Sends logs to ground stations
+        
+        Arguments:
+            file_name {string} -- The log file
+            port {int} -- The port
+        """
         while(True):
             if self.stop_log_threads : break
 
             time.sleep(5)
-            #print('Before socket {file_name}'.format(file_name=file_name))
+
             ground_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
             try:
-                #print('Before connect {file_name}'.format(file_name=file_name))
                 ground_socket.settimeout(5)
                 ground_socket.connect((self.ground_host, port))
 
                 self.master.info_logger.write_info('Connect to ground to port {port} to send {filename}'.format(port=port, filename=file_name))
             except (socket.error , socket.timeout)  as e:
-                #print(e)
                 self.master.info_logger.write_info('Socket Error when trying to connect to ground to send {filename}'.format(filename=file_name))
                 time.sleep(2) #wait 2 seconds and retry
                 continue
 
-
-            #first send filename
-            #print('Before send filename {file_name}'.format(file_name=file_name))
             ground_socket.sendall(file_name.encode('utf-8'))
 
-
-            if file_name == 'info.log':
-                logger = self.master.info_logger
-            elif file_name == 'data.log':
-                logger = self.master.data_logger
-
+            logger = self.master.info_logger if file_name == 'info.log' else self.master.data_logger
 
             unsend_data, total_rows = logger.get_unsend_data()
-
             ground_socket.sendall(str(total_rows).encode('utf-8'))
             time.sleep(0.2)
 
@@ -92,19 +95,15 @@ class ELinkManager:
 
                 curr_id = log.split(',')[0]
                 try:
-                    log = '{log}\n'.format(log=log)
+                    log = '{log}'.format(log=log)
                     ground_socket.sendall(log.encode('utf-8'))
                     response = ground_socket.recv(self.BUFFER_SIZE).decode('utf-8')
-                    #print("Response is "+response)
                     if response != 'Received': break
                     logger.set_last_sended_index(curr_id)
-                    #print('After send log for {file_name}'.format(file_name=file_name))
                 except (ConnectionResetError , ConnectionAbortedError) as e:
-                    #print('Error when sending log')
                     self.master.info_logger('Lost Connection. Unable to send log {log}'.format(log=log))
                     break
                 except socket.timeout:
-                    #print('Socket Error')
                     break
                 time.sleep(0.2)
 

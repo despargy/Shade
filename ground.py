@@ -3,7 +3,7 @@ import socket , requests
 import json
 import threading
 import sys , time
-from logger import InfoLogger
+import logger
 
 
 class GroundClient:
@@ -21,7 +21,15 @@ class GroundClient:
         self.BUFFER_SIZE = 1024
 
 
-        self.info_logger = InfoLogger('groud.info.log')
+        #the actual logs from ground station
+        self.info_logger = logger.InfoLogger('ground.info.log')
+
+        #info logs from elinkmanager
+        self.info_ground_logger = logger.GroundLogger('elink.info.log')
+
+        #data logs from elinkmanager
+        self.data_ground_logger = logger.GroundLogger('elink.data.log')
+
         # bind ground to down_link_port , to receive images
         self.stop_log_threads = False
         self.start_log_threads()
@@ -77,6 +85,7 @@ class GroundClient:
                     break
 
                 file_name = data
+                logger = self.info_ground_logger if file_name == 'info.log' else self.data_ground_logger
                 try:
                     data = log_socket.recv(self.BUFFER_SIZE).decode('utf-8')
                 except (ConnectionAbortedError, ConnectionResetError) as e:
@@ -88,24 +97,20 @@ class GroundClient:
                     total_rows = int(data)
                 except:
                     self.info_logger.write_error('Exception on type casting for total rows. Data : {data}'.format(data=data))
-
                     continue
 
                 time.sleep(0.2)
 
-                for i in range(total_rows):
-                    with open('elink.'+file_name , 'a') as f:
-                        try:
-                            data = log_socket.recv(self.BUFFER_SIZE).decode('utf-8')
-                            log_socket.sendall("Received".encode('utf-8'))
-                        except (ConnectionAbortedError, ConnectionResetError) as e:
-                            self.info_logger.write_error('Lost connection when reading log :  {log}'.format(log=data))
-                            self.print_lost_connection()
-                            break
-
-                        f.write(data)
-                    #f.close()
-                    time.sleep(0.2)
+                for _ in range(total_rows):
+                    try:
+                        data = log_socket.recv(self.BUFFER_SIZE).decode('utf-8')
+                        log_socket.sendall("Received".encode('utf-8'))
+                        logger.write_info(data)
+                        time.sleep(0.2)
+                    except (ConnectionAbortedError, ConnectionResetError) as e:
+                        self.info_logger.write_error('Lost connection when reading log: {log}'.format(log=data))
+                        self.print_lost_connection()
+                        break
         log_socket.close()
 
 
