@@ -10,6 +10,7 @@ from logger import InfoLogger, DataLogger, AdcsLogger
 from time import sleep
 import sys
 import RPi.GPIO as GPIO
+import json
 
 
 class Master:
@@ -49,61 +50,6 @@ class Master:
             Master()
         return Master.__instance
 
-    def init_status_vector(self):
-        # Data
-        self.status_vector['GPS'] = 1       # 1
-        self.status_vector['COMPASS'] = 1   # 1
-        self.status_vector['IMU'] = 1       # 1
-        self.status_vector['ALTIMETER'] = 1 # 1
-        self.status_vector['TEMP'] = 1      # 1
-        # Heat
-        self.status_vector['HEAT_ON'] = 0   # 0
-        self.status_vector['HEAT_SLEEP'] = 0
-        # Transmition
-        self.status_vector['AMP_ON'] = 0    # 0
-        self.status_vector['TX_ON'] = 0     # 0
-        # ADC
-        self.status_vector['ADC_MAN'] = 0   # 0
-        # DMC
-        self.status_vector['DMC_SLEEP'] = 0 # 0
-        self.status_vector['DEP_CONF'] = 0  # 0
-        self.status_vector['DEP_SUCS'] = 0  # 0
-        self.status_vector['DEP_READY'] = 0 # 0
-        self.status_vector['RET_READY'] = 0 # 0
-        self.status_vector['RET_CONF'] = 0  # 0
-        self.status_vector['RET_AB'] = 0    # 0
-        self.status_vector['RET_SUCS'] = 0  # 0
-        # Experiment
-        self.status_vector['KILL'] = 0
-
-    def init_command_vector(self):
-        # ADC
-        self.command_vector['ADC_MAN'] = 0
-        self.command_vector['ADC_AUTO'] = 0
-        self.command_vector['SET'] = 0
-        self.command_vector['SCAN'] = 0
-        # HEAT
-        self.command_vector['HEAT_SLEEP'] = 0
-        self.command_vector['HEAT_AWAKE'] = 0
-        # DMC
-        self.command_vector['DMC_AWAKE'] = 0
-        self.command_vector['DEP'] = 0
-        self.command_vector['DEP_CONF'] = 0
-        self.command_vector['DEP_AB'] = 0
-        self.command_vector['DEP_SUCS'] = 0
-        self.command_vector['DEP_RETRY'] = 0
-        self.command_vector['RET_CONF'] = 0
-        self.command_vector['RET_AB'] = 0
-        self.command_vector['RET'] = 0
-        self.command_vector['RET_SUCS'] = 0
-        self.command_vector['RET_RETRY'] = 0
-        # TX
-        self.command_vector['TX_SLEEP'] = 0
-        self.command_vector['TX_AWAKE'] = 0
-        self.command_vector['PRE'] = 0
-        #REBOOT
-        self.command_vector['REBOOT_SLAVE'] = 0
-
     def start(self):
 
         self.init_experiment()
@@ -115,6 +61,7 @@ class Master:
                 self.reboot_slave()
             if self.get_command('REBOOT'):
                 pass
+            json.dump(self.status_vector, open("file_init_status_vector.txt", 'w'))
 
         # kill threads
         self.status_vector['KILL'] = 1
@@ -130,8 +77,8 @@ class Master:
         # @TODO RESTART SHADE n REBOOT
 
     def init_experiment(self):
-        self.init_status_vector()
-        self.init_command_vector()
+        self.status_vector = json.load(open("file_init_status_vector.txt"))
+        self.command_vector = json.load(open("file_init_command_vector.txt"))
         self.init_elink()
         self.init_data_manager()
         self.init_subsystems()
