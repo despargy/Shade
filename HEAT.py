@@ -4,6 +4,7 @@ import queue
 from statistics import mean
 from counterdown import CounterDown
 import random
+import Pins as pins
 #import RPi.GPIO as GPIO
 
 
@@ -25,8 +26,8 @@ class HEAT(object):
             self.mean_temp = self.temp_thresshold
             self.max_size = 5
             self.data_queue = queue.Queue(self.max_size)
-            self.pin_heaterA = 24 #pin for Heater A
-            self.pin_heaterB = 25 #pin for Heater B
+            self.pin_heaterA = pins.Pins().pin_heaterA #pin for Heater A
+            self.pin_heaterB = pins.Pins().pin_heaterB #pin for Heater B
             #GPIO.setmode(GPIO.BOARD)
             #GPIO.setup(self.pin_heaterA, GPIO.OUT)
             #GPIO.setup(self.pin_heaterB, GPIO.OUT)
@@ -41,14 +42,14 @@ class HEAT(object):
 
     def start(self):
 
-        self.info_logger.write_info("START HEAT PROCESS")
+        self.info_logger.write_info("HEAT: START HEAT PROCESS")
         thread_data = Thread(target=self.threaded_function_data)
         thread_data.start()
         while not self.master.status_vector['RET_SUCS'] and not self.master.status_vector['KILL']:
 
             while self.master.get_command("HEAT_SLEEP") and not self.master.get_command('HEAT_AWAKE'):
                 self.master.status_vector['HEAT_SLEEP'] = 1
-                self.info_logger.write_info("Reinforce CLOSE HEAT")
+                self.info_logger.write_info("HEAT: Reinforce CLOSE HEAT")
                 print('Reinforce CLOSE HEAT')
                 self.pause_heat()
                 sleep(self.counterdown.heat_time_check_awake)
@@ -69,7 +70,7 @@ class HEAT(object):
 
         if not self.data_queue.empty():
             self.mean_temp = mean(list(self.data_queue.queue))
-            self.info_logger.write_info("MEAN TEMP {}".format(self.mean_temp))
+            self.info_logger.write_info("HEAT: MEAN TEMP {}".format(self.mean_temp))
             print("MEAN TEMP {}".format(self.mean_temp))
             return self.mean_temp < self.temp_thresshold
 
@@ -77,7 +78,7 @@ class HEAT(object):
 
         #GPIO.output(self.pin_heaterA, GPIO.HIGH)
         #GPIO.output(self.pin_heaterB, GPIO.HIGH)
-        self.info_logger.write_info("HEAT ON")
+        self.info_logger.write_info("HEAT: HEAT ON")
         print("HEAT ON")
         self.master.status_vector["HEAT_ON"] = 1
 
@@ -85,7 +86,7 @@ class HEAT(object):
 
         #GPIO.output(self.pin_heaterA, GPIO.LOW)
         #GPIO.output(self.pin_heaterB, GPIO.LOW)
-        self.info_logger.write_info("HEAT OFF")
+        self.info_logger.write_info("HEAT: HEAT OFF")
         print("HEAT OFF")
         self.master.status_vector["HEAT_ON"] = 0
 
@@ -95,7 +96,7 @@ class HEAT(object):
             temp = random.randrange(-14,20,1)
             #temp = self.data_manager.get_data("ext_temp")
             if temp is None:
-                self.info_logger.write_warning("Invalid temperature data HEAT")
+                self.info_logger.write_warning("HEAT: Invalid temperature data HEAT")
             else:
                 if self.data_queue.full():
                     self.data_queue.get()

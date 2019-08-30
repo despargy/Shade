@@ -27,7 +27,7 @@ class CounterDown:
     def countdown0(self, t):
         while t:
             mins, secs = divmod(t, 60)
-            timeformat = '{:02d}:{:02d}'.format(mins, secs)
+            timeformat = 'COUNTER: {:02d}:{:02d}'.format(mins, secs)
             self.master.info_logger.write_info('{}'.format(timeformat, end='\r'))
             sleep(1)
             t -= 1
@@ -35,7 +35,7 @@ class CounterDown:
     def countdown1(self, t, cmd):
         while t:
             mins, secs = divmod(t, 60)
-            timeformat = '{:02d}:{:02d}'.format(mins, secs)
+            timeformat = 'COUNTER: {:02d}:{:02d}'.format(mins, secs)
             self.master.info_logger.write_info('{}'.format(timeformat, end='\r'))
             sleep(1)
             t -= 1
@@ -45,7 +45,7 @@ class CounterDown:
     def countdown2(self, t, cmd1, cmd2):
         while t:
             mins, secs = divmod(t, 60)
-            timeformat = '{:02d}:{:02d}'.format(mins, secs)
+            timeformat = 'COUNTER: {:02d}:{:02d}'.format(mins, secs)
             self.master.info_logger.write_info('{}'.format(timeformat, end='\r'))
             sleep(1)
             t -= 1
@@ -58,8 +58,8 @@ class CounterDown:
     def countdown3(self, t, cmd1, cmd2, cmd3):
         while t:
             mins, secs = divmod(t, 60)
-            timeformat = '{:02d}:{:02d}'.format(mins, secs)
-            self.master.info_logger.write_info('{}'.format(timeformat, end='\r'))
+            timeformat = 'COUNTER: {:02d}:{:02d}'.format(mins, secs)
+            self.master.info_logger.write_info('COUNTER: {}'.format(timeformat, end='\r'))
             sleep(1)
             t -= 1
             # WARNING

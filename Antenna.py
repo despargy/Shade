@@ -1,4 +1,5 @@
 import json
+import Paths as paths
 class Antenna:
 
 
@@ -16,8 +17,9 @@ class Antenna:
         if Antenna.__instance is not None:
             raise Exception("This class is a singleton!")
         else:
-            self.position = json.load(open("file_init_position.txt"))
-            self.counter_for_overlap = json.load(open("file_init_counter.txt"))
+            self.paths = paths.Paths()
+            self.position = json.load(open(self.paths.file_init_position))
+            self.counter_for_overlap = json.load(open(self.paths.file_init_counter))
             self.overlap_thress = 380
             self.sign_for_counter = +1
             Antenna.__instance = self
@@ -42,8 +44,8 @@ class Antenna:
             elif self.position > 360:
                 self.position -= 360
             self.counter_for_overlap = self.counter_for_overlap + self.sign_for_counter*difference
-            json.dump(self.position, open("file_init_position.txt", 'w'))
-            json.dump(self.counter_for_overlap, open("file_init_counter.txt",'w'))
+            json.dump(self.position, open(self.paths.file_init_position, 'w'))
+            json.dump(self.counter_for_overlap, open(self.paths.file_init_counter,'w'))
 
     def check_isinoverlap(self, next_plus_angle, sign):
         if type(next_plus_angle) in [float, int] and sign in [-1, +1]:

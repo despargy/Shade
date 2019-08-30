@@ -56,24 +56,24 @@ class ADC:
 
     def start(self):
 
-        self.adcs_logger.write_info('START ADC PROCESS')
+        self.adcs_logger.write_info('ADC: START ADC PROCESS')
         while not self.master.status_vector['DEP_SUCS'] and not self.master.status_vector['KILL']:
 
-            self.adcs_logger.write_info('WAIT FOR DEP')
+            self.adcs_logger.write_info('ADC: WAIT FOR DEP')
             sleep(self.counterdown.adc_time_checks_deploy)
 
         while not self.master.status_vector['KILL']:
             self.run_ADC_auto()
             self.run_ADC_manual()
 
-        self.adcs_logger.write_info('END OF ADC PROCESS')
+        self.adcs_logger.write_info('ADC: END OF ADC PROCESS')
         print('end of adc process')
 
 
     #Auto mode of ADC
     def run_ADC_auto(self):
 
-        self.adcs_logger.write_info('AUTO ADC')
+        self.adcs_logger.write_info('ADC: AUTO ADC')
         print('auto adc')
         self.master.status_vector['ADC_MAN'] = 0   # 0
         self.master.command_vector['ADC_MAN'] = 0
@@ -94,7 +94,7 @@ class ADC:
                 self.antenna_adc.update_position(c_step*self.motor_adc.step_size, self.direction)
                 self.log_last_position_after()
             else:
-                self.adcs_logger.write_warning('NON action: invalid data')
+                self.adcs_logger.write_warning('ADC: NON action: invalid data')
             sleep(self.counterdown.adc_auto_time_runs) #time to run ADC algorithm
             #s = int(input("give step to set\n"))
             #s = random.randrange(0,200,1)
@@ -104,7 +104,7 @@ class ADC:
     def run_ADC_manual(self):
 
         while self.master.get_command('ADC_MAN') and not self.master.status_vector['KILL']:
-            self.master.info_logger.write_info('IN ADC MAN: SET OR SCAN')
+            self.master.info_logger.write_info('ADC: IN ADC MAN: SET OR SCAN')
             print('in adc man: set or scan')
             self.master.status_vector['ADC_MAN'] = 1
             self.master.command_vector['ADC_AUTO'] = 0   # re-init
@@ -112,32 +112,32 @@ class ADC:
             self.master.command_vector['SCAN'] = 0  # re-init
             choice = self.counterdown.countdown2(self.counterdown.adc_man_timeout_to_set_or_scan, 'SET', 'SCAN')
             if choice == 1:
-                self.adcs_logger.write_info('IN SET')
+                self.adcs_logger.write_info('ADC: IN SET')
                 print('in set')
                 #@TODO AUTO ADC WAIT
                 try:
                     steps = int(self.master.command_vector['SET']['steps'])
                     self.set_position(steps)
                 except:
-                    self.adcs_logger.write_warning('INVALID STEP INPUT')
+                    self.adcs_logger.write_warning('ADC: INVALID STEP INPUT')
             elif choice == 2:
-                self.adcs_logger.write_info('IN SCAN')
+                self.adcs_logger.write_info('ADC: IN SCAN')
                 print('in scan')
                 self.scan()
             self.master.command_vector['SET'] = 0  # re-init
             self.master.command_vector['SCAN'] = 0  # re-init
             self.master.command_vector['ADC_AUTO'] = 0  # re-init
             self.master.command_vector['ADC_MAN'] = 0  # re-init
-            self.adcs_logger.write_info('WAITING FOR ADC MAN OR AUTO')
+            self.adcs_logger.write_info('ADC: WAITING FOR ADC MAN OR AUTO')
             print('waiting for adc man or auto')
             choice = self.counterdown.countdown2(self.counterdown.adc_man_time_breaks, 'ADC_AUTO', 'ADC_MAN')
             if choice == 2:
-                self.adcs_logger.write_info('CONT ADC MAN')
+                self.adcs_logger.write_info('ADC: CONT ADC MAN')
                 print('cont adc man')
             else:
                 self.master.command_vector['ADC_MAN'] = 0 # re-init
                 self.master.status_vector['ADC_MAN'] = 0 # re-init
-                self.adcs_logger.write_info('BREAK ADC MAN')
+                self.adcs_logger.write_info('ADC: BREAK ADC MAN')
                 print('break adc man')
         sleep(self.counterdown.adc_man_time_runs)
 
@@ -147,7 +147,7 @@ class ADC:
         #compass = float(input("give compass\n"))
         #compass = random.randrange(0, 360, 1)
         if compass is None:
-            self.adcs_logger.write_warning('Invalid compass data')
+            self.adcs_logger.write_warning('ADC: Invalid compass data')
             self.valid_data = False
         else:
             self.compass = compass
@@ -161,18 +161,18 @@ class ADC:
         x = self.data_manager.get_data("gps_x")
         y = self.data_manager.get_data("gps_y")
         if x is None or y is None:
-            self.adcs_logger.write_warning('Invalid gps data')
+            self.adcs_logger.write_warning('ADC: Invalid gps data')
             self.valid_data = False
         else:
             self.gps = [x, y]
 
     def log_last_position_before(self, c_step):
-        self.adcs_logger.write_info('STEPS\t {} TO DO'.format(c_step))
-        self.adcs_logger.write_info('DEGREES {} TO DO'.format(self.difference))
-        self.adcs_logger.write_info('ACT FROM: {} WITH {}'.format(self.antenna_adc.counter_for_overlap, self.direction))
+        self.adcs_logger.write_info('ADC: STEPS\t {} TO DO'.format(c_step))
+        self.adcs_logger.write_info('ADC: DEGREES {} TO DO'.format(self.difference))
+        self.adcs_logger.write_info('ADC: ACT FROM: {} WITH {}'.format(self.antenna_adc.counter_for_overlap, self.direction))
 
     def log_last_position_after(self):
-        self.adcs_logger.write_info('DONE: {}'.format(self.antenna_adc.counter_for_overlap))
+        self.adcs_logger.write_info('ADC: DONE: {}'.format(self.antenna_adc.counter_for_overlap))
 
     def push_DMC_motor(self):
         self.motor_dmc.motor_push()
@@ -188,7 +188,7 @@ class ADC:
             c_step = int(dif / self.motor_adc.step_size)
             return c_step
         else:
-            self.adcs_logger.write_warning('TRY division /0: check step size')
+            self.adcs_logger.write_warning('ADC: TRY division /0: check step size')
             return 0
 
     def set_position(self, set_step):
@@ -199,9 +199,9 @@ class ADC:
             direction = 1
             self.motor_adc.act(set_step, direction)
             self.antenna_adc.update_position(set_step*self.motor_adc.step_size, direction)
-            self.adcs_logger.write_info('SET: ANTENNA AT {}'.format(self.antenna_adc.position))
+            self.adcs_logger.write_info('ADC: SET: ANTENNA AT {}'.format(self.antenna_adc.position))
         else:
-            self.adcs_logger.write_warning('Invalid SET_STEP')
+            self.adcs_logger.write_warning('ADC: Invalid SET_STEP')
 
     def scan(self):
         print('scan')
@@ -212,12 +212,12 @@ class ADC:
         for x in range(0,times_per_scan):
             self.motor_adc.act(steps_per_time, direction)
             self.antenna_adc.update_position(steps_per_time*1.8, direction)
-            self.adcs_logger.write_info('SCAN: ANTENNA AT {}'.format(self.antenna_adc.position))
+            self.adcs_logger.write_info('ADC: SCAN: ANTENNA AT {}'.format(self.antenna_adc.position))
         direction = 0
         for x in range(0,times_per_scan):
             self.motor_adc.act(steps_per_time, direction)
             self.antenna_adc.update_position(steps_per_time*1.8, direction)
-            self.adcs_logger.write_info('SCAN: ANTENNA AT {}'.format(self.antenna_adc.position))
+            self.adcs_logger.write_info('ADC: SCAN: ANTENNA AT {}'.format(self.antenna_adc.position))
 
     def init_motor_pose(self):
 
@@ -227,9 +227,9 @@ class ADC:
         else:
             direction = 0 # anti-clockwise
         self.motor_adc.act(c_steps, direction)
-        self.adcs_logger.write_info('INIT MOTOR POSE')
+        self.adcs_logger.write_info('ADC: INIT MOTOR POSE')
         self.antenna_adc.update_position(c_steps*self.motor_adc.step_size, direction)
-        self.adcs_logger.write_info('antenna updated to {} with counter {}'.format(self.antenna_adc.position, self.antenna_adc.counter_for_overlap))
+        self.adcs_logger.write_info('ADC: antenna updated to {} with counter {}'.format(self.antenna_adc.position, self.antenna_adc.counter_for_overlap))
 
 
     def calc_new_position(self):
@@ -294,7 +294,7 @@ class ADC:
                     self.difference = dif2
                     self.direction = 0  # anti-clockwise
 
-        self.adcs_logger.write_info('Difference {} Direction {}'.format( self.difference, self.direction))
+        self.adcs_logger.write_info('ADC: Difference {} Direction {}'.format( self.difference, self.direction))
 
 
     def get_color_data(self):
@@ -303,7 +303,7 @@ class ADC:
         color_list = ['RED', 'GREEN', 'BLUE', None]
         color = random.choice(color_list)
         if color is None:
-            self.adcs_logger.write_warning('Invalid color data')
+            self.adcs_logger.write_warning('ADC: Invalid color data')
         else:
             self.color_string = color
 
@@ -321,15 +321,15 @@ class ADC:
             self.get_color_data()
             if ( self.color_string == "RED" ) :
                 #self.red_reference_point - self.color_thress < self.antenna_adc.counter_for_overlap < self.red_reference_point - self.color_thress +
-                self.adcs_logger.write_info("saw red")
-                self.adcs_logger.write_info("ZERO POSITION IS SET")
+                self.adcs_logger.write_info("ADC: saw red")
+                self.adcs_logger.write_info("ADC: ZERO POSITION IS SET")
                 in_zero_point = True
             elif ( self.color_string == "GREEN" ) :
                 self.direction = 1
-                self.adcs_logger.write_info("saw green")
+                self.adcs_logger.write_info("ADC: saw green")
             elif ( self.color_string == "BLUE" ):
                 self.direction = 1
-                self.adcs_logger.write_info("saw blue")
+                self.adcs_logger.write_info("ADC: saw blue")
 
             self.motor_adc.act(some_steps, self.direction)  # anti-clockwise
             self.antenna_adc.update_position(some_steps * self.motor_adc.step_size, self.direction)  # anti-clockwise

@@ -1,6 +1,6 @@
 from time import sleep
 import RPi.GPIO as GPIO
-
+import Pins as pins
 
 class Motor:
 
@@ -28,9 +28,9 @@ class MotorADC(Motor):
         else:
             super(MotorADC, self).__init__()
             self.step_size = 1.8
-            self.pin_direction = 32  # Direction GPIO Pin OK
-            self.pin_step = 21  # Step GPIO Pin OK
-            self.pin_sleep = 7  # Sleep Pin
+            self.pin_direction = pins.Pins().ADC_pin_direction  # Direction GPIO Pin OK
+            self.pin_step = pins.Pins().ADC_pin_step # Step GPIO Pin OK
+            self.pin_sleep = pins.Pins().ADC_pin_sleep  # Sleep Pin
             self.period = .0025
             self.p_high = 0.8
             self.p_low = 0.2
@@ -60,7 +60,7 @@ class MotorADC(Motor):
         else:
             pass
             print('error in action')
-            self.adc.adcslogger.write_warning("Didn't permit action to motorADC")
+            #self.adc.adcslogger.write_warning("Didn't permit action to motorADC")
 
 class MotorDMC(Motor):
 
@@ -73,9 +73,9 @@ class MotorDMC(Motor):
         else:
             super(MotorDMC, self).__init__()
             self.step_size = 1.8
-            self.pin_direction = 31  # Direction GPIO Pin OK
-            self.pin_step = 26  # Step GPIO Pin OK
-            self.pin_sleep = 8  # Sleep Pin NON-USE
+            self.pin_direction = pins.Pins().DMC_pin_direction  # Direction GPIO Pin OK
+            self.pin_step = pins.Pins().DMC_pin_step  # Step GPIO Pin OK
+            self.pin_sleep = pins.Pins().DMC_pin_sleep  # Sleep Pin NON-USE
             self.period = .005
             self.p_high = 0.95
             self.p_low = 0.05

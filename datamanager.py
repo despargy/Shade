@@ -5,7 +5,7 @@ import time
 import ms5803py
 import mag3110
 import serial
-
+import Paths as paths
 
 class DataManager:
     #constructor data
@@ -22,30 +22,30 @@ class DataManager:
                         self.compass = mag3110.compass()
                         self.master.status_vector["COMPASS"] = 1			
                 except:
-                        self.infologger.write_info("Can't connect to compass.")
+                        self.infologger.write_info("DataManager: Can't connect to compass.")
                         self.master.status_vector["COMPASS"] = 0
                 try:		
                         self.compass.loadCalibration()
                 except FileNotFoundError:	
-                        self.infologger.write_info("Can't locate the calibration file.")
+                        self.infologger.write_info("DataManager: Can't locate the calibration file.")
                         self.master.status_vector["COMPASS"] = 0
                 try:			
                         self.altimeter = ms5803py.MS5803()
                         self.master.status_vector["ALTIMETER"] = 1			
                 except:
-                        self.infologger.write_info("Can't connect to altimeter.")
+                        self.infologger.write_info("DataManager: Can't connect to altimeter.")
                         self.master.status_vector["ALTIMETER"] = 0		
                 try:			
                         self.ser_gps = serial.Serial(self.gps_port, baudrate=9600, timeout=0.5)
                         self.master.status_vector["GPS"] = 1			
                 except:
-                        self.infologger.write_info("Can't connect to GPS.")
+                        self.infologger.write_info("DataManager: Can't connect to GPS.")
                         self.master.status_vector["GPS"] = 0		
                 try:    			
                         self.ser_imu = serial.Serial(self.imu_port, baudrate=9600, timeout=0.5)
                         self.master.status_vector["IMU"] = 1			
                 except:
-                        self.infologger.write_info("Can't connect to IMU.")
+                        self.infologger.write_info("DataManager: Can't connect to IMU.")
                         self.master.status_vector["IMU"] = 0
                         		
         def start(self):
@@ -57,9 +57,9 @@ class DataManager:
                         self.read_compass()
                         self.read_imu()
                         self.write_tx_file()
-                        self.infologger.write_info("Saving data...")
+                        self.infologger.write_info("DataManager: Saving data...")
                         self.datalogger.write_info(self.get_log_data())
-                        self.infologger.write_info("Finished saving data.")
+                        self.infologger.write_info("DataManager: Finished saving data.")
                         time.sleep(3)
    
         def get_log_data(self):
@@ -115,7 +115,7 @@ class DataManager:
                 
         def read_temp(self):
                 try:
-                        self.infologger.write_info("Reading external temperature...")
+                        self.infologger.write_info("DataManager: Reading external temperature...")
                         # TCN75A address, 0x48(72)
                         # Select configuration register, 0x01(01)
                         #       0x60(96)    12-bit ADC resolution
@@ -134,15 +134,15 @@ class DataManager:
                         cTemp = temp * 0.0625
                         self.dictionary['ext_temp'] = cTemp
                         self.master.status_vector["TEMP"] = 1
-                        self.infologger.write_info("Finished reading external temperature.")
+                        self.infologger.write_info("DataManager: Finished reading external temperature.")
                 except: 
-                        self.infologger.write_info("Error: Cannot connect to the I2C device.")
-                        self.infologger.write_info("Error reading external temperature.")
+                        self.infologger.write_error("DataManager: Cannot connect to the I2C device.")
+                        self.infologger.write_error("DataManager: Cannot read external temperature.")
                         self.master.status_vector["TEMP"] = 0
 
         def read_altitude(self, p0):
                 try:
-                        self.infologger.write_info("Reading altimeter...")
+                        self.infologger.write_info("DataManager: Reading altimeter...")
                         raw_temperature = self.altimeter.read_raw_temperature(osr=4096)
                         raw_pressure = self.altimeter.read_raw_pressure(osr=4096)
                         press, temp = self.altimeter.convert_raw_readings(raw_pressure, raw_temperature)
@@ -151,15 +151,15 @@ class DataManager:
                         self.dictionary['pressure'] = press
                         self.dictionary['altitude'] = alt
                         self.master.status_vector["ALTIMETER"] = 1
-                        self.infologger.write_info("Finished reading altimeter.")
+                        self.infologger.write_info("DataManager: Finished reading altimeter.")
                 except:
-                        self.infologger.write_info("Error: Cannot connect to the I2C device.")
-                        self.infologger.write_info("Error reading altimeter.")
+                        self.infologger.write_error("DataManager:  Cannot connect to the I2C device.")
+                        self.infologger.write_error("DataManager: Cannot read altimeter.")
                         self.master.status_vector["ALTIMETER"] = 0
 
         def read_gps(self):
                 try:
-                        self.infologger.write_info("Reading GPS...")
+                        self.infologger.write_info("DataManager: Reading GPS...")
                         while True:
                                 data = self.ser_gps.readline()
                                 s = b' '
@@ -187,28 +187,28 @@ class DataManager:
                                         alt = float(s[9])
                                         self.dictionary['altitude_gps'] = alt
                                         break
-                        self.infologger.write_info("Finished reading GPS.") 
+                        self.infologger.write_info("DataManager: Finished reading GPS.")
                         self.master.status_vector["GPS"] = 1		
                 except:
-                        self.infologger.write_info("Error: Cannot connect to the Serial device.")
-                        self.infologger.write_info("Error reading GPS receiver.")
+                        self.infologger.write_error("DataManager:  Cannot connect to the Serial device.")
+                        self.infologger.write_error("DataManager:  Cannot read GPS receiver.")
                         self.master.status_vector["GPS"] = 0	
 
         def read_compass(self):
                 try:
-                        self.infologger.write_info("Reading compass...")
+                        self.infologger.write_info("DataManager: Reading compass...")
                         angle = self.compass.getBearing()
                         self.dictionary['angle_c'] = angle
-                        self.infologger.write_info("Finished reading compass.")
+                        self.infologger.write_info("DataManager: Finished reading compass.")
                         self.master.status_vector["COMPASS"] = 1
                 except:
-                        self.infologger.write_info("Error: Cannot connect to the I2C device.")
-                        self.infologger.write_info("Error reading compass.")
+                        self.infologger.write_error("DataManager:  Cannot connect to the I2C device.")
+                        self.infologger.write_error("DataManager: Cannot read compass.")
                         self.master.status_vector["COMPASS"] = 0
 
         def read_imu(self):
                 try:
-                        self.infologger.write_info("Reading IMU...")
+                        self.infologger.write_info("DataManager: Reading IMU...")
                         data = self.ser_imu.readline()
                         s = data.decode().split(",")
                         self.dictionary['time_imu'] = s[0]
@@ -221,23 +221,23 @@ class DataManager:
                         self.dictionary['magX'] = s[7]
                         self.dictionary['magY'] = s[8]
                         self.dictionary['magZ'] = s[9].strip("\r\n")
-                        self.infologger.write_info("Finished reading IMU.")
+                        self.infologger.write_info("DataManager: Finished reading IMU.")
                         self.master.status_vector["IMU"] = 1
                 except:
-                        self.infologger.write_info("Error: Cannot connect to the Serial device.")
-                        self.infologger.write_info("Error reading IMU.")
+                        self.infologger.write_error("DataManager: Cannot connect to the Serial device.")
+                        self.infologger.write_error("DataManager: Cannot read IMU.")
                         self.master.status_vector["IMU"] = 0
 			
         def write_tx_file(self):
                 try:
-                        f = open("tx_file.txt","w")
+                        f = open(paths.Paths().tx_file,"w")
                         #time = self.dictionary['time_gps']
                         temp = self.dictionary['ext_temp']
                         str = self.get_tx_str()
                         f.write(str)
                         f.close()
                 except:
-                        self.infologger.write_info("Error: Handling TX file.")
+                        self.infologger.write_error("DataManager: Handling TX file.")
 	
         def get_tx_str(self):
                 return_string = "(UTC):  ,External temperature {}"

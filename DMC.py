@@ -29,7 +29,7 @@ class DMC:
         return DMC.__instance
 
     def start(self):
-        self.master.info_logger.write_info('START DMC  PROCESS')
+        self.master.info_logger.write_info('DMC: START DMC  PROCESS')
         print('START DMC  PROCESS')
 
         while not self.master.status_vector['DEP_CONF']:
@@ -47,12 +47,12 @@ class DMC:
 
         while not self.master.status_vector['RET_SUCS']:
             self.phase_retrieve()
-        self.master.info_logger.write_info('END DMC PROCESS')
+        self.master.info_logger.write_info('DMC: END DMC PROCESS')
         print('end dmc process')
 
     def phase_zero(self):
         self.master.command_vector['DEP'] = 0  # re-init if a new cmd come
-        self.info_logger.write_info('PHASE ZERO')
+        self.info_logger.write_info('DMC: PHASE ZERO')
         print('phase zero')
         self.counterdown.countdown1(self.counterdown.dmc_time_left_auto_deploy, 'DEP')
         self.master.status_vector['DEP_READY'] = 1
@@ -60,7 +60,7 @@ class DMC:
     def phase_ready_for_deploy(self):
         self.master.command_vector['DEP_CONF'] = 0  # re-init if a new cmd come
         self.master.command_vector['DEP_AB'] = 0  # re-init if a new cmd come
-        self.info_logger.write_info('PHASE READY DEP')
+        self.info_logger.write_info('DMC: PHASE READY DEP')
         print('phase ready dep')
         choice = self.counterdown.countdown2(self.counterdown.dmc_timeout_cmd, 'DEP_CONF', 'DEP_AB')
         if choice == 2:
@@ -71,7 +71,7 @@ class DMC:
             self.master.status_vector['DEP_CONF'] = 1
 
     def phase_deploy(self):
-        self.info_logger.write_info('PHASE DEPLOY')
+        self.info_logger.write_info('DMC: PHASE DEPLOY')
         print('phase deploy')
         # in that phase status_vector DEP_READY = 1 & DEP_CONF = 1
         self.motor_dmc.motor_deploy()
@@ -86,7 +86,7 @@ class DMC:
             self.master.status_vector['DEP_SUCS'] = 1
 
     def phase_sleep(self):
-        self.info_logger.write_info('PHASE SLEEP')
+        self.info_logger.write_info('DMC: PHASE SLEEP')
         print('phase sleep')
         self.master.status_vector['DMC_SLEEP'] = 1
         self.master.command_vector['DMC_AWAKE'] = 0  # re-init if a new cmd come
@@ -94,7 +94,7 @@ class DMC:
         self.master.command_vector['RET'] = 0  # re-init if a new cmd come
 
     def phase_check(self):
-        self.info_logger.write_info('PHASE CHECK')
+        self.info_logger.write_info('DMC: PHASE CHECK')
         print('phase check')
         time.sleep(self.counterdown.dmc_time_checks_altitude)
         altitude = 100000000
@@ -109,21 +109,21 @@ class DMC:
                 self.master.command_vector['RET'] = 0  # re-init if a new cmd come
                 self.master.status_vector['RET_AB'] = 1
                 self.master.status_vector['RET_READY'] = 0
-                self.info_logger.write_info('RETRIEVE ABORT ')
+                self.info_logger.write_info('DMC: RETRIEVE ABORT ')
                 print('retrieve abort')
             else:
                 self.master.status_vector['RET_CONF'] = 1
-                self.info_logger.write_info(' RETRIEVE CONFIRMED')
+                self.info_logger.write_info('DMC: RETRIEVE CONFIRMED')
                 print('retrieve confirmed')
 
     def phase_kill_before_retrieve(self):
-        self.info_logger.write_warning('PHASE KILLING')
+        self.info_logger.write_warning('DMC: PHASE KILLING')
         print('kill status true')
         self.master.status_vector['KILL'] = 1
         time.sleep(self.counterdown.dmc_wait_others_to_killed)  # wait master to kill or dmc kills
 
     def phase_retrieve(self):
-        self.info_logger.write_info('PHASE RETRIEVE')
+        self.info_logger.write_info('DMC: PHASE RETRIEVE')
         print('phase retrieve')
         self.motor_dmc.motor_retrieve()
         self.master.command_vector['RET_SUCS'] = 0  # re-init if a new cmd come

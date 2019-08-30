@@ -2,7 +2,7 @@ from counterdown import CounterDown
 from time import sleep
 import sdr_code
 import subprocess, sys, os, inspect, signal
-
+import Paths as paths
 
 
 class TX:
@@ -20,8 +20,8 @@ class TX:
             self.info_logger = self.master.info_logger
             self.counterdown = CounterDown(master_)
             self.sdr_process = None
-            self.file_name_temperature = 'tx_file.txt'
-            self.file_name_predefined_data = 'tx_predefined_data.txt'
+            self.file_name_temperature = paths.Paths().tx_file
+            self.file_name_predefined_data = paths.Paths().tx_file_pre_data
 
     @staticmethod
     def get_instance():
@@ -67,7 +67,7 @@ class TX:
                 self.sdr_process.kill()
 
     def transmit(self, file):
-        self.info_logger.write_info('TX TRANSMIT'.format(file))
+        self.info_logger.write_info('TX: TX TRANSMIT'.format(file))
         self.master.status_vector['TX_ON'] = 1
         print('TX TRANSMIT'.format(file))
         try:
@@ -77,7 +77,7 @@ class TX:
             #subprocess.call("/home/despina/Dropbox/BEAM/Software/Shade/sdr_simulation.py", shell=True)
         #@TODO FILE RUN
         except:
-            self.info_logger.write_error('SDR PROCESS COULD BE CALLED')
+            self.info_logger.write_error('TX: SDR PROCESS COULD BE CALLED')
         pass
 
     def open_amplifier(self):
@@ -93,7 +93,7 @@ class TX:
     def phase_tx_sleep(self):
         self.close_amplifier()
         self.master.status_vector['TX_ON'] = 0
-        self.info_logger.write_warning('FORCE_TX_CLOSED')
+        self.info_logger.write_warning('TX: FORCE_TX_CLOSED')
         print('FORCE_TX_CLOSED')
         if self.master.get_command('TX_AWAKE'):
             self.master.command_vector['TX_SLEEP'] = 0

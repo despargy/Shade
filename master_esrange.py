@@ -11,7 +11,8 @@ from time import sleep
 import sys
 import RPi.GPIO as GPIO
 import json
-
+import  Paths as paths
+import Pins as pins
 
 class Master:
 
@@ -38,7 +39,8 @@ class Master:
         self.tx = tx.TX(self)
         self.thread_tx = None
         self.counterdown = CounterDown(self)
-        self.pin_powerB = 40 # @TODO change it in boot/config.txt
+        self.paths = paths.Paths()
+        self.pin_powerB = pins.Pins().pin_powerB # @TODO change it in boot/config.txt
         GPIO.setmode(GPIO.BOARD)
         GPIO.setup(self.pin_powerB, GPIO.OUT)
         Master.__instance = self
@@ -61,24 +63,24 @@ class Master:
                 self.reboot_slave()
             if self.get_command('REBOOT'):
                 pass
-            json.dump(self.status_vector, open("file_init_status_vector.txt", 'w'))
+            json.dump(self.status_vector, open(self.paths.file_status_vector, 'w'))
 
         # kill threads
         self.status_vector['KILL'] = 1
-        self.info_logger.write_info('KILLED ADC + TX')
+        self.info_logger.write_info('MASTER_ESRANGE: KILLED ADC + TX')
         print('killed adc + tx')
 
         # @ TODO wait DMC and then kill DMC n' HEAT n' ?Elink n' ?Data
         if self.thread_dmc is not None:
             self.thread_dmc.join()
 
-        self.info_logger.write_warning('SHADE IS TERMINATED')
+        self.info_logger.write_warning('MASTER_ESRANGE: SHADE IS TERMINATED')
         print('shade is terminated')
         # @TODO RESTART SHADE n REBOOT
 
     def init_experiment(self):
-        self.status_vector = json.load(open("file_init_status_vector.txt"))
-        self.command_vector = json.load(open("file_init_command_vector.txt"))
+        self.status_vector = json.load(open(self.paths.file_status_vector))
+        self.command_vector = json.load(open(self.paths.file_command_vector))
         self.init_elink()
         self.init_data_manager()
         self.init_subsystems()

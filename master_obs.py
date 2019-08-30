@@ -5,6 +5,7 @@ from time import sleep
 import sys
 from logger import InfoLogger
 import RPi.GPIO as GPIO
+import Pins as pins
 
 class Master_Obs:
 
@@ -22,7 +23,7 @@ class Master_Obs:
         self.thread_elink = None
         self.obcs = obcs.OBCS(self)
         self.thread_obcs = None
-        self.pin_powerA = 40 # @TODO change it in boot/config.txt
+        self.pin_powerA = pins.Pins().pin_powerA # @TODO change it in boot/config.txt
         GPIO.setmode(GPIO.BOARD)
         GPIO.setup(self.pin_powerA, GPIO.OUT)
         Master_Obs.__instance = self
@@ -51,22 +52,23 @@ class Master_Obs:
     def start(self):
 
         self.init_experiment()
-
+        self.status_vector['REC'] = 1
         while not self.get_command('CLOSE'):
             sleep(self.master_time_runs)
             if self.get_command('REBOOT_SLAVE'):
                 self.command_vector['REBOOT_SLAVE'] = 0
                 self.reboot_slave()
                 print('on reboot slave')
-                self.info_logger.write_info('reboot slave')
+                self.info_logger.write_info('MASTER_OBCS: reboot slave')
             if self.get_command('CLOSE'):
                 self.status_vector['CLOSE'] = 1
-                self.info_logger.write_info('wait camera to close')
+                self.info_logger.write_info('MASTER_OBCS: wait camera to close')
                 sleep(self.master_waits_camera_close)
                 print('on wait camera')
                 pass
                 # waits to close camera
-        self.info_logger.write_info('Obs on close')
+        self.status_vector['REC'] = 0
+        self.info_logger.write_info('MASTER_OBCS: Obs on close')
         print('Obs on close')
 
     def init_experiment(self):

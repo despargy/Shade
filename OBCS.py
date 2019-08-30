@@ -3,6 +3,8 @@ import platform
 from pypylon import genicam
 from time import sleep
 import sys
+import Paths as paths
+from pathlib import Path
 
 class OBCS:
 
@@ -15,6 +17,7 @@ class OBCS:
             raise Exception('This class is a singleton!')
         else:
             self.master = master_
+            self.path_to_img_folder = Path(paths.Paths().images_folder)
             self.info_logger = self.master.info_logger
             # Number of images to be grabbed.
             self.countOfImagesToGrab = 1
@@ -32,14 +35,14 @@ class OBCS:
 
     def start(self):
 
-        self.master.info_logger.write_info('START OBCS')
+        self.master.info_logger.write_info('OBCS: START OBCS')
         print('START OBCS')
         try:
             img = pylon.PylonImage()
             tlf = pylon.TlFactory.GetInstance()
             # Create an instant camera object with the camera device found first.
             camera = pylon.InstantCamera(pylon.TlFactory.GetInstance().CreateFirstDevice())
-            self.info_logger.write_info("Using device ", camera.GetDeviceInfo().GetModelName())
+            self.info_logger.write_info("OBCS: Using device ", camera.GetDeviceInfo().GetModelName())
             print("Using device ", camera.GetDeviceInfo().GetModelName())
             camera.MaxNumBuffer = 5
             camera.Open()
@@ -58,7 +61,7 @@ class OBCS:
                         # Calling AttachGrabResultBuffer creates another reference to the
                         # grab result buffer. This prevents the buffer's reuse for grabbing.
                         img.AttachGrabResultBuffer(grabResult)
-                        filename = "/home/pi/Desktop/CameraFolder/Images/saved_pypylon_img_%d.png" % self.img_counter
+                        filename = self.path_to_img_folder/"saved_pypylon_img_%d.png" % self.img_counter
                         img.Save(pylon.ImageFileFormat_Png, filename)
                     else:
                         print("Error: ", grabResult.ErrorCode, grabResult.ErrorDescription)
@@ -69,8 +72,7 @@ class OBCS:
                     sleep(5)
         except genicam.GenericException as e:
             # Error handling.
-            self.info_logger.write_error("An exception occurred.")
-            self.info_logger.write_error(e.GetDescription())
+            self.info_logger.write_error("OBCS: An exception occurred.", e.GetDescription())
             print("An exception occurred.")
             print(e.GetDescription())
             self.exitCode = 1
