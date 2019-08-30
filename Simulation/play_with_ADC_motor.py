@@ -21,13 +21,11 @@ class Master:
     def start(self):
 
         while True:
-            act = input("type ACT or act\n")
-            if act == 'ACT' or act =='act':
-                count_steps = input("give steps - ONLY INTEGER\n")
-                count_steps = int(count_steps)
-                direction = input("give 0 (anti-clockwise) or 1 (clockwise)\n")
-                count_steps = int(direction)
-                self.motor_adc.act(count_steps, direction)
+            count_steps = input("give steps - ONLY INTEGER\n")
+            count_steps = int(count_steps)
+            direction = input("give 0 (anti-clockwise) or 1 (clockwise)\n")
+            count_steps = int(direction)
+            self.motor_adc.act(count_steps, direction)
 
 
 if __name__ == "__main__":
