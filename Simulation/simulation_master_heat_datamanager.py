@@ -47,11 +47,20 @@ class Master:
 
         self.init_experiment()
 
-        while not self.get_command('KILL'):
-            pass
+        while  not self.get_command('KILL'):
+            sleep(self.counterdown.master_time_runs)
+            if self.get_command('REBOOT_SLAVE'):
+                self.command_vector['REBOOT_SLAVE'] = 0
+                self.reboot_slave()
+            if self.get_command('REBOOT'):
+                pass
             json.dump(self.status_vector, open(self.paths.file_status_vector, 'w'))
 
-        print('end')
+        # kill threads
+        self.status_vector['KILL'] = 1
+        self.info_logger.write_warning('MASTER_ESRANGE: SHADE IS TERMINATED')
+        print('shade is terminated')
+        # @TODO RESTART SHADE n REBOOT
 
     def init_experiment(self):
         self.status_vector = json.load(open(self.paths.file_status_vector))
