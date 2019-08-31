@@ -48,7 +48,7 @@ class MotorADC(Motor):
         return MotorADC.__instance
 
     def act(self, count_steps, direction):
-        if type(count_steps) in [int] and not count_steps<0 and direction in [0,1]:
+        if type(count_steps) is int and not count_steps<0 and direction in [0,1]:
             self.direction = direction
             GPIO.output(self.pin_direction, self.direction)
             for x in range(count_steps):
@@ -60,7 +60,6 @@ class MotorADC(Motor):
         else:
             pass
             print('error in action')
-            #self.adc.adcslogger.write_warning("Didn't permit action to motorADC")
 
 class MotorDMC(Motor):
 
@@ -134,7 +133,7 @@ class MotorDMC(Motor):
             print('DMC MOTOR PULL')
 
     def act(self, count_steps, direction):
-        if type(count_steps) in [int] and not count_steps<0 and direction in [0,1]:
+        if type(count_steps) is int and not count_steps<0 and direction in [0,1]:
             self.direction = direction
             GPIO.output(self.pin_direction, self.direction)
             for x in range(count_steps):

@@ -6,8 +6,8 @@ class Master:
 
     def __init__(self):
 
-        self.status_vector = dict()
-        self.command_vector = dict()
+        #self.status_vector = dict()
+        #self.command_vector = dict()
         self.motor_dmc = MotorDMC()
         Master.__instance = self
 

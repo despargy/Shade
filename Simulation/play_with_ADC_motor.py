@@ -6,8 +6,8 @@ class Master:
 
     def __init__(self):
 
-        self.status_vector = dict()
-        self.command_vector = dict()
+        #self.status_vector = dict()
+        #self.command_vector = dict()
         self.motor_adc = MotorADC()
         Master.__instance = self
 
@@ -20,11 +20,12 @@ class Master:
 
     def start(self):
 
+
         while True:
             count_steps = input("give steps - ONLY INTEGER\n")
             count_steps = int(count_steps)
             direction = input("give 0 (anti-clockwise) or 1 (clockwise)\n")
-            count_steps = int(direction)
+            direction = int(direction)
             self.motor_adc.act(count_steps, direction)
 
 
