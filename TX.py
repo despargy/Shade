@@ -43,35 +43,33 @@ class TX:
             sleep(self.counterdown.tx_time_checks_deploy)
 
     def tx_phase_available(self):
-        #while not self.master.status_vector['KILL']:
+        while not self.master.status_vector['KILL']:
 
-        #self.master.command_vector['PRE'] = 0
-        #while self.master.get_command('TX_SLEEP'):
-            #self.phase_tx_sleep()
-        print('tx phase av')
-        self.open_amplifier()
+            #self.master.command_vector['PRE'] = 0
+            #while self.master.get_command('TX_SLEEP'):
+                #self.phase_tx_sleep()
+            print('tx phase av')
+            self.open_amplifier()
 
-        threading.Thread(target=self.start_tx, args=(self.TX_code_file,)).start()
-        print('sdt start tx')
+            threading.Thread(target=self.start_tx, args=(self.TX_code_file,)).start()
+            self.master.info_logger.write_info('sdr tx')
             #self.transmit(self.file_name_temperature)
 
             #while or sleep
 
             #while not self.master.get_command('PRE') and not self.master.get_command('TX_SLEEP'):
                 #print('wait transmition')
-                #sleep(self.counterdown.tx_check_to_stop_transmition)
+            sleep(self.counterdown.tx_check_to_stop_transmition)
 
             #if self.master.get_command('PRE'):
                 #self.transmit(self.file_name_predefined_data)
                 #wait to send data
                 # kill sdr process
-                #self.sdr_process.kill()
 
-        sleep(10)
-
-            # kill sdr process
+        # kill sdr process
         self.kill_tx(self.TX_code_file)
-
+        self.close_amplifier()
+        
     def transmit(self, file):
         self.info_logger.write_info('TX: TX TRANSMIT'.format(file))
         self.master.status_vector['TX_ON'] = 1
