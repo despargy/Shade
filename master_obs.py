@@ -1,4 +1,3 @@
-#import elinkmanager
 import OBCS as obcs
 import threading
 from time import sleep
@@ -19,11 +18,10 @@ class Master_Obs:
         self.command_vector = dict()
         self.ground_ip = ground_ip
         self.info_logger = InfoLogger()
-        #self.elink = elinkmanager.ELinkManager(self,self.ground_ip)
-        #self.thread_elink = None
+        #@TODO: add downlink
         self.obcs = obcs.OBCS(self)
         self.thread_obcs = None
-        self.pin_powerA = pins.Pins().pin_powerA # @TODO change it in boot/config.txt
+        self.pin_powerA = pins.Pins().pin_powerA #@TODO change it in boot/config.txt
         GPIO.setmode(GPIO.BOARD)
         GPIO.setup(self.pin_powerA, GPIO.OUT)
         Master_Obs.__instance = self
@@ -74,12 +72,11 @@ class Master_Obs:
     def init_experiment(self):
         self.init_status_vector()
         self.init_command_vector()
-        self.init_elink()
+        self.init_downlink()
         self.init_obcs()
 
-    def init_elink(self):
+    def init_downlink(self):
         pass
-        #self.thread_elink = threading.Thread(target=self.elink.start).start()
 
     def init_obcs(self):
         self.thread_obcs = threading.Thread(target=self.obcs.start).start()
