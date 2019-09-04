@@ -22,7 +22,7 @@ class TX:
             self.file_name_temperature = paths.Paths().tx_file
             self.file_name_predefined_data = paths.Paths().tx_file_pre_data
             self.TX_code_file = 'sdr_TX.py'
-
+            GPIO.setup(self.pin_amp, GPIO.OUT)
     @staticmethod
     def get_instance():
 
@@ -52,7 +52,7 @@ class TX:
             self.open_amplifier()
 
             threading.Thread(target=self.start_tx, args=(self.TX_code_file,)).start()
-            self.master.info_logger.write_info('sdr tx')
+            self.master.info_logger.write_info('TX: sdr tx')
             #self.transmit(self.file_name_temperature)
 
             #while or sleep
@@ -67,9 +67,10 @@ class TX:
                 # kill sdr process
 
         # kill sdr process
+        self.master.info_logger.write_info('STOP sdr tx')
         self.kill_tx(self.TX_code_file)
         self.close_amplifier()
-        
+
     def transmit(self, file):
         self.info_logger.write_info('TX: TX TRANSMIT'.format(file))
         self.master.status_vector['TX_ON'] = 1
@@ -88,13 +89,15 @@ class TX:
         self.master.status_vector['AMP_ON'] = 1
         # led amplifier on
         # gpio amp on
-        pass
+        GPIO.output(self.pin_amp, GPIO.HIGH)
+
 
     def close_amplifier(self):
         self.master.status_vector['AMP_ON'] = 0
         # led amplifier off
         # gpio amp off
-        pass
+        GPIO.output(self.pin_amp, GPIO.LOW)
+
 
     def phase_tx_sleep(self):
         self.close_amplifier()
