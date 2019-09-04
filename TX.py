@@ -1,7 +1,6 @@
 from counterdown import CounterDown
 from time import sleep
-import sdr_code
-import subprocess, sys, os, inspect, signal
+import subprocess, sys, os, threading
 import Paths as paths
 
 
@@ -22,6 +21,7 @@ class TX:
             self.sdr_process = None
             self.file_name_temperature = paths.Paths().tx_file
             self.file_name_predefined_data = paths.Paths().tx_file_pre_data
+            self.TX_code_file = 'sdr_TX.py'
 
     @staticmethod
     def get_instance():
@@ -43,28 +43,34 @@ class TX:
             sleep(self.counterdown.tx_time_checks_deploy)
 
     def tx_phase_available(self):
-        while not self.master.status_vector['KILL']:
+        #while not self.master.status_vector['KILL']:
 
-            self.master.command_vector['PRE'] = 0
-            while self.master.get_command('TX_SLEEP'):
-                self.phase_tx_sleep()
+        #self.master.command_vector['PRE'] = 0
+        #while self.master.get_command('TX_SLEEP'):
+            #self.phase_tx_sleep()
+        print('tx phase av')
+        self.open_amplifier()
 
-            self.open_amplifier()
-            self.transmit(self.file_name_temperature)
+        threading.Thread(target=self.start_tx, args=(self.TX_code_file,)).start()
+        print('sdt start tx')
+            #self.transmit(self.file_name_temperature)
 
-            while not self.master.get_command('PRE') and not self.master.get_command('TX_SLEEP'):
-                print('wait transmition')
-                sleep(self.counterdown.tx_check_to_stop_transmition)
+            #while or sleep
 
-            #kill sdr process
-            #self.sdr_process.kill()
-            os.killpg(os.getpgid(self.sdr_process.pid), signal.SIGTERM)  # Send the signal to all the process groups
+            #while not self.master.get_command('PRE') and not self.master.get_command('TX_SLEEP'):
+                #print('wait transmition')
+                #sleep(self.counterdown.tx_check_to_stop_transmition)
 
-            if self.master.get_command('PRE'):
-                self.transmit(self.file_name_predefined_data)
+            #if self.master.get_command('PRE'):
+                #self.transmit(self.file_name_predefined_data)
                 #wait to send data
                 # kill sdr process
-                self.sdr_process.kill()
+                #self.sdr_process.kill()
+
+        sleep(10)
+
+            # kill sdr process
+        self.kill_tx(self.TX_code_file)
 
     def transmit(self, file):
         self.info_logger.write_info('TX: TX TRANSMIT'.format(file))
@@ -83,11 +89,13 @@ class TX:
     def open_amplifier(self):
         self.master.status_vector['AMP_ON'] = 1
         # led amplifier on
+        # gpio amp on
         pass
 
     def close_amplifier(self):
         self.master.status_vector['AMP_ON'] = 0
         # led amplifier off
+        # gpio amp off
         pass
 
     def phase_tx_sleep(self):
@@ -100,12 +108,20 @@ class TX:
             self.master.command_vector['TX_AWAKE'] = 0
             self.master.status_vector['TX_ON'] = 1
 
+    def start_tx(self, name):
+        os.system('python2 {name} {file}'.format(name=name, file = self.file_name_temperature))
 
-def get_script_dir(follow_symlinks=True):
-    if getattr(sys, 'frozen', False): # py2exe, PyInstaller, cx_Freeze
-        path = os.path.abspath(sys.executable)
-    else:
-        path = inspect.getabsfile(get_script_dir)
-    if follow_symlinks:
-        path = os.path.realpath(path)
-    return os.path.dirname(path)
+    def kill_tx(self, name):
+        temp_filename = 'tmp_pid'
+        os.system('ps -ef | grep {name} > {temp_filename}'.format(name=name, temp_filename=temp_filename))
+        with open(temp_filename, 'r') as tmp:
+            lines = tmp.readlines()
+            for line in lines:
+                compoments = line.split()
+                curr_name = compoments[-1]
+                curr_command = compoments[-2]
+
+                if curr_name == name and curr_command == 'python3':
+                    pid = compoments[1]
+                    os.system('kill -9 {pid}'.format(pid=pid))
+                    os.system('rm -f {temp_filename}'.format(temp_filename=temp_filename))

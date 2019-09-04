@@ -22,30 +22,30 @@ class DataManager:
                         self.compass = mag3110.compass()
                         self.master.status_vector["COMPASS"] = 1			
                 except:
-                        self.infologger.write_info("DataManager: Can't connect to compass.")
+                        self.infologger.write_error("DataManager: Can't connect to compass.")
                         self.master.status_vector["COMPASS"] = 0
                 try:		
                         self.compass.loadCalibration()
                 except FileNotFoundError:	
-                        self.infologger.write_info("DataManager: Can't locate the calibration file.")
+                        self.infologger.write_error("DataManager: Can't locate the calibration file.")
                         self.master.status_vector["COMPASS"] = 0
                 try:			
                         self.altimeter = ms5803py.MS5803()
                         self.master.status_vector["ALTIMETER"] = 1			
                 except:
-                        self.infologger.write_info("DataManager: Can't connect to altimeter.")
+                        self.infologger.write_error("DataManager: Can't connect to altimeter.")
                         self.master.status_vector["ALTIMETER"] = 0		
                 try:			
                         self.ser_gps = serial.Serial(self.gps_port, baudrate=9600, timeout=0.5)
                         self.master.status_vector["GPS"] = 1			
                 except:
-                        self.infologger.write_info("DataManager: Can't connect to GPS.")
+                        self.infologger.write_error("DataManager: Can't connect to GPS.")
                         self.master.status_vector["GPS"] = 0		
                 try:    			
                         self.ser_imu = serial.Serial(self.imu_port, baudrate=9600, timeout=0.5)
                         self.master.status_vector["IMU"] = 1			
                 except:
-                        self.infologger.write_info("DataManager: Can't connect to IMU.")
+                        self.infologger.write_error("DataManager: Can't connect to IMU.")
                         self.master.status_vector["IMU"] = 0
                         		
         def start(self):
