@@ -5,48 +5,55 @@ from time import sleep
 import sys
 import Paths as paths
 from pathlib import Path
+import os
 
 class OBCS:
 
     __instance = None
 
-    def __init__(self, master_):
+    def __init__(self,image_lock):
 
         if OBCS.__instance is not None:
 
             raise Exception('This class is a singleton!')
         else:
-            self.master = master_
-            self.path_to_img_folder = Path(paths.Paths().images_folder)
-            self.info_logger = self.master.info_logger
+            self.image_dir = Path("Images")
             # Number of images to be grabbed.
             self.countOfImagesToGrab = 1
             # The exit code of the sample application.
             self.exitCode = 0
             self.img_counter = 0
+            self.image_lock = image_lock
+            self.stop_taking_images = False
             OBCS.__instance = self
 
     @staticmethod
     def get_instance():
 
         if OBCS.__instance is None:
-            OBCS(None)
+            OBCS(None) #Bad bad bad
         return OBCS.__instance
 
-    def start(self):
 
-        self.master.info_logger.write_info('OBCS: START OBCS')
+    def close_camera(self):
+        self.stop_taking_images = True
+
+    def start(self):
+        
         print('START OBCS')
         try:
             img = pylon.PylonImage()
             tlf = pylon.TlFactory.GetInstance()
             # Create an instant camera object with the camera device found first.
             camera = pylon.InstantCamera(pylon.TlFactory.GetInstance().CreateFirstDevice())
-            self.info_logger.write_info("OBCS: Using device ", camera.GetDeviceInfo().GetModelName())
+    
             print("Using device ", camera.GetDeviceInfo().GetModelName())
             camera.MaxNumBuffer = 5
             camera.Open()
-            while not self.master.status_vector['CLOSE']:
+            while True:
+
+                if self.stop_taking_images : break
+
                 self.img_counter += 1
                 camera.StartGrabbingMax(self.countOfImagesToGrab)
 
@@ -61,18 +68,19 @@ class OBCS:
                         # Calling AttachGrabResultBuffer creates another reference to the
                         # grab result buffer. This prevents the buffer's reuse for grabbing.
                         img.AttachGrabResultBuffer(grabResult)
-                        filename = self.path_to_img_folder/"saved_pypylon_img_%d.png" % self.img_counter
+                        filename = os.path.join(self.image_dir, "image_%d.png" % self.img_counter)
+                        self.image_lock.acquire()
                         img.Save(pylon.ImageFileFormat_Png, filename)
+                        self.image_lock.release()
                     else:
                         print("Error: ", grabResult.ErrorCode, grabResult.ErrorDescription)
 
                     img.Release()
                     # check if m a tab
                     grabResult.Release()
-                    sleep(5)
+                    sleep(20)
         except genicam.GenericException as e:
             # Error handling.
-            self.info_logger.write_error("OBCS: An exception occurred.", e.GetDescription())
             print("An exception occurred.")
             print(e.GetDescription())
             self.exitCode = 1

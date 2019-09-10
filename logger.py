@@ -182,7 +182,7 @@ class AdcsLogger(Logger):
          raise Exception("This class is a singleton!")
       else:
          super(AdcsLogger, self).__init__(filename)
-         formatter = '%(log_id)s,%(asctime)s %(levelname)s %(message)s'
+         formatter = '%(message)s'
          self.set_up_logger(formatter,'adcs_logger')
          AdcsLogger.__instance = self
 

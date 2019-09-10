@@ -2,7 +2,7 @@
 import socket , requests
 import json
 import threading
-import sys , time
+import sys , time, os
 import logger
 
 
@@ -14,12 +14,14 @@ class GroundClient:
         else:
             self.uplink_host = elinkmanager_ip
 
+
         self.up_link_port = 12345
         self.images_port = 12346
         self.data_port = 12347
         self.logs_port = 12348
+        
+        #the buffer size
         self.BUFFER_SIZE = 1024
-
 
         #the actual logs from ground station
         self.info_logger = logger.InfoLogger('ground.info.log')
@@ -32,17 +34,29 @@ class GroundClient:
 
         # bind ground to down_link_port , to receive images
         self.stop_log_threads = False
+        
+        #start threads that awaits logs
         self.start_log_threads()
-        threading.Thread(target=self.open_image_connection, args=(self.images_port, )).start()
+
+        #images, Comment because moved whole image manager to new file.
+        #keep it here for case of emergency 
+        #self.image_dir = 'GroundImages'
+        #threading.Thread(target=self.open_image_connection, args=(self.images_port, )).start()
 
 
     def start_log_threads(self):
+        """Starts log threads which will
+           handle acceptance of logs
+        """
         self.data_log_thread  = threading.Thread(target=self.open_connection, args=(self.logs_port, ))
         self.data_log_thread.start()
         self.info_log_thread = threading.Thread(target=self.open_connection, args=(self.data_port, ))
         self.info_log_thread.start()
         
     def print_lost_connection(self):
+        """Print warning about internet
+           Connection
+        """
         print("""
                   [+] Lost Internet Connection
                   [+] Trying to reconnect...
@@ -50,10 +64,16 @@ class GroundClient:
 
 
     def open_connection(self,port):
-
+        """Creates a listener to {port} 
+           which will recieve the logs
+           and will save them in Logs directory
+        
+        Arguments:
+            port {string} -- The port which will bind the log listener
+        """
         while True:
 
-            #force thread to stop
+            #force thread to stop 
             if self.stop_log_threads : break
 
             host = ''
@@ -62,14 +82,15 @@ class GroundClient:
             log_socket.bind((host, port))
             log_socket.listen(5)
 
-            while(not self.has_internet_connection()): time.sleep(3)
+            #TODO: check if work properly after comment this line
+            #while(not self.has_internet_connection()): time.sleep(3)
+
             try:
                 log_socket,addr = log_socket.accept()
             except (OSError) as e:
                 self.print_lost_connection()
                 continue
 
-            self.info_logger.write_info('Got a connection from {addr}'.format(addr=addr))
 
             while(True):
 
@@ -81,11 +102,12 @@ class GroundClient:
                     break
 
                 if not data:
-                    self.info_logger.write_error('Lost connection unexpectedly from {addr}'.format(addr=addr))
+                    self.info_logger.write_error('Lost connection unexpectedly from {addr} when reading filename'.format(addr=addr))
                     break
 
                 file_name = data
                 logger = self.info_ground_logger if file_name == 'info.log' else self.data_ground_logger
+                
                 try:
                     data = log_socket.recv(self.BUFFER_SIZE).decode('utf-8')
                 except (ConnectionAbortedError, ConnectionResetError) as e:
@@ -126,13 +148,17 @@ class GroundClient:
         while True:
             #wait for connection from downlinkmanager
             data, addr = image_downlink_socket.recvfrom(self.BUFFER_SIZE)
+            
             if data:
                 file_name = data.strip().decode('utf-8')
             else:
-                #self.info_logger.write_error('Received bad package from elink. Ignoring.. ')
+                self.info_logger.write_error('Received bad image package from elink. Ignoring.. ')
                 continue
-            #TODO : check if dir exists. if not create it
-            fh = open('images/elink.'+ file_name, "ab")
+            
+            if not os.path.isdir(self.image_dir):
+                os.mkdir(self.image_dir)
+                
+            fh = open('{dir}/elink.{filename}'.format(dir=self.image_dir, filename=file_name), "ab")
             #read buffer by BUFFER_SIZE chunks
             while True:
                 data, addr = image_downlink_socket.recvfrom(self.BUFFER_SIZE)
@@ -161,6 +187,7 @@ class GroundClient:
             self.info_logger.write_warning('Lost internet connection.')
             self.print_lost_connection()
         return False
+
 
     def establish_connection(self):
         """Main Function to send manual commands to elinkmanager"""
@@ -213,8 +240,8 @@ class GroundClient:
             if action == "SET":
                 package['steps'] = input('Steps: ')
 
-
-            while(not self.has_internet_connection()): time.sleep(3)
+            #TODO: check if work properly after comment this line
+            #while(not self.has_internet_connection()): time.sleep(3)
 
             #send data as json string
             try:
