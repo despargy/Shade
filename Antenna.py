@@ -1,5 +1,7 @@
-import json
 import Paths as paths
+from file_read_backwards import FileReadBackwards
+
+
 class Antenna:
 
 
@@ -9,17 +11,22 @@ class Antenna:
     #constructor
     def __init__(self):
         """
-            state: is used or not
             position: degrees of antenna's base rotated by motor
-            degrees_counter_for_overlap: counter to check for overlap
+            counter_for_overlap: counter to check for overlap
             overlap_thress: maximun degrees that antenna is able to rotate = 360 + overlap
         """
         if Antenna.__instance is not None:
             raise Exception("This class is a singleton!")
         else:
             self.paths = paths.Paths()
-            self.position = json.load(open(self.paths.file_init_position))
-            self.counter_for_overlap = json.load(open(self.paths.file_init_counter))
+            file_name = "{dir}/{filename}".format(dir="Logs", filename='adcs.log')
+            with FileReadBackwards(file_name, encoding="utf-8") as log_file:
+                for line in log_file:
+                    position = line.split(',')[0]
+                    counter = line.split(',')[1]
+                    break
+            self.position = position
+            self.counter_for_overlap = counter
             self.overlap_thress = 380
             self.sign_for_counter = +1
             Antenna.__instance = self
@@ -44,8 +51,7 @@ class Antenna:
             elif self.position > 360:
                 self.position -= 360
             self.counter_for_overlap = self.counter_for_overlap + self.sign_for_counter*difference
-            json.dump(self.position, open(self.paths.file_init_position, 'w'))
-            json.dump(self.counter_for_overlap, open(self.paths.file_init_counter,'w'))
+
 
     def check_isinoverlap(self, next_plus_angle, sign):
         if type(next_plus_angle) in [float, int] and sign in [-1, +1]:

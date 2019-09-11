@@ -73,27 +73,13 @@ class GroundImage:
                 #get response and print it
                 response = conn_socket.recv(self.BUFFER_SIZE).decode('utf-8')
                 print(response)
-            except ConnectionAbortedError as e:
+            except:
                 print("""
                     [+] Lost Connection.
                     [+] Unable to send action {action}.
                     [+] Initialize connection.
                     [+] Please wait....
                     """.format(action=action))
-                break
-            except ConnectionResetError as e:
-                print("""
-                  [+] Unable to send action {action}.
-                  [+] Initialize connection.
-                  [+] Please wait....
-                    """.format(action=action))
-                break
-            except TimeoutError as e:
-                print("""
-                  [+] ElinkManager is unreachable
-                  [+] Something went wrong!
-                  [+] Try to reconnect...
-                    """)
                 break
             
         
@@ -112,7 +98,10 @@ class GroundImage:
             data, addr = image_downlink_socket.recvfrom(self.BUFFER_SIZE)
             
             if data:
-                file_name = data.strip().decode('utf-8')
+                try:
+                    file_name = data.strip().decode('utf-8')
+                except:
+                    continue
             else:
                 print('Received bad image package from elink. Ignoring.. ')
                 continue

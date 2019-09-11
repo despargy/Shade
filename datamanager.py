@@ -65,7 +65,7 @@ class DataManager:
         def get_log_data(self):
                 return_string = "{} , {} , {} , {} , {} , {} , {} , {} , {} , {} , {} , {} , {} , {} , {} , {} , {} , {} , {}"
                 return return_string.format(
-                 self.dictionary["ext_temp"],
+                 self.dictionary["ext_temp_A"],
                  self.dictionary["int_temp"],
                  self.dictionary["pressure"],
                  self.dictionary["altitude"],
@@ -87,7 +87,7 @@ class DataManager:
                )
 
         def init_dict(self):
-                self.dictionary["ext_temp"] = None
+                self.dictionary["ext_temp_A"] = None
                 self.dictionary["int_temp"] = None
                 self.dictionary["pressure"] = None
                 self.dictionary["altitude"] = None
@@ -132,7 +132,7 @@ class DataManager:
                         if temp > 2047:
                                 temp -= 4096
                         cTemp = temp * 0.0625
-                        self.dictionary['ext_temp'] = cTemp
+                        self.dictionary['ext_temp_A'] = cTemp
                         self.master.status_vector["TEMP"] = 1
                         #self.infologger.write_info("DataManager: Finished reading external temperature.")
                 except: 
@@ -232,7 +232,7 @@ class DataManager:
                 try:
                         f = open(paths.Paths().tx_file,"w")
                         #time = self.dictionary['time_gps']
-                        temp = self.dictionary['ext_temp']
+                        temp = self.dictionary['ext_temp_A']
                         str = self.get_tx_str()
                         f.write(str)
                         f.close()
@@ -242,7 +242,7 @@ class DataManager:
         def get_tx_str(self):
                 return_string = "(UTC):  ,External temperature {}"
                 return return_string.format(
-                 self.dictionary["ext_temp"],
+                 self.dictionary["ext_temp_A"],
                  #self.dictionary["time_gps"],
                 )
         

@@ -2,7 +2,8 @@ from counterdown import CounterDown
 from time import sleep
 import subprocess, sys, os, threading
 import Paths as paths
-
+import RPi.GPIO as GPIO
+import Pins as pins
 
 class TX:
 
@@ -22,7 +23,12 @@ class TX:
             self.file_name_temperature = paths.Paths().tx_file
             self.file_name_predefined_data = paths.Paths().tx_file_pre_data
             self.TX_code_file = 'sdr_TX.py'
-            GPIO.setup(self.pin_amp, GPIO.OUT)
+            self.pin_led_tx = pins.Pins().pin_led_tx
+            GPIO.setmode(GPIO.BOARD)
+            GPIO.setup(self.pin_led_tx, GPIO.OUT)
+            GPIO.output(self.pin_led_tx, GPIO.LOW)
+            #self.pin_amp = pins.Pins().pin_amp
+            #GPIO.setup(self.pin_amp, GPIO.OUT)
     @staticmethod
     def get_instance():
 
@@ -39,78 +45,74 @@ class TX:
     def tx_phase_zero(self):
         while not self.master.status_vector['DEP_SUCS'] and not self.master.status_vector['KILL']:
             self.info_logger.write_info('TX WAIT')
-            print('tx wait')
             sleep(self.counterdown.tx_time_checks_deploy)
 
     def tx_phase_available(self):
+
         while not self.master.status_vector['KILL']:
 
-            #self.master.command_vector['PRE'] = 0
-            #while self.master.get_command('TX_SLEEP'):
-                #self.phase_tx_sleep()
-            print('tx phase av')
-            self.open_amplifier()
+            self.master.command_vector['SIN'] = 0
 
+            if self.master.get_command('TX_SLEEP'):
+                self.master.command_vector['TX_SLEEP'] = 0
+                self.phase_tx_sleep()
+
+            #open led
+            self.led_on()
+
+            #start transmition of temp-pre
             threading.Thread(target=self.start_tx, args=(self.TX_code_file,)).start()
-            self.master.info_logger.write_info('TX: sdr tx')
-            #self.transmit(self.file_name_temperature)
+            self.master.info_logger.write_info('TX: SDR TRANSMIT')
 
-            #while or sleep
+            #on transmition
+            while not self.master.get_command('SIN') and not self.master.get_command('TX_SLEEP') and not self.master.status_vector['KILL']:
+                sleep(self.counterdown.tx_check_to_stop_transmition)
 
-            #while not self.master.get_command('PRE') and not self.master.get_command('TX_SLEEP'):
-                #print('wait transmition')
-            sleep(self.counterdown.tx_check_to_stop_transmition)
+            #kill transmition of temp-pre
+            self.master.info_logger.write_info('TX: SDR STOP TRANSMIT')
+            self.kill_tx(self.TX_code_file)
 
-            #if self.master.get_command('PRE'):
-                #self.transmit(self.file_name_predefined_data)
-                #wait to send data
-                # kill sdr process
+            #close led
+            self.led_off()
+
+            #SIN mode @TODO be done
+            if self.master.get_command('SIN'):
+                self.master.command_vector['SIN'] = 0
+                self.master.info_logger.write_info('TX: SIN COMMAND')
+                pass
+                #SIN THREAD
+                #WHILE SIN
+                #KILL SIN
 
         # kill sdr process
-        self.master.info_logger.write_info('STOP sdr tx')
-        self.kill_tx(self.TX_code_file)
-        self.close_amplifier()
+        self.master.info_logger.write_info('TX: NON-AV')
 
-    def transmit(self, file):
-        self.info_logger.write_info('TX: TX TRANSMIT'.format(file))
-        self.master.status_vector['TX_ON'] = 1
-        print('TX TRANSMIT'.format(file))
-        try:
-            #self.sdr_process = subprocess.call([sys.executable, os.path.join(get_script_dir(), 'sdr_code.py')])
-            cmd = 'python3 sdr_code.py'
-            self.sdr_process = subprocess.Popen(cmd, stdout=subprocess.PIPE,shell=True, preexec_fn=os.setsid)
-            #subprocess.call("/home/despina/Dropbox/BEAM/Software/Shade/sdr_simulation.py", shell=True)
-        #@TODO FILE RUN
-        except:
-            self.info_logger.write_error('TX: SDR PROCESS COULD BE CALLED')
-        pass
 
-    def open_amplifier(self):
+    def led_on(self):
         self.master.status_vector['AMP_ON'] = 1
-        # led amplifier on
-        # gpio amp on
-        GPIO.output(self.pin_amp, GPIO.HIGH)
+        GPIO.output(self.pin_led_tx, GPIO.HIGH)
+        self.master.status_vector['TX_ON'] = 1
 
-
-    def close_amplifier(self):
+    def led_off(self):
         self.master.status_vector['AMP_ON'] = 0
-        # led amplifier off
-        # gpio amp off
-        GPIO.output(self.pin_amp, GPIO.LOW)
-
+        GPIO.output(self.pin_led_tx, GPIO.LOW)
+        self.master.status_vector['TX_ON'] = 0
 
     def phase_tx_sleep(self):
-        self.close_amplifier()
+        self.led_off()
         self.master.status_vector['TX_ON'] = 0
         self.info_logger.write_warning('TX: FORCE_TX_CLOSED')
-        print('FORCE_TX_CLOSED')
-        if self.master.get_command('TX_AWAKE'):
-            self.master.command_vector['TX_SLEEP'] = 0
-            self.master.command_vector['TX_AWAKE'] = 0
-            self.master.status_vector['TX_ON'] = 1
+        self.master.command_vector['TX_AWAKE'] = 0
+
+        while not self.master.get_command('TX_AWAKE') and not self.master.status_vector['KILL']:
+            sleep(self.counterdown.tx_check_to_stop_transmition)
+
+        self.master.command_vector['TX_SLEEP'] = 0
+        self.master.command_vector['TX_AWAKE'] = 0
+        self.master.status_vector['TX_ON'] = 1
 
     def start_tx(self, name):
-        os.system('python2 {name} {file}'.format(name=name, file = self.file_name_temperature))
+        os.system('python2 {name}'.format(name=name))
 
     def kill_tx(self, name):
         temp_filename = 'tmp_pid'

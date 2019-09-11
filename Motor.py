@@ -9,7 +9,6 @@ class Motor:
         self.step_counter = 0
         self.pin_direction = None  # Direction GPIO Pin
         self.pin_step = None  # Step GPIO Pin
-        #self.pin_sleep = None  # Sleep Pin
 
     def go_to_zero_based_on_direction(self, direction):
         pass
@@ -30,15 +29,12 @@ class MotorADC(Motor):
             self.step_size = 1.8
             self.pin_direction = pins.Pins().ADC_pin_direction  # Direction GPIO Pin OK
             self.pin_step = pins.Pins().ADC_pin_step # Step GPIO Pin OK
-            #self.pin_sleep = pins.Pins().ADC_pin_sleep  # Sleep Pin
             self.period = .0025
             self.p_high = 0.8
             self.p_low = 0.2
             GPIO.setmode(GPIO.BOARD)
             GPIO.setup(self.pin_direction, GPIO.OUT)
             GPIO.setup(self.pin_step, GPIO.OUT)
-            #GPIO.setup(self.pin_sleep, GPIO.OUT)
-            #GPIO.output(self.pin_sleep, GPIO.HIGH)
             MotorADC.__instance = self
 
     @staticmethod
@@ -56,10 +52,8 @@ class MotorADC(Motor):
                 sleep(self.period*self.p_high)
                 GPIO.output(self.pin_step, GPIO.LOW)
                 sleep(self.period*self.p_low)
-            print('act')
         else:
             pass
-            print('error in action')
 
 class MotorDMC(Motor):
 
@@ -74,7 +68,6 @@ class MotorDMC(Motor):
             self.step_size = 1.8
             self.pin_direction = pins.Pins().DMC_pin_direction  # Direction GPIO Pin OK
             self.pin_step = pins.Pins().DMC_pin_step  # Step GPIO Pin OK
-            #self.pin_sleep = pins.Pins().DMC_pin_sleep  # Sleep Pin NON-USE
             self.period = .005
             self.p_high = 0.95
             self.p_low = 0.05
@@ -85,8 +78,6 @@ class MotorDMC(Motor):
             GPIO.setmode(GPIO.BOARD)
             GPIO.setup(self.pin_direction, GPIO.OUT)
             GPIO.setup(self.pin_step, GPIO.OUT)
-            #GPIO.setup(self.pin_sleep, GPIO.OUT)
-            #GPIO.output(self.pin_sleep, GPIO.HIGH)
             MotorDMC.__instance = self
 
     @staticmethod

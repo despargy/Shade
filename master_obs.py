@@ -24,6 +24,7 @@ class Master_Obs:
         self.pin_powerA = pins.Pins().pin_powerA #@TODO change it in boot/config.txt
         GPIO.setmode(GPIO.BOARD)
         GPIO.setup(self.pin_powerA, GPIO.OUT)
+        GPIO.output(self.pin_powerA, GPIO.HIGH)
         Master_Obs.__instance = self
 
 
@@ -56,13 +57,11 @@ class Master_Obs:
             if self.get_command('REBOOT_SLAVE'):
                 self.command_vector['REBOOT_SLAVE'] = 0
                 self.reboot_slave()
-                print('on reboot slave')
                 self.info_logger.write_info('MASTER_OBCS: reboot slave')
             if self.get_command('CLOSE'):
                 self.status_vector['CLOSE'] = 1
                 self.info_logger.write_info('MASTER_OBCS: wait camera to close')
                 sleep(self.master_waits_camera_close)
-                print('on wait camera')
                 pass
                 # waits to close camera
         self.status_vector['REC'] = 0
@@ -91,6 +90,7 @@ class Master_Obs:
         pass
         #power off and power on the other ras
         GPIO.output(self.pin_powerA, GPIO.LOW)
+        sleep(5)
         GPIO.output(self.pin_powerA, GPIO.HIGH)
 
 

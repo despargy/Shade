@@ -13,6 +13,8 @@ import RPi.GPIO as GPIO
 import json
 import  Paths as paths
 import Pins as pins
+#@TODO mv import of motors
+from Motor import MotorADC
 
 class Master:
 
@@ -26,6 +28,7 @@ class Master:
         self.info_logger = InfoLogger()
         self.data_logger = DataLogger()
         self.adcs_logger = AdcsLogger()
+        self.adcs_logger.write_info(' {}, {} '.format(0, 0))
         self.elink = elinkmanager.ELinkManager(self,self.ground_ip)
         self.thread_elink = None
         self.data_manager = DataManager(self, self.info_logger, self.data_logger)
@@ -43,6 +46,7 @@ class Master:
         self.pin_powerB = pins.Pins().pin_powerB # @TODO change it in boot/config.txt
         GPIO.setmode(GPIO.BOARD)
         GPIO.setup(self.pin_powerB, GPIO.OUT)
+        GPIO.output(self.pin_powerB, GPIO.HIGH)
         Master.__instance = self
 
     @staticmethod
@@ -63,20 +67,18 @@ class Master:
                 self.reboot_slave()
             if self.get_command('REBOOT'):
                 pass
-            json.dump(self.status_vector, open(self.paths.file_status_vector, 'w'))
+            #@TODO uncomment to keep the exp status
+            #json.dump(self.status_vector, open(self.paths.file_status_vector, 'w'))
 
         # kill threads
         self.status_vector['KILL'] = 1
         self.info_logger.write_info('MASTER_ESRANGE: KILLED ADC + TX')
         print('killed adc + tx')
 
-        # @ TODO wait DMC and then kill DMC n' HEAT n' ?Elink n' ?Data
         if self.thread_dmc is not None:
             self.thread_dmc.join()
 
         self.info_logger.write_warning('MASTER_ESRANGE: SHADE IS TERMINATED')
-        print('shade is terminated')
-        # @TODO RESTART SHADE n REBOOT
 
     def init_experiment(self):
         self.status_vector = json.load(open(self.paths.file_status_vector))
@@ -89,14 +91,22 @@ class Master:
         self.thread_elink = threading.Thread(target=self.elink.start).start()
 
     def init_data_manager(self):
-        pass
         self.thread_data_manager = threading.Thread(target=self.data_manager.start).start()
 
     def init_subsystems(self):
-        self.thread_adc = threading.Thread(target=self.adc.start).start()
+        #@TODO RM FAKE - START ADC ORIGINAL
+        #self.thread_adc = threading.Thread(target=self.adc.start).start()
+        self.thread_adc = threading.Thread(target=self.adc_FAKE()).start()
         self.thread_dmc = threading.Thread(target=self.dmc.start).start()
         self.thread_heat = threading.Thread(target=self.heat.start).start()
-        #self.thread_tx = threading.Thread(target=self.tx.start).start()
+        self.thread_tx = threading.Thread(target=self.tx.start).start()
+
+    #@TODO rm adc_FAKE
+    def adc_FAKE(self):
+        motor_ADC = MotorADC()
+        motor_ADC.act(100,1)
+        motor_ADC.act(100,1)
+        motor_ADC.act(200,0)
 
     def get_command(self, command):
         try:
@@ -105,9 +115,9 @@ class Master:
             return 0
 
     def reboot_slave(self):
-        pass
         #power off and power on the other ras
         GPIO.output(self.pin_powerB, GPIO.LOW)
+        sleep(5)
         GPIO.output(self.pin_powerB, GPIO.HIGH)
 
 
