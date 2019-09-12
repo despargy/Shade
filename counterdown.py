@@ -27,7 +27,7 @@ class CounterDown:
         self.timeout_cmd = 2*60
         self.timeout_cmd_steps = 60
         self.tx_time_checks_deploy = 10
-        self.tx_check_to_stop_transmition = 10
+        self.tx_check_to_stop_transmition = 3
 
     def countdown0(self, t):
         while t:

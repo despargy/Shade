@@ -18,6 +18,7 @@ class DMC:
             self.data_manager = self.master.data_manager
             self.info_logger = self.master.info_logger
             self.counterdown = CounterDown(master_)
+            #@TODO change alti thress
             self.alti_thresshold = 10  # 10m
             DMC.__instance = self
 
@@ -107,7 +108,7 @@ class DMC:
                 self.info_logger.write_info('DMC: RETRIEVE CONFIRMED')
 
     def phase_kill_before_retrieve(self):
-        self.info_logger.write_warning('DMC: PHASE KILLING')
+        self.info_logger.write_info('DMC: PHASE KILLING')
         self.master.status_vector['KILL'] = 1
         time.sleep(self.counterdown.dmc_wait_others_to_killed)  # wait master to kill or dmc kills
 

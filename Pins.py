@@ -14,8 +14,8 @@ class Pins():
         self.DMC_pin_direction = 31  # Direction GPIO Pin OK
         self.DMC_pin_step = 26  # Step GPIO Pin OK
 
-        self.pin_amp = 36 # pin for Amplifier
+        #self.pin_amp = 36 # pin for Amplifier
         #@TODO uncomment pin led tx
-        self.pin_led_tx = 14 # pin for Amplifier
+        self.pin_led_tx = 36 # pin for Amplifier
 
 
