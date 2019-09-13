@@ -31,6 +31,7 @@ class ADC:
             self.info_logger = self.master.info_logger
             self.adcs_logger = self.master.adcs_logger
             self.counterdown = CounterDown(master_)
+            #@TODO GS gps data
             self.GS = [1, 1]
             self.compass = 0
             self.gps = self.GS

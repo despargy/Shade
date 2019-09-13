@@ -27,8 +27,6 @@ class TX:
             GPIO.setmode(GPIO.BOARD)
             GPIO.setup(self.pin_led_tx, GPIO.OUT)
             GPIO.output(self.pin_led_tx, GPIO.LOW)
-            #self.pin_amp = pins.Pins().pin_amp
-            #GPIO.setup(self.pin_amp, GPIO.OUT)
     @staticmethod
     def get_instance():
 
@@ -44,7 +42,7 @@ class TX:
 
     def tx_phase_zero(self):
         while not self.master.status_vector['DEP_SUCS'] and not self.master.status_vector['KILL']:
-            self.info_logger.write_info('TX WAIT')
+            self.info_logger.write_info('TX: WAIT')
             sleep(self.counterdown.tx_time_checks_deploy)
 
     def tx_phase_available(self):
@@ -124,7 +122,7 @@ class TX:
                 curr_name = compoments[-1]
                 curr_command = compoments[-2]
 
-                if curr_name == name and curr_command == 'python3':
+                if curr_name == name and curr_command == 'python2':
                     pid = compoments[1]
                     os.system('kill -9 {pid}'.format(pid=pid))
                     os.system('rm -f {temp_filename}'.format(temp_filename=temp_filename))

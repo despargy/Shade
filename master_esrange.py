@@ -37,7 +37,7 @@ class Master:
         self.thread_dmc = None
         self.heat = heat.HEAT(self)
         self.thread_heat = None
-        self.adc = adc.ADC(self)
+        #self.adc = adc.ADC(self)
         self.thread_adc = None
         self.tx = tx.TX(self)
         self.thread_tx = None
@@ -72,6 +72,7 @@ class Master:
 
         # kill threads
         self.status_vector['KILL'] = 1
+        sleep(30)
         self.info_logger.write_info('MASTER_ESRANGE: KILLED ADC + TX')
         print('killed adc + tx')
 
@@ -104,9 +105,11 @@ class Master:
     #@TODO rm adc_FAKE
     def adc_FAKE(self):
         motor_ADC = MotorADC()
-        motor_ADC.act(100,1)
-        motor_ADC.act(100,1)
-        motor_ADC.act(200,0)
+        while not self.status_vector['KILL']:
+            motor_ADC.act(100,1)
+            motor_ADC.act(100,1)
+            motor_ADC.act(200,0)
+            sleep(10)
 
     def get_command(self, command):
         try:

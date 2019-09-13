@@ -1,0 +1,10 @@
+#!/bin/bash
+
+while true
+do
+	echo INSERT '-field-'
+
+	read field
+
+	cat ../Logs/elink.info.log | grep $field
+done

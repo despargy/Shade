@@ -26,7 +26,7 @@ class MotorADC(Motor):
             raise Exception("This class is a singleton!") #logger
         else:
             super(MotorADC, self).__init__()
-            self.step_size = 1.8
+            self.step_size = 0.9
             self.pin_direction = pins.Pins().ADC_pin_direction  # Direction GPIO Pin OK
             self.pin_step = pins.Pins().ADC_pin_step # Step GPIO Pin OK
             self.period = .0025
@@ -73,6 +73,7 @@ class MotorDMC(Motor):
             self.p_low = 0.05
             self.deploy_direction = 1
             self.retrieve_direction = 0
+            #@TODO deploy n' small steps
             self.deploy_steps = 300
             self.small_steps = 3
             GPIO.setmode(GPIO.BOARD)
