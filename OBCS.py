@@ -1,7 +1,7 @@
 from pypylon import pylon
 import platform
 from pypylon import genicam
-from time import sleep
+import time
 import sys
 import Paths as paths
 from pathlib import Path
@@ -11,7 +11,7 @@ class OBCS:
 
     __instance = None
 
-    def __init__(self,image_lock):
+    def __init__(self,image_lock,image_counter=0):
 
         if OBCS.__instance is not None:
 
@@ -22,9 +22,9 @@ class OBCS:
             self.countOfImagesToGrab = 1
             # The exit code of the sample application.
             self.exitCode = 0
-            self.img_counter = 0
+            self.img_counter = image_counter
             self.image_lock = image_lock
-            self.stop_taking_images = False
+            self.stop_camera = False
             OBCS.__instance = self
 
     @staticmethod
@@ -36,23 +36,34 @@ class OBCS:
 
 
     def close_camera(self):
-        self.stop_taking_images = True
-
+        self.stop_camera = True
+    
+    def is_camera_running(self):
+        return not self.stop_camera
+        
     def start(self):
         
         print('START OBCS')
+        self.stop_camera = False
         try:
             img = pylon.PylonImage()
             tlf = pylon.TlFactory.GetInstance()
             # Create an instant camera object with the camera device found first.
-            camera = pylon.InstantCamera(pylon.TlFactory.GetInstance().CreateFirstDevice())
-    
+            
+            while(True):
+                try:
+                    camera = pylon.InstantCamera(pylon.TlFactory.GetInstance().CreateFirstDevice())
+                    break
+                except:
+                    print('Can not find camera device. Trying again... ')
+                    time.sleep(3)
+                
             print("Using device ", camera.GetDeviceInfo().GetModelName())
             camera.MaxNumBuffer = 5
             camera.Open()
             while True:
 
-                if self.stop_taking_images : break
+                if self.stop_camera : break
 
                 self.img_counter += 1
                 camera.StartGrabbingMax(self.countOfImagesToGrab)
@@ -78,7 +89,7 @@ class OBCS:
                     img.Release()
                     # check if m a tab
                     grabResult.Release()
-                    sleep(20)
+                    time.sleep(20)
         except genicam.GenericException as e:
             # Error handling.
             print("An exception occurred.")

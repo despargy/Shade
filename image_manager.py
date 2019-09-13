@@ -11,7 +11,6 @@ import Pins as pins
 
 """TODO:
         - Internet Lost handle
-        - Merge it with OBCS
         - Add some more annotiations
         - Make it sexy :)
 """
@@ -28,11 +27,11 @@ class ImageManager:
         self.last_image = '' 
         self.image_lock = threading.Lock()
         
-        #start OBCS to taking and saving images
-        self.obcs = OBCS.OBCS(self.image_lock)
-        self.obcs_thread = threading.Thread(target=self.obcs.start)
-        self.obcs_thread.start()
-
+        image_filename = self.get_last_image()
+        index = self.get_index(image_filename)
+        self.obcs = OBCS.OBCS(self.image_lock,index)
+        self.start_camera()
+        
         self.command_port = 12654
         self.command_host = ''
         self.command_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -51,7 +50,11 @@ class ImageManager:
         GPIO.output(self.pin_powerA, GPIO.HIGH)
 
 
-
+    def start_camera(self):
+        #start OBCS to taking and saving images
+        self.obcs_thread = threading.Thread(target=self.obcs.start)
+        self.obcs_thread.start()
+        
     def start_server(self):
         """Initialize Image Manager. Bind him to await for a connection"""
         while True:
@@ -112,21 +115,39 @@ class ImageManager:
                 response = "Image {image_filename} successfuly sended".format(image_filename=image_filename)
             else:
                 response = "Image {image_filename} doesn't exists".format(image_filename=image_filename)
-        elif action == 'REBOOT':
+        elif action == 'REBOOT_SLAVE':
             GPIO.output(self.pin_powerA, GPIO.LOW)
             time.sleep(5)
             GPIO.output(self.pin_powerA, GPIO.HIGH)
             response = "Successfuly Reboot"
-        elif action == 'CLOSE':
+        elif action == 'CLOSE_CAMERA':
             self.obcs.close_camera()
             self.obcs_thread.join()
             response = "Successfuly closed camera."
+        elif action == 'OPEN_CAMERA':
+            if self.obcs.is_camera_running():
+                response = 'Camera already running. Ignoring...'
+            else:
+                self.start_camera()
+                response = 'Successfuly started camera'
         else:
             response = "Unknown command {action}".format(action=action)
 
         return response
 
-
+    
+    def get_index(self,image_filename):
+        if image_filename == "":
+            return 1
+            
+        try:
+            image_filename = image_filename.split('.')[0]
+            index = int(image_filename.split('_')[1])
+            return index
+        except:
+            return 1
+            
+        
     def get_last_image(self):
         """Returns the filename of the latests image. 
            Checks if the latest image is the same with 
@@ -169,7 +190,7 @@ class ImageManager:
 
 
     def start(self):
-        
+        # @todo: check if stops when exitting.
         while(True):
             #get latest image
             image_name = self.get_last_image()
