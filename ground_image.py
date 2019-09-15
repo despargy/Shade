@@ -19,7 +19,9 @@ class GroundImage:
         self.image_manager_port = 12654     
         #images
         self.image_dir = 'GroundImages'
-        threading.Thread(target=self.open_image_connection, args=(self.images_port, )).start()
+        self.image_receiver = threading.Thread(target=self.open_image_connection, args=(self.images_port, ))
+        self.image_receiver.start()
+        self.stop_image_receiver = False
 
 
     def show_prompt(self):
@@ -57,7 +59,13 @@ class GroundImage:
             action = input("Action: ")
             if action == "EXIT":
                 conn_socket.close()
+                print('Close Connection')
+                print('Stopping image receiver thread')
+                self.stop_image_receiver = True
+                self.image_receiver.join()
+                print('Image receiver stopped')
                 sys.exit(0)
+                
             elif action =="":
                 continue
 
@@ -94,6 +102,9 @@ class GroundImage:
         image_downlink_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         image_downlink_socket.bind((image_downlink_host, port))
         while True:
+            
+            if self.stop_image_receiver: break
+            
             #wait for connection from downlinkmanager
             data, addr = image_downlink_socket.recvfrom(self.BUFFER_SIZE)
             
@@ -103,7 +114,7 @@ class GroundImage:
                 except:
                     continue
             else:
-                print('Received bad image package from elink. Ignoring.. ')
+                print('Received bad image package from image manager. Ignoring.. ')
                 continue
             
             if not os.path.isdir(self.image_dir):
