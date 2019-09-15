@@ -37,6 +37,7 @@ class Master:
         self.thread_dmc = None
         self.heat = heat.HEAT(self)
         self.thread_heat = None
+        #@TODO uncomment next line
         #self.adc = adc.ADC(self)
         self.thread_adc = None
         self.tx = tx.TX(self)
@@ -63,23 +64,27 @@ class Master:
         while not self.status_vector['RET_CONF'] and not self.get_command('KILL'):
             sleep(self.counterdown.master_time_runs)
             if self.get_command('REBOOT_SLAVE'):
+                self.info_logger.write_info('MASTER ESRANGE: REBOOT SLAVE')
                 self.command_vector['REBOOT_SLAVE'] = 0
                 self.reboot_slave()
             if self.get_command('REBOOT'):
+                self.command_vector['REBOOT'] = 0
+                self.status_vector['KILL'] = 1
+                self.info_logger.write_info('MASTER ESRANGE: SELF - REBOOT IN 10 secs')
+                sleep(self.counterdown.master_wait_self_reboot)
                 pass
             #@TODO uncomment to keep the exp status
             #json.dump(self.status_vector, open(self.paths.file_status_vector, 'w'))
 
         # kill threads
         self.status_vector['KILL'] = 1
-        sleep(30)
-        self.info_logger.write_info('MASTER_ESRANGE: KILLED ADC + TX')
-        print('killed adc + tx')
+        sleep(self.counterdown.master_wait_others_to_die)
+        self.info_logger.write_info('MASTER ESRANGE: KILLED ADC + TX')
 
         if self.thread_dmc is not None:
             self.thread_dmc.join()
 
-        self.info_logger.write_warning('MASTER_ESRANGE: SHADE IS TERMINATED')
+        self.info_logger.write_warning('MASTER ESRANGE: SHADE IS TERMINATED')
 
     def init_experiment(self):
         self.status_vector = json.load(open(self.paths.file_status_vector))
@@ -87,29 +92,35 @@ class Master:
         self.init_elink()
         self.init_data_manager()
         self.init_subsystems()
+        self.info_logger.write_info('MASTER ESRANGE: INIT EXP DONE')
 
     def init_elink(self):
         self.thread_elink = threading.Thread(target=self.elink.start).start()
+        self.info_logger.write_info('MASTER ESRANGE: ELINK THREADED')
 
     def init_data_manager(self):
         self.thread_data_manager = threading.Thread(target=self.data_manager.start).start()
+        self.info_logger.write_info('MASTER ESRANGE: DATAMANAGER THREADED')
 
     def init_subsystems(self):
         #@TODO RM FAKE - START ADC ORIGINAL
         #self.thread_adc = threading.Thread(target=self.adc.start).start()
-        self.thread_adc = threading.Thread(target=self.adc_FAKE()).start()
+        self.thread_adc = threading.Thread(target=self.adc_FAKE).start()
         self.thread_dmc = threading.Thread(target=self.dmc.start).start()
         self.thread_heat = threading.Thread(target=self.heat.start).start()
         self.thread_tx = threading.Thread(target=self.tx.start).start()
+        self.info_logger.write_info('MASTER ESRANGE: SUBSYSTEMS THREADED')
 
     #@TODO rm adc_FAKE
     def adc_FAKE(self):
+        self.info_logger.write_warning('MASTER ESRANGE: FAKE ADC THREADED')
         motor_ADC = MotorADC()
         while not self.status_vector['KILL']:
+            self.info_logger.write_info('MASTER ESRANGE: FAKE ADC ACTION')
             motor_ADC.act(100,1)
             motor_ADC.act(100,1)
             motor_ADC.act(200,0)
-            sleep(10)
+            sleep(self.counterdown.adc_fake_runs)
 
     def get_command(self, command):
         try:
@@ -120,7 +131,7 @@ class Master:
     def reboot_slave(self):
         #power off and power on the other ras
         GPIO.output(self.pin_powerB, GPIO.LOW)
-        sleep(5)
+        sleep(self.counterdown.reboot_low_wait)
         GPIO.output(self.pin_powerB, GPIO.HIGH)
 
 

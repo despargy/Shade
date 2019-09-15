@@ -93,7 +93,7 @@ class ADC:
                 self.antenna_adc.update_position(c_step*self.motor_adc.step_size, self.direction)
                 self.log_last_position_after()
             else:
-                self.info_logger.write_warning('ADC: NON action: invalid data')
+                self.info_logger.write_warning('ADC: NON ACTION: INVALID DATA')
             sleep(self.counterdown.adc_auto_time_runs) #time to run ADC algorithm
 
 
@@ -162,12 +162,15 @@ class ADC:
 
     def push_DMC_motor(self):
         self.motor_dmc.motor_push()
+        self.info_logger.write_info('ADC: DMC MOTOR PUSH')
 
     def move_ADC_motor(self,counter_step,direction):
         self.motor_adc.act(counter_step, direction)
+        self.info_logger.write_info('ADC: ADC MOTOR ROTATED')
 
     def pull_DMC_motor(self):
         self.motor_dmc.motor_pull()
+        self.info_logger.write_info('ADC: DMC MOTOR PULL')
 
     def convert_to_steps(self, dif):
         if self.motor_adc.step_size != 0:

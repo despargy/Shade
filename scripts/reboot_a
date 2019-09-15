@@ -1,0 +1,4 @@
+#!/bin/bash
+ssh pi@192.168.1.20
+echo '1234'
+sudo shutdown -r now

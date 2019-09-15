@@ -29,9 +29,9 @@ class MotorADC(Motor):
             self.step_size = 0.9
             self.pin_direction = pins.Pins().ADC_pin_direction  # Direction GPIO Pin OK
             self.pin_step = pins.Pins().ADC_pin_step # Step GPIO Pin OK
-            self.period = .0025
-            self.p_high = 0.8
-            self.p_low = 0.2
+            self.period = .1
+            self.p_high = 0.05
+            self.p_low = 0.95
             GPIO.setmode(GPIO.BOARD)
             GPIO.setup(self.pin_direction, GPIO.OUT)
             GPIO.setup(self.pin_step, GPIO.OUT)
@@ -68,14 +68,14 @@ class MotorDMC(Motor):
             self.step_size = 1.8
             self.pin_direction = pins.Pins().DMC_pin_direction  # Direction GPIO Pin OK
             self.pin_step = pins.Pins().DMC_pin_step  # Step GPIO Pin OK
-            self.period = .005
-            self.p_high = 0.95
-            self.p_low = 0.05
-            self.deploy_direction = 1
-            self.retrieve_direction = 0
+            self.period = .15
+            self.p_high = 0.05
+            self.p_low = 0.95
+            self.deploy_direction = 0
+            self.retrieve_direction = 1
             #@TODO deploy n' small steps
-            self.deploy_steps = 300
-            self.small_steps = 3
+            self.deploy_steps = 360
+            self.small_steps = 10
             GPIO.setmode(GPIO.BOARD)
             GPIO.setup(self.pin_direction, GPIO.OUT)
             GPIO.setup(self.pin_step, GPIO.OUT)

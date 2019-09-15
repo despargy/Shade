@@ -67,7 +67,7 @@ class TX:
                 sleep(self.counterdown.tx_check_to_stop_transmition)
 
             #kill transmition of temp-pre
-            self.master.info_logger.write_info('TX: SDR STOP TRANSMIT')
+            self.master.info_logger.write_info('TX: SDR STOP MAIN TRANSMIT')
             self.kill_tx(self.TX_code_file)
 
             #close led

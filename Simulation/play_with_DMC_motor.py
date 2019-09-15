@@ -23,7 +23,7 @@ class Master:
         while True:
             count_steps = input("give steps - ONLY INTEGER\n")
             count_steps = int(count_steps)
-            direction = input("give 0 (anti-clockwise) or 1 (clockwise)\n")
+            direction = input("give 0 (deploy) or 1 (retrieve)\n")
             direction = int(direction)
             self.motor_dmc.act(count_steps, direction)
 
