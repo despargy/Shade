@@ -27,12 +27,14 @@ class GroundImage:
     def show_prompt(self):
         """Prompt Message to inform about the
            actions ground software can do"""
-        return """
+        print( """
                 >> Available Commands:
                     [+] GET_IMAGE
-                    [+] REBOOT
-                    [+] CLOSE
-               """
+                    [+] REBOOT_SLAVE
+                    [+] OPEN_CAMERA
+                    [+] CLOSE_CAMERA
+                    [+] EXIT
+               """)
     def establish_connection(self):
         conn_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         while(True):
@@ -48,7 +50,7 @@ class GroundImage:
                         [+] Server is Unavailabe
                         [+] or there is no internet connection.
                         [+] Try again to connect.
-                        [+] Reconecting ...
+                        [+] Reconecting ...show_prompt
                         """)
                 time.sleep(2) #wait 2 seconds and retry
                 continue

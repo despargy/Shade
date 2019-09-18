@@ -23,7 +23,6 @@ class ImageManager:
             self.host = ground_ip
         
         self.image_dir = "Images"
-        self.log_dir = 'Logs'
         self.last_image = '' 
         self.image_lock = threading.Lock()
         
@@ -136,16 +135,13 @@ class ImageManager:
         return response
 
     
-    def get_index(self,image_filename):
-        if image_filename == "":
-            return 1
-            
+    def get_index(self,image_filename):            
         try:
             image_filename = image_filename.split('.')[0]
             index = int(image_filename.split('_')[1])
             return index
         except:
-            return 1
+            return 0
             
         
     def get_last_image(self):
@@ -211,15 +207,15 @@ class ImageManager:
             @image_name : the filename of image to send.
             Function to send image to ground software.
         """
-    
-        #first send filename
-        self.socket.sendto(image_name.encode('utf-8'), (self.host, self.port))
-        print ("Begin sending "+image_name+" ...")
-             
-        if not self.isSafeToRead():
-            os.mkdir(self.image_dir)
-
         try:
+            #first send filename
+            self.socket.sendto(image_name.encode('utf-8'), (self.host, self.port))
+            print ("Begin sending "+image_name+" ...")
+             
+            if not self.isSafeToRead():
+                os.mkdir(self.image_dir)
+
+        
             with open(self.image_dir+'/'+image_name, "rb") as imageFile:
                 while True:
                     #read image by BUFFER_SIZE
@@ -227,8 +223,9 @@ class ImageManager:
                     self.socket.sendto(data, (self.host, self.port))
                     time.sleep(0.02) #await 0.2 seconds so ground receive data
                     if not data: break
-        except FileNotFoundError:
-            print('File not found')
+        except:
+            print('An error occured.')
+            return
 
 
 
