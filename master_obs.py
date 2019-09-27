@@ -21,10 +21,10 @@ class Master_Obs:
         #@TODO: add downlink
         self.obcs = obcs.OBCS(self)
         self.thread_obcs = None
-        self.pin_powerA = pins.Pins().pin_powerA #@TODO change it in boot/config.txt
+        #self.pin_powerA = pins.Pins().pin_powerA #@TODO change it in boot/config.txt
         GPIO.setmode(GPIO.BOARD)
-        GPIO.setup(self.pin_powerA, GPIO.OUT)
-        GPIO.output(self.pin_powerA, GPIO.HIGH)
+        #GPIO.setup(self.pin_powerA, GPIO.OUT)
+        #GPIO.output(self.pin_powerA, GPIO.HIGH)
         Master_Obs.__instance = self
 
 
@@ -89,9 +89,9 @@ class Master_Obs:
     def reboot_slave(self):
         pass
         #power off and power on the other ras
-        GPIO.output(self.pin_powerA, GPIO.LOW)
-        sleep(5)
-        GPIO.output(self.pin_powerA, GPIO.HIGH)
+        #GPIO.output(self.pin_powerA, GPIO.LOW)
+        #sleep(5)
+        #GPIO.output(self.pin_powerA, GPIO.HIGH)
 
 
 if __name__ == "__main__":

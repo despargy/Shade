@@ -91,7 +91,7 @@ class DMC:
     def phase_check(self):
         self.info_logger.write_info('DMC: PHASE CHECK')
         time.sleep(self.counterdown.dmc_time_checks_altitude)
-        altitude = self.data_manager.get_data('alti')
+        altitude = self.data_manager.get_data('altitude')
         self.master.command_vector['RET_CONF'] = 0  # re-init if a new cmd come
         self.master.command_vector['RET_AB'] = 0  # re-init if a new cmd come
         if (self.master.status_vector['ALTIMETER'] and (altitude < self.alti_thresshold)) or self.master.get_command('RET'):
