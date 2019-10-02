@@ -28,6 +28,7 @@ class Master:
         self.info_logger = InfoLogger()
         self.data_logger = DataLogger()
         self.adcs_logger = AdcsLogger()
+        #@TODO where antenna to start
         self.adcs_logger.write_info(' {}, {} '.format(0, 0))
         self.elink = elinkmanager.ELinkManager(self,self.ground_ip)
         self.thread_elink = None
@@ -44,10 +45,10 @@ class Master:
         self.thread_tx = None
         self.counterdown = CounterDown(self)
         self.paths = paths.Paths()
-        self.pin_powerB = pins.Pins().pin_powerB # @TODO change it in boot/config.txt
+        #self.pin_powerB = pins.Pins().pin_powerB # @TODO change it in boot/config.txt
         GPIO.setmode(GPIO.BOARD)
-        GPIO.setup(self.pin_powerB, GPIO.OUT)
-        GPIO.output(self.pin_powerB, GPIO.HIGH)
+        #GPIO.setup(self.pin_powerB, GPIO.OUT)
+        #GPIO.output(self.pin_powerB, GPIO.HIGH)
         Master.__instance = self
 
     @staticmethod
@@ -130,9 +131,10 @@ class Master:
 
     def reboot_slave(self):
         #power off and power on the other ras
-        GPIO.output(self.pin_powerB, GPIO.LOW)
-        sleep(self.counterdown.reboot_low_wait)
-        GPIO.output(self.pin_powerB, GPIO.HIGH)
+        pass
+        #GPIO.output(self.pin_powerB, GPIO.LOW)
+        #sleep(self.counterdown.reboot_low_wait)
+        #GPIO.output(self.pin_powerB, GPIO.HIGH)
 
 
 if __name__ == "__main__":

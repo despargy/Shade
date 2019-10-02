@@ -31,6 +31,8 @@ class ADC:
             self.info_logger = self.master.info_logger
             self.adcs_logger = self.master.adcs_logger
             self.counterdown = CounterDown(master_)
+            #@TODO rm next line
+            self.info_logger.write_info('antenna at {}'.format(self.antenna_adc.position))
             #@TODO GS gps data
             self.GS = [1, 1]
             self.compass = 0
@@ -123,6 +125,7 @@ class ADC:
             self.master.command_vector['ADC_AUTO'] = 0  # re-init
             self.master.command_vector['ADC_MAN'] = 0  # re-init
             self.info_logger.write_info('ADC: WAITING FOR ADC MAN OR AUTO')
+            #@TODO add cmd for zero position
             choice = self.counterdown.countdown2(self.counterdown.adc_man_time_breaks, 'ADC_AUTO', 'ADC_MAN')
             if choice == 2:
                 self.info_logger.write_info('ADC: CONT ADC MAN')
@@ -204,19 +207,6 @@ class ADC:
             self.antenna_adc.update_position(steps_per_time*1.8, direction)
             self.info_logger.write_info('ADC: SCAN: ANTENNA AT {}'.format(self.antenna_adc.position))
 
-    def init_motor_pose(self):
-
-        c_steps = self.convert_to_steps(abs(self.antenna_adc.counter_for_overlap))
-        if self.antenna_adc.counter_for_overlap < 0:
-            direction = 1 # clockwise
-        else:
-            direction = 0 # anti-clockwise
-        self.motor_adc.act(c_steps, direction)
-        self.info_logger.write_info('ADC: INIT MOTOR POSE')
-        self.antenna_adc.update_position(c_steps*self.motor_adc.step_size, direction)
-        self.info_logger.write_info('ADC: antenna updated to {} with counter {}'.format(self.antenna_adc.position, self.antenna_adc.counter_for_overlap))
-
-
     def calc_new_position(self):
     #calc GEOMETRY
         thresshold = 0.1
@@ -284,14 +274,12 @@ class ADC:
 
     def get_color_data(self):
 
-        #color = self.data_manager.get_data("color")
-        color_list = ['RED', 'GREEN', 'BLUE', None]
-        color = random.choice(color_list)
-        if color is None:
+        if self.master.status_vector["INFRARED"] == 0 :
             self.info_logger.write_warning('ADC: Invalid color data')
         else:
-            self.color_string = color
+            self.color_string = self.data_manager.get_data("color")
 
+    #@TODO mod it to work
     def go_to_zero_position(self):
 
         if self.antenna_adc.counter_for_overlap > 360 :

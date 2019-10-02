@@ -127,18 +127,17 @@ class HEAT(object):
 
         while not self.master.status_vector['RET_SUCS'] and not self.master.status_vector['KILL']:
 
-            temp_A = self.data_manager.get_data("ext_temp_A")
-            #@TODO change to ext_temp_B
-            temp_B = self.data_manager.get_data("ext_temp_A")
+            temp_A = self.data_manager.get_data("temp_A")
+            temp_B = self.data_manager.get_data("temp_B")
 
-            if temp_A is None:
+            if self.master.status_vector['TEMP_A'] == 0:
                 self.info_logger.write_warning("HEAT: Invalid temperature A data HEAT")
             else:
                 if self.data_queue_A.full():
                     self.data_queue_A.get()
                 self.data_queue_A.put(temp_A)
 
-            if temp_B is None:
+            if self.master.status_vector['TEMP_B'] == 0:
                 self.info_logger.write_warning("HEAT: Invalid temperature B data HEAT")
             else:
                 if self.data_queue_B.full():

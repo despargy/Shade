@@ -2,9 +2,8 @@ from time import sleep
 
 class CounterDown:
 
-    def __init__(self, master_):
+    def __init__(self):
 
-        self.master = master_
         self.heat_time_check_awake = 10
         self.heat_time_runs = 5
         self.heat_time_updates_data = 5
@@ -38,51 +37,42 @@ class CounterDown:
         while t:
             mins, secs = divmod(t, 60)
             timeformat = 'COUNTER: {:02d}:{:02d}'.format(mins, secs)
-            self.master.info_logger.write_info('{}'.format(timeformat, end='\r'))
+            print('{}'.format(timeformat, end='\r'))
             sleep(1)
             t -= 1
 
     def countdown1(self, t, cmd):
-        while t:
+        while t :
             mins, secs = divmod(t, 60)
             timeformat = 'COUNTER: {:02d}:{:02d}'.format(mins, secs)
-            self.master.info_logger.write_info('{} break {}'.format(timeformat, cmd, end='\r'))
+            print('{} break {}'.format(timeformat, cmd, end='\r'))
             sleep(1)
             t -= 1
-            if self.master.get_command(cmd):
+            if True:
+                ret = 1
+                print('in if')
                 break
+        print('after if {}'.format(ret))
+
 
     def countdown2(self, t, cmd1, cmd2):
         ret = 0
         while t:
             mins, secs = divmod(t, 60)
             timeformat = 'COUNTER: {:02d}:{:02d}'.format(mins, secs)
-            self.master.info_logger.write_info('{} break {} or {}'.format(timeformat, cmd1, cmd2, end='\r'))
+            print('{} break {} or {}'.format(timeformat, cmd1, cmd2, end='\r'))
             sleep(1)
             t -= 1
-            if self.master.get_command(cmd1):
+            # WARNING
+            if t == 5:
                 ret = 1
                 break
-            elif self.master.get_command(cmd2):
+            elif t == 2:
                 ret = 2
                 break
         return ret
 
-    def countdown3(self, t, cmd1, cmd2, cmd3):
-        ret = 0
-        while t:
-            mins, secs = divmod(t, 60)
-            timeformat = 'COUNTER: {:02d}:{:02d}'.format(mins, secs)
-            self.master.info_logger.write_info('COUNTER: {}'.format(timeformat, end='\r'))
-            sleep(1)
-            t -= 1
-            if self.master.get_command(cmd1):
-                ret = 1
-                break
-            elif self.master.get_command(cmd2):
-                ret = 2
-                break
-            elif self.master.get_command(cmd3):
-                ret = 3
-                break
-        return ret
+
+if __name__ == '__main__':
+    c = CounterDown()
+    c.countdown2(10,'cmd1','cmd2')
