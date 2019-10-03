@@ -89,15 +89,14 @@ class ADC:
                 self.calc_new_position()
                 c_step = self.convert_to_steps(self.difference)
                 self.log_last_position_before(c_step)
-                self.push_DMC_motor()
+                #self.push_DMC_motor()
                 self.move_ADC_motor(c_step, self.direction)
-                self.pull_DMC_motor()
+                #self.pull_DMC_motor()
                 self.antenna_adc.update_position(c_step*self.motor_adc.step_size, self.direction)
                 self.log_last_position_after()
             else:
                 self.info_logger.write_warning('ADC: NON ACTION: INVALID DATA')
             sleep(self.counterdown.adc_auto_time_runs) #time to run ADC algorithm
-
 
 
     def run_ADC_manual(self):
@@ -108,7 +107,8 @@ class ADC:
             self.master.command_vector['ADC_AUTO'] = 0   # re-init
             self.master.command_vector['SET'] = 0  # re-init
             self.master.command_vector['SCAN'] = 0  # re-init
-            choice = self.counterdown.countdown2(self.counterdown.adc_man_timeout_to_set_or_scan, 'SET', 'SCAN')
+            self.master.command_vector['INIT'] = 0  # re-init
+            choice = self.counterdown.countdown3(self.counterdown.adc_man_timeout_to_set_or_scan, 'SET', 'SCAN', 'INIT')
             if choice == 1:
                 self.info_logger.write_info('ADC: IN SET')
                 sleep(self.counterdown.adc_wait_auto_ends)
@@ -120,8 +120,12 @@ class ADC:
             elif choice == 2:
                 self.info_logger.write_info('ADC: IN SCAN')
                 self.scan()
+            elif choice == 3:
+                self.info_logger.write_info('ADC: IN INIT')
+                self.init_position()
             self.master.command_vector['SET'] = 0  # re-init
             self.master.command_vector['SCAN'] = 0  # re-init
+            self.master.command_vector['INIT'] = 0  # re-init
             self.master.command_vector['ADC_AUTO'] = 0  # re-init
             self.master.command_vector['ADC_MAN'] = 0  # re-init
             self.info_logger.write_info('ADC: WAITING FOR ADC MAN OR AUTO')
@@ -137,21 +141,20 @@ class ADC:
 
     def get_compass_data(self):
 
-        compass = self.data_manager.get_data("angle_c")
-        if compass is None:
+        if self.master.status_vector['COMPASS'] == 0:
             self.info_logger.write_warning('ADC: Invalid compass data')
             self.valid_data = False
         else:
-            self.compass = compass
+            self.compass = self.data_manager.get_data("angle_c")
 
     def get_gps_data(self):
 
-        x = self.data_manager.get_data("gps_x")
-        y = self.data_manager.get_data("gps_y")
-        if x is None or y is None:
+        if self.master.status_vector["GPS"] == 0:
             self.info_logger.write_warning('ADC: Invalid gps data')
             self.valid_data = False
         else:
+            x = self.data_manager.get_data("gps_x")
+            y = self.data_manager.get_data("gps_y")
             self.gps = [x, y]
 
     def log_last_position_before(self, c_step):
@@ -161,7 +164,7 @@ class ADC:
 
     def log_last_position_after(self):
         self.info_logger.write_info('ADC: DONE: {}'.format(self.antenna_adc.counter_for_overlap))
-        self.adcs_logger.write_info(' {}, {} '.format(self.antenna_adc.position, self.antenna_adc.counter_for_overlap))
+        self.adcs_logger.write_info(' {}, {}, {}, {} '.format(self.antenna_adc.position, self.antenna_adc.counter_for_overlap, self.antenna_adc.theta_antenna_pointing, self.antenna_adc.theta))
 
     def push_DMC_motor(self):
         self.motor_dmc.motor_push()
@@ -190,25 +193,29 @@ class ADC:
             self.motor_adc.act(set_step, direction)
             self.antenna_adc.update_position(set_step*self.motor_adc.step_size, direction)
             self.info_logger.write_info('ADC: SET: ANTENNA AT {}'.format(self.antenna_adc.position))
+            self.adcs_logger.write_info(' {}, {}, {}, {} '.format(self.antenna_adc.position, self.antenna_adc.counter_for_overlap, self.antenna_adc.position + self.compass, self.antenna_adc.theta))
         else:
             self.info_logger.write_warning('ADC: Invalid SET_STEP')
 
     def scan(self):
         direction = 1
         steps_per_time = 10
-        times_per_scan = int((360/1.8)/steps_per_time)
+        times_per_scan = int((360/self.motor_adc.step_size)/steps_per_time)
         for x in range(0,times_per_scan):
             self.motor_adc.act(steps_per_time, direction)
-            self.antenna_adc.update_position(steps_per_time*1.8, direction)
+            self.antenna_adc.update_position(steps_per_time*self.motor_adc.step_size, direction)
             self.info_logger.write_info('ADC: SCAN: ANTENNA AT {}'.format(self.antenna_adc.position))
+            self.log_last_position_after()
         direction = 0
         for x in range(0,times_per_scan):
             self.motor_adc.act(steps_per_time, direction)
-            self.antenna_adc.update_position(steps_per_time*1.8, direction)
+            self.antenna_adc.update_position(steps_per_time*self.motor_adc.step_size, direction)
             self.info_logger.write_info('ADC: SCAN: ANTENNA AT {}'.format(self.antenna_adc.position))
+            self.log_last_position_after()
 
     def calc_new_position(self):
     #calc GEOMETRY
+    #@TODO define thresshold for x,y mes
         thresshold = 0.1
         dx = abs(self.GS[0] - self.gps[0])
         dy = abs(self.gps[1] - self.GS[1])
@@ -233,9 +240,11 @@ class ADC:
                #OLD theta = 360 - fi # quartile = 4
                theta = 180 - fi # quartile = 4
      # end calc GEOMETRY
-        theta_antenna_pointing = (self.antenna_adc.position + self.compass) % 360
-        if theta_antenna_pointing < theta:
-            dif1 = theta - theta_antenna_pointing
+        self.antenna_adc.theta = theta
+        self.antenna_adc.theta_antenna_pointing = (self.antenna_adc.position + self.compass) % 360
+        self.adcs_logger.write_info(' {}, {}, {}, {} '.format(self.antenna_adc.position, self.antenna_adc.counter_for_overlap, self.antenna_adc.theta_antenna_pointing, self.antenna_adc.theta))
+        if self.antenna_adc.theta_antenna_pointing < self.antenna_adc.theta:
+            dif1 = self.antenna_adc.theta - self.antenna_adc.theta_antenna_pointing
             dif2 = 360 - dif1
             if dif1 <= dif2:
                 if self.antenna_adc.check_isinoverlap(dif1, +1):  # clockwise
@@ -252,7 +261,7 @@ class ADC:
                     self.difference = dif2
                     self.direction = 0  # anti-clockwise
         else:
-            dif2 = theta_antenna_pointing - theta
+            dif2 = self.antenna_adc.theta_antenna_pointing - self.antenna_adc.theta
             dif1 = 360 - dif2
             if dif1 <= dif2:
                 if self.antenna_adc.check_isinoverlap(dif1, +1):  # clockwise
@@ -280,7 +289,7 @@ class ADC:
             self.color_string = self.data_manager.get_data("color")
 
     #@TODO mod it to work
-    def go_to_zero_position(self):
+    def init_position(self):
 
         if self.antenna_adc.counter_for_overlap > 360 :
             self.motor_adc.act(110,0) #anti-clockwise
@@ -292,19 +301,22 @@ class ADC:
             self.direction = 0
         while not in_zero_point:
             self.get_color_data()
-            if ( self.color_string == "RED" ) :
+            if ( self.color_string == "WHITE" ) :
                 #self.red_reference_point - self.color_thress < self.antenna_adc.counter_for_overlap < self.red_reference_point - self.color_thress +
-                self.info_logger.write_info("ADC: saw red")
+                self.info_logger.write_info("ADC: WHITE")
                 self.info_logger.write_info("ADC: ZERO POSITION IS SET")
                 in_zero_point = True
-            elif ( self.color_string == "GREEN" ) :
+            elif ( self.color_string == "RED" ) :
                 self.direction = 1
-                self.info_logger.write_info("ADC: saw green")
+                self.info_logger.write_info("ADC: SAW RED")
             elif ( self.color_string == "BLUE" ):
                 self.direction = 1
-                self.info_logger.write_info("ADC: saw blue")
+                self.info_logger.write_info("ADC: SAW BLUE")
 
             self.motor_adc.act(some_steps, self.direction)  # anti-clockwise
             self.antenna_adc.update_position(some_steps * self.motor_adc.step_size, self.direction)  # anti-clockwise
+
+        #@TODO update antenna position counter
+        #@TODO adcs log
 
 

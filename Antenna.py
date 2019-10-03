@@ -18,15 +18,26 @@ class Antenna:
         if Antenna.__instance is not None:
             raise Exception("This class is a singleton!")
         else:
-            self.paths = paths.Paths()
-            file_name = "{dir}/{filename}".format(dir="Logs", filename='adcs.log')
-            with FileReadBackwards(file_name, encoding="utf-8") as log_file:
-                for line in log_file:
-                    position = line.split(',')[0]
-                    counter = line.split(',')[1]
-                    break
+            try:
+                self.paths = paths.Paths()
+                file_name = "{dir}/{filename}".format(dir="Logs", filename='adcs.log')
+                with FileReadBackwards(file_name, encoding="utf-8") as log_file:
+                    for line in log_file:
+                        position = line.split(',')[0]
+                        counter = line.split(',')[1]
+                        theta_antenna_pointing = line.split(',')[2]
+                        theta = line.split(',')[3]
+                        break
+            except:
+                #@TODO change the default init position and counter
+                position = 0
+                counter = 0
+                theta_antenna_pointing = 0
+                theta = 0
             self.position = position
             self.counter_for_overlap = counter
+            self.theta = theta
+            self.theta_antenna_pointing = theta_antenna_pointing
             self.overlap_thress = 380
             self.sign_for_counter = +1
             Antenna.__instance = self
@@ -57,7 +68,7 @@ class Antenna:
         if type(next_plus_angle) in [float, int] and sign in [-1, +1]:
             if self.counter_for_overlap + sign*next_plus_angle > self.overlap_thress:
                 return True
-            elif self.counter_for_overlap + sign*next_plus_angle < -(self.overlap_thress - 360):
+            elif self.counter_for_overlap + sign*next_plus_angle < -self.overlap_thress:
                 return True
             else:
                 return False
