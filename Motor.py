@@ -29,6 +29,7 @@ class MotorADC(Motor):
             self.step_size = 0.9
             self.pin_direction = pins.Pins().ADC_pin_direction  # Direction GPIO Pin OK
             self.pin_step = pins.Pins().ADC_pin_step # Step GPIO Pin OK
+            self.smooth_steps = 2
             self.period = .1
             self.p_high = 0.05
             self.p_low = 0.95
@@ -54,6 +55,28 @@ class MotorADC(Motor):
                 sleep(self.period*self.p_low)
         else:
             pass
+
+    def act_smooth(self, direction):
+        #@TODO TBD
+        self.period = .1
+        self.p_high = 0.05
+        self.p_low = 0.95
+        count_steps = 360
+        if type(count_steps) is int and not count_steps < 0 and direction in [0, 1]:
+            self.direction = direction
+            GPIO.output(self.pin_direction, self.direction)
+            for x in range(count_steps):
+                GPIO.output(self.pin_step, GPIO.HIGH)
+                sleep(self.period * self.p_high)
+                GPIO.output(self.pin_step, GPIO.LOW)
+                sleep(self.period * self.p_low)
+        else:
+            pass
+        #DO NOT CHANGE THE FOLLOW VAR
+        self.period = .1
+        self.p_high = 0.05
+        self.p_low = 0.95
+
 
 class MotorDMC(Motor):
 

@@ -3,6 +3,7 @@ import math
 from Antenna import Antenna
 from Motor import MotorADC, MotorDMC
 from counterdown import CounterDown
+from threading import Thread
 import random
 
 class ADC:
@@ -41,11 +42,10 @@ class ADC:
             self.difference = 0
             self.valid_data = True
             ###color
-            self.color_thress = 5
-            self.red_reference_point = 0
-            self.green_reference_point = 120
-            self.blue_reference_point = 240
             self.color_string = None
+            self.stop_turn = False
+            self.dir_init = 0
+            self.counter_done = 0
             ###
             ADC.__instance = self
 
@@ -129,7 +129,6 @@ class ADC:
             self.master.command_vector['ADC_AUTO'] = 0  # re-init
             self.master.command_vector['ADC_MAN'] = 0  # re-init
             self.info_logger.write_info('ADC: WAITING FOR ADC MAN OR AUTO')
-            #@TODO add cmd for zero position
             choice = self.counterdown.countdown2(self.counterdown.adc_man_time_breaks, 'ADC_AUTO', 'ADC_MAN')
             if choice == 2:
                 self.info_logger.write_info('ADC: CONT ADC MAN')
@@ -286,37 +285,50 @@ class ADC:
         if self.master.status_vector["INFRARED"] == 0 :
             self.info_logger.write_warning('ADC: Invalid color data')
         else:
-            self.color_string = self.data_manager.get_data("color")
+            self.color_string = self.data_manager.read_color()
 
     #@TODO mod it to work
     def init_position(self):
 
-        if self.antenna_adc.counter_for_overlap > 360 :
-            self.motor_adc.act(110,0) #anti-clockwise
-            self.antenna_adc.update_position(110*self.motor_adc.step_size,0) #anti-clockwise
-        self.direction = 1
+        #clean overlaps
+        if self.antenna_adc.counter_for_overlap > 360:
+            self.motor_adc.act(110, 0)  # anti-clockwise
+            self.antenna_adc.update_position(110 * self.motor_adc.step_size, 0)  # anti-clockwise
+        elif self.antenna_adc.counter_for_overlap < -360:
+            self.motor_adc.act(110, 1)  # clockwise
+            self.antenna_adc.update_position(110 * self.motor_adc.step_size, 1)  # clockwise
+
+        thread_act = Thread(target=self.threaded_function_act)
+        thread_act.start()
+
         in_zero_point = False
-        some_steps = 5
-        if self.antenna_adc.counter_for_overlap < 0 :
-            self.direction = 0
-        while not in_zero_point:
+        self.stop_turn = False
+        while not in_zero_point and not self.master.status_vector['KILL'] and self.master.status_vector['INFRARED']:
             self.get_color_data()
-            if ( self.color_string == "WHITE" ) :
-                #self.red_reference_point - self.color_thress < self.antenna_adc.counter_for_overlap < self.red_reference_point - self.color_thress +
+            if (self.color_string == "WHITE"):
                 self.info_logger.write_info("ADC: WHITE")
                 self.info_logger.write_info("ADC: ZERO POSITION IS SET")
                 in_zero_point = True
-            elif ( self.color_string == "RED" ) :
-                self.direction = 1
+            elif (self.color_string == "RED"):
                 self.info_logger.write_info("ADC: SAW RED")
-            elif ( self.color_string == "BLUE" ):
-                self.direction = 1
+            elif (self.color_string == "BLUE"):
                 self.info_logger.write_info("ADC: SAW BLUE")
+            elif (self.color_string == "BLACK"):
+                self.info_logger.write_info("ADC: SAW BLACK")
 
-            self.motor_adc.act(some_steps, self.direction)  # anti-clockwise
-            self.antenna_adc.update_position(some_steps * self.motor_adc.step_size, self.direction)  # anti-clockwise
+        self.stop_turn = True
+        self.antenna_adc.update_position(self.counter_done*self.motor_adc.step_size ,self.dir_init)
+        self.get_compass_data()
+        self.adcs_logger.write_info(' {}, {}, {}, {} '.format(self.antenna_adc.position, self.antenna_adc.counter_for_overlap, self.antenna_adc.position + self.compass, self.antenna_adc.theta))
 
-        #@TODO update antenna position counter
-        #@TODO adcs log
 
-
+    def threaded_function_act(self):
+        # find direction
+        if self.antenna_adc.counter_for_overlap > 0:
+            self.dir_init = 0
+        else:
+            self.dir_init = 1
+        self.counter_done = 0
+        while not self.stop_turn:
+            self.counter_done += self.motor_adc.smooth_steps
+            self.motor_adc.act_smooth(self.dir_init)
