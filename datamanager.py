@@ -18,6 +18,7 @@ class DataManager:
                 self.gps_port = "/dev/ttyACM0"
                 self.imu_port = "/dev/ttyACM1"
                 self.bus = smbus.SMBus(1)
+                #@TODO TBD
                 self.P0 = 1015
                 self.dictionary = dict()
                 try:
@@ -287,6 +288,9 @@ class DataManager:
                         self.master.status_vector["IMU"] = 0
 	
         def read_color(self):
+                #@TODO TBD
+                white_thress = 1000
+                black_thress = 10
                 try:
                         as7262.soft_reset()
                         hw_code, hw_version, fw_version = as7262.get_version()
@@ -305,21 +309,21 @@ class DataManager:
                         g = colors[3]
                         b = colors[4]
                         v = colors[5]
-                        max_c = statistics.max(color)
+                        max_c = max(colors)
                         max_s = 'RED'
-                        if o = max_c :
+                        if o == max_c :
                                 max_c = o
                                 max_s = 'RED' #'ORANGE'
-                        elif y = max_c :
+                        elif y == max_c :
                                 max_c = y
                                 max_s = 'YELLOW' 
-                        elif g = max_c :
+                        elif g == max_c :
                                 max_c = g
                                 max_s = 'GREEN' 
-                        elif b = max_c :
+                        elif b == max_c :
                                 max_c = b
                                 max_s = 'BLUE'  
-                        elif v = max_c :
+                        elif v == max_c :
                                 max_c = v
                                 max_s = 'BLUE' #'VIOLET'
                         mean = statistics.mean(colors)
@@ -332,8 +336,8 @@ class DataManager:
                         self.infologger.write_error("Error: I2C: reading color.")
                         self.master.status_vector["INFRARED"]=0
                         return 'ERROR'
- 
-         def read_inf_temp(self):
+
+        def read_inf_temp(self):
                 try:
                         while True:
                                 status = self.bus.read_byte_data(0x49,0x00)

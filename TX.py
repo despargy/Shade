@@ -23,6 +23,7 @@ class TX:
             self.file_name_temperature = paths.Paths().tx_file
             self.file_name_predefined_data = paths.Paths().tx_file_pre_data
             self.TX_code_file = 'sdr_TX.py'
+            self.TX_code_sin = 'sin_TX.py'
             self.pin_led_tx = pins.Pins().pin_led_tx
             GPIO.setmode(GPIO.BOARD)
             GPIO.setup(self.pin_led_tx, GPIO.OUT)
@@ -77,10 +78,20 @@ class TX:
             if self.master.get_command('SIN'):
                 self.master.command_vector['SIN'] = 0
                 self.master.info_logger.write_info('TX: SIN COMMAND')
-                pass
-                #SIN THREAD
-                #WHILE SIN
+                # open led
+                self.led_on()
+
+                # start transmition of temp-pre
+                threading.Thread(target=self.start_tx, args=(self.TX_code_sin,)).start()
+                self.master.info_logger.write_info('TX: SDR TRANSMIT SIN')
+                sleep(20)
                 #KILL SIN
+                # kill transmition of sin
+                self.master.info_logger.write_info('TX: SDR STOP MAIN TRANSMIT')
+                self.kill_tx(self.TX_code_sin)
+
+                # close led
+                self.led_off()
 
         # kill sdr process
         self.master.info_logger.write_info('TX: NON-AV')
