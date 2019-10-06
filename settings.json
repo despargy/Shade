@@ -1,0 +1,68 @@
+{
+  "data_manager": {
+    "columns": {
+      "temp_A": 1,
+      "temp_B": 2,
+      "int_temp": 3,
+      "inf_temp": 4,
+      "amp_temp": 5,
+      "ras_temp": 6
+    }
+  },
+  "figures": {
+    "temp_A": {
+      "title": "ADC Motor Temperature",
+      "x_label": "",
+      "y_label": "Temperature (Celsius)",
+      "limit": 50,
+      "danger_value": 60,
+      "dimensions": [2, 3, 1],
+      "value_type": "float"
+    },
+    "temp_B": {
+      "title": "DMC Motor Temperature",
+      "x_label": "",
+      "y_label": "",
+      "limit": 50,
+      "danger_value": 60,
+      "dimensions": [2, 3, 2],
+      "value_type": "float"
+    },
+    "int_temp": {
+      "title": "Internal Electronic Box",
+      "x_label": "",
+      "y_label": "",
+      "limit": 50,
+      "danger_value": 0,
+      "dimensions": [2, 3, 3],
+      "value_type": "float"
+    },
+    "inf_temp": {
+      "title": "Atmospheric External Box",
+      "x_label": "Time",
+      "y_label": "Temperature (Celsius)",
+      "limit": 50,
+      "danger_value": 0,
+      "dimensions": [2, 3, 4],
+      "value_type": "float"
+    },
+    "amp_temp": {
+      "title": "Amplifier Temperature",
+      "x_label": "Time",
+      "y_label": "",
+      "limit": 50,
+      "danger_value": 65,
+      "dimensions": [2, 3, 5],
+      "value_type": "float"
+    },
+    "ras_temp": {
+      "title": "Raspberry Temperature",
+      "x_label": "Time",
+      "y_label": "",
+      "limit": 50,
+      "danger_value": 85,
+      "dimensions": [2, 3, 6],
+      "value_type": "float"
+    }
+  }
+}
