@@ -2,7 +2,7 @@ from file_read_backwards import FileReadBackwards
 
 class Reader():
 
-    def __init__(self,filename,name, read_time , directory='../Logs/'):
+    def __init__(self,filename,name, read_time = 10 , directory='../Logs/'):
         self.name = name
         self.READ_TIME = read_time
         self.directory = directory

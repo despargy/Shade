@@ -3,19 +3,17 @@ from matplotlib import pyplot as plt
 import numpy as np
 import reader
 import json
+import render_figure
 
 class TemperatureFig():
 
-    def __init__(self, temp_name,fig, rd):
-        self.fig = fig
+    def __init__(self, temp_name,fig):
         self.temp_name = temp_name
         self.config = self.get_config()
         self.index = self.get_column_index()
         self.x = np.array([])
         self.y = np.array([])
-        self.ax = self.fig.add_subplot(*self.config["dimensions"])
-        self.reader = rd 
-
+        self.ax = fig.add_subplot(*self.config["dimensions"])
 
 
     def get_config(self):
@@ -107,70 +105,6 @@ class TemperatureFig():
             settings =  json.load(json_file)
             return settings['data_manager']['columns'][self.temp_name]
 
-    @staticmethod
-    def get_pause_time():
-        with open('../settings.json') as json_file:
-            settings =  json.load(json_file)
-            return settings['figures']['general_settings']["pause_time"]
-
-
-def get_figure_settings():
-    with open('../settings.json') as json_file:
-        settings =  json.load(json_file)
-        return settings['figures']
-
-def start():
-
-    #read the configuration settings
-    fig_settings = get_figure_settings()
-    #get temperature names
-    fig_names = fig_settings["temp_names"]
-    temp_figs = []
-
-    #init readers
-    rd = reader.Reader('elink.data.log','Data Logs' , 10)
-
-    fig = plt.figure()
-
-    #create TemperatureFig Objects
-    for fig_name in fig_names:
-        temp_figs.append(TemperatureFig(fig_name, fig, rd))
-
-    #init canvas
-    fig.canvas.draw()   # note that the first draw comes before setting data
-
-    #set up figs
-    for temp_fig in temp_figs:
-        temp_fig.set_up()
-
-    #start reading data
-    while(True):
-        #get unread logs
-        data, total_rows = rd.get_unread_logs()
-
-        #if not new data
-        if total_rows == 0:
-            plt.pause(3)
-            continue
-        
-    
-        for data_row in data:
-            data_array = data_row.split(',')
-            
-            for temp_fig in temp_figs:
-                #read new data
-                temp_fig.read_data(data_array)
-
-            fig.canvas.draw()
-            fig.canvas.flush_events()
-
-            for temp_fig in temp_figs:
-                #set new data
-                temp_fig.set_data()
-
-            #pause
-            plt.pause(TemperatureFig.get_pause_time())
-
 
 if __name__ == '__main__':
-    start()
+    render_figure.RenderFigure("temp_names",TemperatureFig).start()

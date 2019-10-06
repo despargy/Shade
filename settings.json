@@ -6,7 +6,8 @@
       "int_temp": 3,
       "inf_temp": 4,
       "amp_temp": 5,
-      "ras_temp": 6
+      "ras_temp": 6,
+      "angle_c": 13
     }
   },
   "figures": {
@@ -68,6 +69,9 @@
         "dimensions": [2, 3, 6],
         "value_type": "float"
       }
+    },
+    "angle_temps": {
+      "angle_c": {}
     }
   }
 }
