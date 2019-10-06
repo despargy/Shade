@@ -7,14 +7,17 @@
       "inf_temp": 4,
       "amp_temp": 5,
       "ras_temp": 6,
-      "angle_c": 13
+      "pressure": 7,
+      "altitude": 8,
+      "altitude_gps": 11,
+      "angle_c": 12
     }
   },
   "figures": {
     "general_settings": {
       "pause_time": 0.00001
     },
-    "temp_names": {
+    "temperature": {
       "temp_A": {
         "title": "ADC Motor Temperature",
         "x_label": "",
@@ -70,8 +73,36 @@
         "value_type": "float"
       }
     },
-    "angle_temps": {
-      "angle_c": {}
+    "angle_names": {
+      "angle_c": {
+        "title": "angle_c title",
+        "projection": "polar",
+        "dimensions": 121,
+        "value_type": "float",
+        "width": 0.05
+      }
+    },
+    "pressure": {
+      "pressure": {
+        "title": "Pressure",
+        "x_label": "Time",
+        "y_label": "Temperature (Celsius)",
+        "limit": 50,
+        "danger_value": 85,
+        "dimensions": [1, 1, 1],
+        "value_type": "float"
+      }
+    },
+    "altitude": {
+      "altitude": {
+        "title": "Altitude",
+        "x_label": "Time",
+        "y_label": "Altitude (meter)",
+        "limit": 50,
+        "danger_value": 85,
+        "dimensions": [1, 1, 1],
+        "value_type": "float"
+      }
     }
   }
 }

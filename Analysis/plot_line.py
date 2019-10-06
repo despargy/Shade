@@ -1,32 +1,12 @@
-import time
-from matplotlib import pyplot as plt
 import numpy as np
 import reader
-import json
 import render_figure
+import plot_interface
+import sys
 
-class TemperatureFig():
+class LinePlot(plot_interface.PlotInterface):
 
-    def __init__(self, temp_name,fig):
-        self.temp_name = temp_name
-        self.config = self.get_config()
-        self.index = self.get_column_index()
-        self.x = np.array([])
-        self.y = np.array([])
-        self.ax = fig.add_subplot(*self.config["dimensions"])
-
-
-    def get_config(self):
-        """Gets the configuration for this figure
-        
-        Returns:
-            list -- the configuration for this figure
-        """
-        with open('../settings.json') as json_file:
-            settings =  json.load(json_file)
-            return settings['figures']['temp_names'][self.temp_name]
-
-
+    
     def set_up(self):
         """Sets title , x and y label,
            initializes the x and y limits
@@ -100,11 +80,16 @@ class TemperatureFig():
                 self.h.set_xdata(self.x)
 
 
-    def get_column_index(self):
-        with open('../settings.json') as json_file:
-            settings =  json.load(json_file)
-            return settings['data_manager']['columns'][self.temp_name]
-
 
 if __name__ == '__main__':
-    render_figure.RenderFigure("temp_names",TemperatureFig).start()
+    if len(sys.argv) != 2:
+        print("""
+              [+] Run line_plot program with one argument.
+              [+] The argument indicates the cluster figure
+              [+] e.g python plot_line.py temperature or
+                      python plot_line.py pressure
+              """)
+    else:
+        cluster = sys.argv[1]
+        render_figure.RenderFigure(cluster,LinePlot).start()
+    

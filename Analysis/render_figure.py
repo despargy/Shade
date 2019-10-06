@@ -4,9 +4,11 @@ import reader
 
 class RenderFigure():
 
-    def __init__(self, name , obj_class):
-        self.name = name
+    def __init__(self, fig_cluster , obj_class):
+        self.fig_cluster = fig_cluster
         self.obj_class = obj_class
+        self.fig_settings = self.get_figure_settings()
+        self.fig = plt.figure()
 
 
     def get_pause_time(self):
@@ -20,28 +22,37 @@ class RenderFigure():
             settings =  json.load(json_file)
             return settings['figures']
 
-    def start(self):
 
-        #read the configuration settings
-        fig_settings = self.get_figure_settings()
-        #get temperature names
-        fig_names = fig_settings[self.name]
-        fig_objects = []
-
-        fig = plt.figure()
-
-        #create TemperatureFig Objects
+    def init_objs(self):
+        self.fig_objects = []
+        fig_names = self.fig_settings[self.fig_cluster]
         for fig_name in fig_names:
-            fig_objects.append(self.obj_class(fig_name, fig))
+            self.fig_objects.append(self.obj_class(self.fig_cluster, fig_name, self.fig))
 
-        #init canvas
-        fig.canvas.draw()   # note that the first draw comes before setting data
-
+    def setup_objs(self):
         #set up figs
-        for fig_obj in fig_objects:
+        for fig_obj in self.fig_objects:
             fig_obj.set_up()
 
-        #init readers
+    def read_data_objs(self,data_array):
+        for fig_obj in self.fig_objects:
+            #read new data
+            fig_obj.read_data(data_array)      
+    
+    def set_data_objs(self):
+        for fig_obj in self.fig_objects:
+            #set new data
+            fig_obj.set_data()
+
+    def start(self):
+
+        self.init_objs()
+        #init canvas
+        self.fig.canvas.draw()   # note that the first draw comes before setting data
+
+        self.setup_objs()
+
+        #init reader
         rd = reader.Reader('elink.data.log','Data Logs')
 
         #start reading data
@@ -54,20 +65,15 @@ class RenderFigure():
                 plt.pause(3)
                 continue
             
-        
             for data_row in data:
                 data_array = data_row.split(',')
                 
-                for fig_obj in fig_objects:
-                    #read new data
-                    fig_obj.read_data(data_array)
+                self.read_data_objs(data_array)
 
-                fig.canvas.draw()
-                fig.canvas.flush_events()
+                self.fig.canvas.draw()
+                self.fig.canvas.flush_events()
 
-                for fig_obj in fig_objects:
-                    #set new data
-                    fig_obj.set_data()
+                self.set_data_objs()
 
                 #pause
                 plt.pause(self.get_pause_time())
