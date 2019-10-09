@@ -9,15 +9,16 @@
       "ras_temp": 6,
       "pressure": 7,
       "altitude": 8,
-      "altitude_gps": 11,
-      "angle_c": 12
+      "altitude_gps": 12,
+      "angle_c": 13
     }
   },
   "figures": {
     "general_settings": {
-      "pause_time": 0.00001
+      "pause_time": 0.0000001,
+      "auto_scale": false
     },
-    "temperature": {
+    "temperatures": {
       "temp_A": {
         "title": "ADC Motor Temperature",
         "x_label": "",
@@ -73,7 +74,7 @@
         "value_type": "float"
       }
     },
-    "angle_names": {
+    "angles": {
       "angle_c": {
         "title": "angle_c title",
         "projection": "polar",
@@ -82,18 +83,18 @@
         "width": 0.05
       }
     },
-    "pressure": {
+    "pressures": {
       "pressure": {
         "title": "Pressure",
         "x_label": "Time",
-        "y_label": "Temperature (Celsius)",
+        "y_label": "mBar",
         "limit": 50,
         "danger_value": 85,
         "dimensions": [1, 1, 1],
         "value_type": "float"
       }
     },
-    "altitude": {
+    "altitudes": {
       "altitude": {
         "title": "Altitude",
         "x_label": "Time",
@@ -103,6 +104,10 @@
         "dimensions": [1, 1, 1],
         "value_type": "float"
       }
+    },
+    "antennas": {
+       "ground_x": 1,
+       "ground_y": 2
     }
   }
 }

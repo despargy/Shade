@@ -43,15 +43,19 @@ class PlotAltitude(plot_line.LinePlot):
         curr_value_alt = data_array[self.index_alt]
         curr_value_gps_alt = data_array[self.index_gps_alt]
         
-        
-        
-        if(value_type == 'float'):
-            curr_value_alt = float(curr_value_alt)
-            curr_value_gps_alt = float(curr_value_gps_alt)
-        elif(value_type == 'int'):
-            curr_value_alt = int(curr_value_alt)
-            curr_value_gps_alt = int(curr_value_gps_alt)
 
+        value_type = self.str_to_command(value_type)
+        
+        if curr_value_alt.strip() == 'None':
+            curr_value_alt = np.nan
+        else:
+            curr_value_alt  = value_type(curr_value_alt)
+        
+        if curr_value_gps_alt.strip() == 'None':
+            curr_value_gps_alt = np.nan
+        else:
+            curr_value_gps_alt  = value_type(curr_value_gps_alt)
+ 
         # TODO: Read time and not log id
         time = int(data_array[0])
 
@@ -73,11 +77,12 @@ class PlotAltitude(plot_line.LinePlot):
     def set_data(self):
         if(len(self.alt_x) > 0):
             self.ax.set_xlim(self.alt_x[0] -1 , self.alt_x[-1] +1)
-                
-            min_y = np.nanmin(self.alt_y)
+            
+            min_y = np.nanmin(np.array([np.nanmin(self.alt_y), np.nanmin(self.gps_alt_y)]))
             
             if not np.isnan(min_y):
-                self.ax.set_ylim(min_y - 10, np.nanmax(self.alt_y) + 10)
+                max_y = np.nanmax(np.array([np.nanmax(self.alt_y), np.nanmax(self.gps_alt_y)]))
+                self.ax.set_ylim(min_y - 10, max_y + 10)
                 
                 self.h_alt.set_ydata(self.alt_y)
                 self.h_alt.set_xdata(self.alt_x)
@@ -87,5 +92,5 @@ class PlotAltitude(plot_line.LinePlot):
 
 
 if __name__ == '__main__':
-    render_figure.RenderFigure("altitude",PlotAltitude).start()
+    render_figure.RenderFigure("altitudes",PlotAltitude).start()
 

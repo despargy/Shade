@@ -1,6 +1,8 @@
 from abc import ABC, abstractmethod
 import json
 import numpy as np
+import builtins
+
 
 class PlotInterface(ABC):
 
@@ -9,13 +11,21 @@ class PlotInterface(ABC):
         self.fig_name = fig_name
         self.fig_cluster = fig_cluster
         self.config = self.get_config()
+        self.auto_scale = self.get_auto_scale()
         self.index = self.get_column_index()
-        self.x = np.array([])
-        self.y = np.array([])
+        self.x = np.array([0])
+        self.y = np.array([0])
         if "projection" in self.config:
             self.ax = self.fig.add_subplot(self.config["dimensions"], projection=self.config["projection"])
         else:
             self.ax = self.fig.add_subplot(*self.config["dimensions"])
+
+
+
+    def get_auto_scale(self):
+        with open('../settings.json') as json_file:
+            settings =  json.load(json_file)
+            return settings['figures']['general_settings']["auto_scale"]
 
 
     def get_config(self):
@@ -36,6 +46,11 @@ class PlotInterface(ABC):
         with open('../settings.json') as json_file:
             settings =  json.load(json_file)
             return settings['data_manager']['columns'][fig_name]
+
+    @staticmethod
+    def str_to_command(str_command):
+        return getattr(builtins, str_command)
+
 
     @abstractmethod
     def set_up(self):

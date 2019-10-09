@@ -26,11 +26,17 @@ class LinePlot(plot_interface.PlotInterface):
             curr_value {int | float | nan}
         """
         if np.isnan(curr_value):
+            for spine in self.ax.spines.values():
+                spine.set_edgecolor('orange')
             self.h.set_color("orange")
         elif(curr_value >= self.config["danger_value"]):
             self.h.set_color("red")
+            for spine in self.ax.spines.values():
+                spine.set_edgecolor('red')
         else:
             self.h.set_color("blue")
+            for spine in self.ax.spines.values():
+                spine.set_edgecolor('blue')
 
 
     def read_data(self,data_array):
@@ -47,10 +53,8 @@ class LinePlot(plot_interface.PlotInterface):
             #break line
             curr_value = np.nan
         else:
-            if(value_type == 'float'):
-                curr_value = float(curr_value)
-            elif(value_type == 'int'):
-                curr_value = int(curr_value)
+            value_type = self.str_to_command(value_type)
+            curr_value = value_type(curr_value)
 
         # TODO: Read time and not log id
         time = int(data_array[0])
@@ -58,7 +62,7 @@ class LinePlot(plot_interface.PlotInterface):
         self.x = np.append(self.x,time)
         self.y = np.append(self.y,curr_value)
 
-        if(len(self.x) > self.config["limit"]):
+        if(self.auto_scale and len(self.x) > self.config["limit"]):
             #delete old values
             self.x = np.delete(self.x, 0)
             self.y = np.delete(self.y, 0)
