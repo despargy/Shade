@@ -84,7 +84,7 @@ class TX:
                 # start transmition of temp-pre
                 threading.Thread(target=self.start_tx, args=(self.TX_code_sin,)).start()
                 self.master.info_logger.write_info('TX: SDR TRANSMIT SIN')
-                sleep(20)
+                sleep(self.counterdown.tx_duration_sin)
                 #KILL SIN
                 # kill transmition of sin
                 self.master.info_logger.write_info('TX: SDR STOP MAIN TRANSMIT')

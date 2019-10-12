@@ -23,8 +23,8 @@ class Antenna:
                 file_name = "{dir}/{filename}".format(dir="Logs", filename='adcs.log')
                 with FileReadBackwards(file_name, encoding="utf-8") as log_file:
                     for line in log_file:
-                        position = line.split(',')[0]
-                        counter = line.split(',')[1]
+                        position = line.decode().split(',')[0]
+                        counter = line.decode().split(',')[1]
                         theta_antenna_pointing = line.split(',')[2]
                         theta = line.split(',')[3]
                         break
@@ -73,7 +73,8 @@ class Antenna:
             else:
                 return False
         else:
-            pass
+            print('false in overlap func')
+
 
 
 

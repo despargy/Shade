@@ -1,0 +1,9 @@
+#!/bin/bash
+
+cd ../Logs
+
+>elink.data.log
+>elink.info.log
+>ground.info.log
+>data.log
+>info.log
