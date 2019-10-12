@@ -240,8 +240,6 @@ class GroundClient:
             if action == "SET":
                 package['steps'] = input('Steps: ')
 
-            #TODO: check if work properly after comment this line
-            #while(not self.has_internet_connection()): time.sleep(3)
 
             #send data as json string
             try:
