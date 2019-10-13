@@ -52,7 +52,7 @@ class Logger(ABC):
         self.last_sended_index = index
 
     def get_last_index(self):
-        """Get index from last row
+        """Get index from last valid row
         
         Returns:
             [int] -- The index from last row or
@@ -64,7 +64,7 @@ class Logger(ABC):
                     try:
                         return int(line.split(',')[0])
                     except:
-                        break
+                        continue
         return 1
 
 
@@ -244,6 +244,6 @@ class GroundLogger(Logger):
         formatter = '%(message)s'
         self.set_up_logger(formatter,'logger_{filename}'.format(filename=filename))
 
-    def get_instance():
+    def get_instance(self):
         pass
 
