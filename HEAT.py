@@ -26,7 +26,7 @@ class HEAT(object):
             self.temp_thresshold = -12
             self.mean_temp_A = self.temp_thresshold
             self.mean_temp_B = self.temp_thresshold
-            self.max_size = 20
+            self.max_size = 10
             self.data_queue_A = queue.Queue(self.max_size)
             self.data_queue_B = queue.Queue(self.max_size)
             self.pin_heaterA = pins.Pins().pin_heaterA #pin for Heater A
@@ -130,14 +130,14 @@ class HEAT(object):
             temp_A = self.data_manager.get_data("temp_A")
             temp_B = self.data_manager.get_data("temp_B")
 
-            if self.master.status_vector['TEMP_A'] == 0:
+            if self.master.status_vector['TEMP_A'] == 0 or temp_A is None:
                 self.info_logger.write_warning("HEAT: Invalid temperature A data HEAT")
             else:
                 if self.data_queue_A.full():
                     self.data_queue_A.get()
                 self.data_queue_A.put(temp_A)
 
-            if self.master.status_vector['TEMP_B'] == 0:
+            if self.master.status_vector['TEMP_B'] == 0 or temp_B is None:
                 self.info_logger.write_warning("HEAT: Invalid temperature B data HEAT")
             else:
                 if self.data_queue_B.full():

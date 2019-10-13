@@ -29,7 +29,7 @@ class Master:
         self.data_logger = DataLogger()
         self.adcs_logger = AdcsLogger()
         #@TODO where antenna to start
-        self.adcs_logger.write_info(' {}, {} '.format(0, 0))
+        #self.adcs_logger.write_info(' {}, {}, {}, {}'.format(0, 0, 0, 0))
         self.elink = elinkmanager.ELinkManager(self,self.ground_ip)
         self.thread_elink = None
         self.data_manager = DataManager(self, self.info_logger, self.data_logger)
@@ -39,7 +39,7 @@ class Master:
         self.heat = heat.HEAT(self)
         self.thread_heat = None
         #@TODO uncomment next line
-        #self.adc = adc.ADC(self)
+        self.adc = adc.ADC(self)
         self.thread_adc = None
         self.tx = tx.TX(self)
         self.thread_tx = None
@@ -105,8 +105,8 @@ class Master:
 
     def init_subsystems(self):
         #@TODO RM FAKE - START ADC ORIGINAL
-        #self.thread_adc = threading.Thread(target=self.adc.start).start()
-        self.thread_adc = threading.Thread(target=self.adc_FAKE).start()
+        self.thread_adc = threading.Thread(target=self.adc.start).start()
+        #self.thread_adc = threading.Thread(target=self.adc_FAKE).start()
         self.thread_dmc = threading.Thread(target=self.dmc.start).start()
         self.thread_heat = threading.Thread(target=self.heat.start).start()
         self.thread_tx = threading.Thread(target=self.tx.start).start()
@@ -116,10 +116,12 @@ class Master:
     def adc_FAKE(self):
         self.info_logger.write_warning('MASTER ESRANGE: FAKE ADC THREADED')
         motor_ADC = MotorADC()
+        while not self.status_vector['DEP_SUCS']:
+            self.info_logger.write_info('FROM MASTER ESR: ADC WAIT FAKE')
+            sleep(5)
         while not self.status_vector['KILL']:
             self.info_logger.write_info('MASTER ESRANGE: FAKE ADC ACTION')
-            motor_ADC.act(100,1)
-            motor_ADC.act(100,1)
+            motor_ADC.act(200,1)
             motor_ADC.act(200,0)
             sleep(self.counterdown.adc_fake_runs)
 

@@ -26,13 +26,13 @@ class MotorADC(Motor):
             raise Exception("This class is a singleton!") #logger
         else:
             super(MotorADC, self).__init__()
-            self.step_size = 0.9
+            self.step_size = 3.5
             self.pin_direction = pins.Pins().ADC_pin_direction  # Direction GPIO Pin OK
             self.pin_step = pins.Pins().ADC_pin_step # Step GPIO Pin OK
             self.smooth_steps = 2
             self.period = .1
-            self.p_high = 0.05
-            self.p_low = 0.95
+            self.p_high = 0.95
+            self.p_low = 0.05
             GPIO.setmode(GPIO.BOARD)
             GPIO.setup(self.pin_direction, GPIO.OUT)
             GPIO.setup(self.pin_step, GPIO.OUT)
@@ -45,7 +45,7 @@ class MotorADC(Motor):
         return MotorADC.__instance
 
     def act(self, count_steps, direction):
-        if type(count_steps) is int and not count_steps<0 and direction in [0,1]:
+        if not count_steps<0 and direction in [0,1]:
             self.direction = direction
             GPIO.output(self.pin_direction, self.direction)
             for x in range(count_steps):
@@ -54,13 +54,13 @@ class MotorADC(Motor):
                 GPIO.output(self.pin_step, GPIO.LOW)
                 sleep(self.period*self.p_low)
         else:
-            pass
+            print('error in act of MotorADC')
 
     def act_smooth(self, direction):
         #@TODO TBD
         self.period = .1
-        self.p_high = 0.05
-        self.p_low = 0.95
+        self.p_high = 0.95
+        self.p_low = 0.05
         count_steps = 360
         if type(count_steps) is int and not count_steps < 0 and direction in [0, 1]:
             self.direction = direction
@@ -71,11 +71,11 @@ class MotorADC(Motor):
                 GPIO.output(self.pin_step, GPIO.LOW)
                 sleep(self.period * self.p_low)
         else:
-            pass
+            print('error in act of MotorADC')
         #DO NOT CHANGE THE FOLLOW VAR
         self.period = .1
-        self.p_high = 0.05
-        self.p_low = 0.95
+        self.p_high = 0.95
+        self.p_low = 0.05
 
 
 class MotorDMC(Motor):
@@ -89,11 +89,12 @@ class MotorDMC(Motor):
         else:
             super(MotorDMC, self).__init__()
             self.step_size = 1.8
+            self.pin_enable = pins.Pins().DMC_pin_enable
             self.pin_direction = pins.Pins().DMC_pin_direction  # Direction GPIO Pin OK
             self.pin_step = pins.Pins().DMC_pin_step  # Step GPIO Pin OK
             self.period = .15
-            self.p_high = 0.05
-            self.p_low = 0.95
+            self.p_high = 0.95
+            self.p_low = 0.05
             self.deploy_direction = 0
             self.retrieve_direction = 1
             #@TODO deploy n' small steps
@@ -102,6 +103,8 @@ class MotorDMC(Motor):
             GPIO.setmode(GPIO.BOARD)
             GPIO.setup(self.pin_direction, GPIO.OUT)
             GPIO.setup(self.pin_step, GPIO.OUT)
+            GPIO.setup(self.pin_enable, GPIO.OUT)
+            GPIO.output(self.pin_enable, GPIO.LOW)
             MotorDMC.__instance = self
 
     @staticmethod

@@ -7,6 +7,7 @@ import mag3110
 import serial
 import as7262
 import statistics
+import math
 #import Paths as paths
 
 class DataManager:
@@ -21,6 +22,7 @@ class DataManager:
                 #@TODO TBD
                 self.P0 = 1015
                 self.dictionary = dict()
+                self.last_compass = 0
                 try:
                         self.compass = mag3110.compass()
                         self.master.status_vector["COMPASS"] = 1			
@@ -71,7 +73,7 @@ class DataManager:
                         self.read_ras_temp()
                         self.write_tx_file()
                         self.datalogger.write_info(self.get_log_data())
-                        time.sleep(10)
+                        time.sleep(5)
         
         def init_dict(self):
                 self.dictionary["temp_A"] = None
@@ -242,28 +244,41 @@ class DataManager:
                                         #numsat = s[6]
                                         #alt = s[9]
                                         #checksum = s[12]
-                                        lat = float(s[2])/100
+                                        lat = float(s[2])
                                         if s[3] == 'S':
                                                 lat = -lat
-                                        lon = float(s[4])/100
+                                        lon = float(s[4])
                                         if s[5] == 'W':
                                                 lon = -lon
                                         self.dictionary['time_gps'] = s[1]
-                                        self.dictionary['gps_y'] = lat
-                                        self.dictionary['gps_x'] = lon
+                                        self.dictionary['gps_y'] = self.dmm_to_dd(lat)
+                                        self.dictionary['gps_x'] = self.dmm_to_dd(lon)
                                         alt = float(s[9])
                                         self.dictionary['altitude_gps'] = alt
                                         break
                         self.master.status_vector["GPS"] = 1		
                 except:
                         self.infologger.write_error("Error: Serial: reading GPS receiver.")
-                        self.master.status_vector["GPS"] = 0	
+                        self.master.status_vector["GPS"] = 0
+
+
+        def dmm_to_dd(self, x):
+                s1 = math.floor(x / 100)
+                s11 = (x - s1 * 100) / 60
+                x = s1 + s11
+                print(x)
+                return x
 
         def read_compass(self):
                 try:
                         angle = self.compass.getBearing()
+                        #dif1 = abs(angle - self.last_compass)
+                        #dif2 = 360 - dif1
+                        #dif = min(dif1, dif2)
+                        #if dif < 120 :
                         self.dictionary['angle_c'] = angle
                         self.master.status_vector["COMPASS"] = 1
+                                #self.last_compass = angle
                 except:
                         self.infologger.write_error("Error: I2C: reading compass.")
                         self.master.status_vector["COMPASS"] = 0
@@ -289,8 +304,8 @@ class DataManager:
 	
         def read_color(self):
                 #@TODO TBD
-                white_thress = 1000
-                black_thress = 10
+                white_thress = 290
+                black_thress = 18
                 try:
                         as7262.soft_reset()
                         hw_code, hw_version, fw_version = as7262.get_version()
@@ -303,17 +318,21 @@ class DataManager:
                         as7262.set_illumination_led(0)
                         string = ("{},{},{},{},{},{}").format(*values)
                         colors = string.split(",")
-                        r = colors[0]
-                        o = colors[1]
-                        y = colors[2]
-                        g = colors[3]
-                        b = colors[4]
-                        v = colors[5]
-                        max_c = max(colors)
+                        r = float(colors[0])
+                        o = float(colors[1])
+                        y = float(colors[2])
+                        g = float(colors[3])
+                        b = float(colors[4])
+                        v = float(colors[5])
+                        float_colors = list(map(float, colors))
+                        max_c = max(float_colors)
                         max_s = 'RED'
                         if o == max_c :
                                 max_c = o
                                 max_s = 'RED' #'ORANGE'
+                        elif r == max_c :
+                                max_c = r
+                                max_s = 'RED' #'RED'
                         elif y == max_c :
                                 max_c = y
                                 max_s = 'YELLOW' 
@@ -326,7 +345,7 @@ class DataManager:
                         elif v == max_c :
                                 max_c = v
                                 max_s = 'BLUE' #'VIOLET'
-                        mean = statistics.mean(colors)
+                        mean = statistics.mean(float_colors)
                         if mean < black_thress :
                                 max_s = 'BLACK'
                         elif mean > white_thress :
@@ -371,7 +390,7 @@ class DataManager:
                 try:
                         f = open("tx_file.txt","w")
                         #time = self.dictionary['time_gps']
-                        temp = self.dictionary['ext_temp']
+                        #temp = self.dictionary['temp_A']
                         str = self.get_tx_str()
                         f.write(str)
                         f.close()
@@ -381,7 +400,7 @@ class DataManager:
         def get_tx_str(self):
                 return_string = "(UTC):  ,External temperature {}"
                 return return_string.format(
-                 self.dictionary["ext_temp"],
+                 self.dictionary["temp_A"],
                  #self.dictionary["time_gps"],
                 )
         

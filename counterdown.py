@@ -10,12 +10,12 @@ class CounterDown:
         self.heat_time_updates_data = 5
 
         self.adc_time_checks_deploy = 10
-        self.adc_wait_manual_ends = 30
-        self.adc_wait_auto_ends = 20
-        self.adc_auto_time_runs = 10
-        self.adc_man_time_runs = 10
+        self.adc_wait_manual_ends = 5
+        self.adc_wait_auto_ends = 10
+        self.adc_auto_time_runs = 5
+        self.adc_man_time_runs = 5
         self.adc_man_timeout_to_set_or_scan = 60
-        self.adc_man_time_breaks = 20
+        self.adc_man_time_breaks = 60
         self.adc_fake_runs = 20
 
         self.dmc_time_left_auto_deploy = 2*60*60  # 2*60*60 #ex. 2hours
@@ -31,6 +31,7 @@ class CounterDown:
         self.timeout_cmd_steps = 60
         self.tx_time_checks_deploy = 10
         self.tx_check_to_stop_transmition = 3
+        self.tx_duration_sin = 60
 
         self.reboot_low_wait = 10
 
