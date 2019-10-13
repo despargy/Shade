@@ -11,7 +11,7 @@ class LinePlot(plot_interface.PlotInterface):
         """Sets title , x and y label,
            initializes the x and y limits
         """
-        self.h, = self.ax.plot(self.x, lw=3)
+        self.h, = self.ax.plot(self.x, lw=2)
         self.ax.set_ylim(0,100)
         self.ax.set_xlim(0,100)
         self.ax.title.set_text(self.config["title"])
@@ -46,7 +46,10 @@ class LinePlot(plot_interface.PlotInterface):
             data_array {list} -- array with data from a row
         """
         value_type = self.config['value_type']
-        curr_value = data_array[self.index]
+        try:
+            curr_value = data_array[self.index]
+        except:
+            curr_value = 'None'
         
         #if value is none
         if curr_value.strip() == 'None':
@@ -57,7 +60,10 @@ class LinePlot(plot_interface.PlotInterface):
             curr_value = value_type(curr_value)
 
         # TODO: Read time and not log id
-        time = int(data_array[0])
+        try:
+            time = int(data_array[0])
+        except:
+            time = self.x[-1] + 1
 
         self.x = np.append(self.x,time)
         self.y = np.append(self.y,curr_value)

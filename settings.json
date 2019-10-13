@@ -9,13 +9,15 @@
       "ras_temp": 6,
       "pressure": 7,
       "altitude": 8,
+      "gps_y": 10,
+      "gps_x": 11,
       "altitude_gps": 12,
       "angle_c": 13
     }
   },
   "figures": {
     "general_settings": {
-      "pause_time": 0.0000001,
+      "pause_time": 0.00000000000001,
       "auto_scale": false
     },
     "temperatures": {
@@ -106,8 +108,13 @@
       }
     },
     "antennas": {
-       "ground_x": 1,
-       "ground_y": 2
+      "antenna_position": {
+        "arrow_length": 10,
+        "ground_x": 1,
+        "ground_y": 2,
+        "dimensions": [1, 1, 1],
+        "value_type": "float"
+      }
     }
   }
 }
