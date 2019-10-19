@@ -97,7 +97,6 @@ class MotorDMC(Motor):
             self.p_low = 0.05
             self.deploy_direction = 0
             self.retrieve_direction = 1
-            #@TODO deploy n' small steps
             self.deploy_steps = 360
             self.small_steps = 10
             GPIO.setmode(GPIO.BOARD)

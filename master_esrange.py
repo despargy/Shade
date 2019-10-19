@@ -13,7 +13,6 @@ import RPi.GPIO as GPIO
 import json
 import  Paths as paths
 import Pins as pins
-#@TODO mv import of motors
 from Motor import MotorADC
 
 class Master:
@@ -38,17 +37,13 @@ class Master:
         self.thread_dmc = None
         self.heat = heat.HEAT(self)
         self.thread_heat = None
-        #@TODO uncomment next line
         self.adc = adc.ADC(self)
         self.thread_adc = None
         self.tx = tx.TX(self)
         self.thread_tx = None
         self.counterdown = CounterDown(self)
         self.paths = paths.Paths()
-        #self.pin_powerB = pins.Pins().pin_powerB # @TODO change it in boot/config.txt
         GPIO.setmode(GPIO.BOARD)
-        #GPIO.setup(self.pin_powerB, GPIO.OUT)
-        #GPIO.output(self.pin_powerB, GPIO.HIGH)
         Master.__instance = self
 
     @staticmethod
@@ -64,15 +59,12 @@ class Master:
 
         while not self.status_vector['RET_CONF'] and not self.get_command('KILL'):
             sleep(self.counterdown.master_time_runs)
-            if self.get_command('REBOOT_SLAVE'):
-                self.info_logger.write_info('MASTER ESRANGE: REBOOT SLAVE')
-                self.command_vector['REBOOT_SLAVE'] = 0
-                self.reboot_slave()
             if self.get_command('REBOOT'):
                 self.command_vector['REBOOT'] = 0
                 self.status_vector['KILL'] = 1
                 self.info_logger.write_info('MASTER ESRANGE: SELF - REBOOT IN 10 secs')
                 sleep(self.counterdown.master_wait_self_reboot)
+                #@TODO reboot command
                 pass
             #@TODO uncomment to keep the exp status
             #json.dump(self.status_vector, open(self.paths.file_status_vector, 'w'))
@@ -131,12 +123,9 @@ class Master:
         except:
             return 0
 
-    def reboot_slave(self):
-        #power off and power on the other ras
+    def reboot(self):
         pass
-        #GPIO.output(self.pin_powerB, GPIO.LOW)
-        #sleep(self.counterdown.reboot_low_wait)
-        #GPIO.output(self.pin_powerB, GPIO.HIGH)
+
 
 
 if __name__ == "__main__":

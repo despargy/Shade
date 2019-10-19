@@ -34,7 +34,7 @@ class ADC:
             self.counterdown = CounterDown(master_)
             self.info_logger.write_info('antenna at {}'.format(self.antenna_adc.position))
             #@TODO GS gps data
-            self.GS = [229580.66855789188, 406284.27590938365]
+            self.GS = [210631.24000000002, 678785.42]
             self.compass = 0
             self.gps = self.GS
             self.direction = 1
@@ -119,6 +119,7 @@ class ADC:
             elif choice == 2:
                 self.info_logger.write_info('ADC: IN SCAN')
                 self.go_to_zero()
+                sleep(1)
                 self.scan()
             elif choice == 3:
                 self.info_logger.write_info('ADC: IN INIT')
@@ -227,7 +228,6 @@ class ADC:
 
     def calc_new_position(self):
     #calc GEOMETRY
-    #@TODO define thresshold for x,y mes
         thresshold = 0.001
         dx = abs(self.GS[0] - self.gps[0])
         dy = abs(self.gps[1] - self.GS[1])

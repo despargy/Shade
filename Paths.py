@@ -7,7 +7,9 @@ class Paths:
         self.file_init_position = "file_init_position.txt"
         self.file_init_counter = "file_init_counter.txt"
         self.tx_file = "tx_file.txt"
-        self.tx_file_pre_data = "a.txt"
+        self.tx_file_pre_data = "tx_names.txt"
+        self.tx_img_spon = "spon.jpg"
+        self.tx_img_fam = "family.jpg"
         #self.config = "/boot/config.txt"
 
         #rasB

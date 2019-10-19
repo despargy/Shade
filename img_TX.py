@@ -3,7 +3,7 @@
 ##################################################
 # GNU Radio Python Flow Graph
 # Title: Top Block
-# Generated: Sat Oct 19 18:00:40 2019
+# Generated: Sat Oct 19 17:48:53 2019
 ##################################################
 
 from distutils.version import StrictVersion
@@ -20,12 +20,15 @@ if __name__ == '__main__':
 
 from PyQt5 import Qt
 from PyQt5 import Qt, QtCore
-from gnuradio import analog
+from gnuradio import blocks
+from gnuradio import digital
 from gnuradio import eng_notation
+from gnuradio import fec
 from gnuradio import gr
 from gnuradio import qtgui
 from gnuradio.eng_option import eng_option
 from gnuradio.filter import firdes
+from grc_gnuradio import blks2 as grc_blks2
 from optparse import OptionParser
 import limesdr
 import sip
@@ -66,9 +69,14 @@ class top_block(gr.top_block, Qt.QWidget):
         ##################################################
         # Variables
         ##################################################
-        self.samp_rate = samp_rate = 700e3
-        self.fft_bw = fft_bw = 5e3
-        self.fc = fc = 1430e6
+
+
+        self.variable_cc_encoder_def_0 = variable_cc_encoder_def_0 = map( (lambda a: fec.cc_encoder_make(4096, 7, 2, ([79,109]), 0, fec.CC_STREAMING, False)), range(0,1) );
+
+
+        self.variable_cc_decoder_def_0 = variable_cc_decoder_def_0 = map( (lambda a: fec.cc_decoder.make(4096, 7, 2, ([79,109]), 0, -1, fec.CC_STREAMING, False)), range(0,1) );
+        self.samp_rate = samp_rate = 50000
+        self.code1 = code1 = '010110011011101100010101011111101001001110001011010001101010001'
 
         ##################################################
         # Blocks
@@ -76,7 +84,7 @@ class top_block(gr.top_block, Qt.QWidget):
         self.qtgui_time_sink_x_0_0 = qtgui.time_sink_c(
         	1024, #size
         	samp_rate, #samp_rate
-        	"B/Band Wave at Tx", #name
+        	"Transmission", #name
         	1 #number of inputs
         )
         self.qtgui_time_sink_x_0_0.set_update_time(0.10)
@@ -87,7 +95,7 @@ class top_block(gr.top_block, Qt.QWidget):
         self.qtgui_time_sink_x_0_0.enable_tags(-1, True)
         self.qtgui_time_sink_x_0_0.set_trigger_mode(qtgui.TRIG_MODE_FREE, qtgui.TRIG_SLOPE_POS, 0.0, 0, 0, "")
         self.qtgui_time_sink_x_0_0.enable_autoscale(True)
-        self.qtgui_time_sink_x_0_0.enable_grid(True)
+        self.qtgui_time_sink_x_0_0.enable_grid(False)
         self.qtgui_time_sink_x_0_0.enable_axis_labels(True)
         self.qtgui_time_sink_x_0_0.enable_control_panel(False)
         self.qtgui_time_sink_x_0_0.enable_stem_plot(False)
@@ -124,70 +132,57 @@ class top_block(gr.top_block, Qt.QWidget):
 
         self._qtgui_time_sink_x_0_0_win = sip.wrapinstance(self.qtgui_time_sink_x_0_0.pyqwidget(), Qt.QWidget)
         self.top_layout.addWidget(self._qtgui_time_sink_x_0_0_win)
-        self.qtgui_freq_sink_x_0_1 = qtgui.freq_sink_c(
-        	1024, #size
-        	firdes.WIN_BLACKMAN_hARRIS, #wintype
-        	0, #fc
-        	fft_bw, #bw
-        	"PSD aat Tx", #name
-        	1 #number of inputs
-        )
-        self.qtgui_freq_sink_x_0_1.set_update_time(0.10)
-        self.qtgui_freq_sink_x_0_1.set_y_axis(-140, 10)
-        self.qtgui_freq_sink_x_0_1.set_y_label('Relative Gain', 'dB')
-        self.qtgui_freq_sink_x_0_1.set_trigger_mode(qtgui.TRIG_MODE_FREE, 0.0, 0, "")
-        self.qtgui_freq_sink_x_0_1.enable_autoscale(False)
-        self.qtgui_freq_sink_x_0_1.enable_grid(True)
-        self.qtgui_freq_sink_x_0_1.set_fft_average(1.0)
-        self.qtgui_freq_sink_x_0_1.enable_axis_labels(True)
-        self.qtgui_freq_sink_x_0_1.enable_control_panel(False)
-
-        if not True:
-          self.qtgui_freq_sink_x_0_1.disable_legend()
-
-        if "complex" == "float" or "complex" == "msg_float":
-          self.qtgui_freq_sink_x_0_1.set_plot_pos_half(not True)
-
-        labels = ['', '', '', '', '',
-                  '', '', '', '', '']
-        widths = [1, 1, 1, 1, 1,
-                  1, 1, 1, 1, 1]
-        colors = ["blue", "red", "green", "black", "cyan",
-                  "magenta", "yellow", "dark red", "dark green", "dark blue"]
-        alphas = [1.0, 1.0, 1.0, 1.0, 1.0,
-                  1.0, 1.0, 1.0, 1.0, 1.0]
-        for i in xrange(1):
-            if len(labels[i]) == 0:
-                self.qtgui_freq_sink_x_0_1.set_line_label(i, "Data {0}".format(i))
-            else:
-                self.qtgui_freq_sink_x_0_1.set_line_label(i, labels[i])
-            self.qtgui_freq_sink_x_0_1.set_line_width(i, widths[i])
-            self.qtgui_freq_sink_x_0_1.set_line_color(i, colors[i])
-            self.qtgui_freq_sink_x_0_1.set_line_alpha(i, alphas[i])
-
-        self._qtgui_freq_sink_x_0_1_win = sip.wrapinstance(self.qtgui_freq_sink_x_0_1.pyqwidget(), Qt.QWidget)
-        self.top_layout.addWidget(self._qtgui_freq_sink_x_0_1_win)
-        self.limesdr_sink_0 = limesdr.sink('', 0, '', '')
+        self.limesdr_sink_0 = limesdr.sink('1D4984C0B2BBE9', 0, '', '')
         self.limesdr_sink_0.set_sample_rate(samp_rate)
-        self.limesdr_sink_0.set_center_freq(fc, 0)
+        self.limesdr_sink_0.set_center_freq(1.43e9, 0)
         self.limesdr_sink_0.set_bandwidth(5e6,0)
+        self.limesdr_sink_0.set_digital_filter(samp_rate,0)
         self.limesdr_sink_0.set_gain(60,0)
         self.limesdr_sink_0.set_antenna(255,0)
-        self.limesdr_sink_0.calibrate(5e6, 0)
 
-        self.analog_const_source_x_0 = analog.sig_source_c(0, analog.GR_CONST_WAVE, 0, 0, 1)
+        self.digital_gmsk_mod_0 = digital.gmsk_mod(
+        	samples_per_symbol=2,
+        	bt=0.35,
+        	verbose=False,
+        	log=False,
+        )
+        self.blocks_throttle_0 = blocks.throttle(gr.sizeof_char*1, 32000,True)
+        self.blocks_file_source_0 = blocks.file_source(gr.sizeof_char*1, 'home/pi/Desktop/Despar/Shade/spon.jgp', False)
+        self.blks2_packet_encoder_0_0 = grc_blks2.packet_mod_b(grc_blks2.packet_encoder(
+        		samples_per_symbol=4,
+        		bits_per_symbol=1,
+        		preamble='',
+        		access_code=code1,
+        		pad_for_usrp=False,
+        	),
+        	payload_length=0,
+        )
 
         ##################################################
         # Connections
         ##################################################
-        self.connect((self.analog_const_source_x_0, 0), (self.limesdr_sink_0, 0))
-        self.connect((self.analog_const_source_x_0, 0), (self.qtgui_freq_sink_x_0_1, 0))
-        self.connect((self.analog_const_source_x_0, 0), (self.qtgui_time_sink_x_0_0, 0))
+        self.connect((self.blks2_packet_encoder_0_0, 0), (self.digital_gmsk_mod_0, 0))
+        self.connect((self.blocks_file_source_0, 0), (self.blocks_throttle_0, 0))
+        self.connect((self.blocks_throttle_0, 0), (self.blks2_packet_encoder_0_0, 0))
+        self.connect((self.digital_gmsk_mod_0, 0), (self.limesdr_sink_0, 0))
+        self.connect((self.digital_gmsk_mod_0, 0), (self.qtgui_time_sink_x_0_0, 0))
 
     def closeEvent(self, event):
         self.settings = Qt.QSettings("GNU Radio", "top_block")
         self.settings.setValue("geometry", self.saveGeometry())
         event.accept()
+
+    def get_variable_cc_encoder_def_0(self):
+        return self.variable_cc_encoder_def_0
+
+    def set_variable_cc_encoder_def_0(self, variable_cc_encoder_def_0):
+        self.variable_cc_encoder_def_0 = variable_cc_encoder_def_0
+
+    def get_variable_cc_decoder_def_0(self):
+        return self.variable_cc_decoder_def_0
+
+    def set_variable_cc_decoder_def_0(self, variable_cc_decoder_def_0):
+        self.variable_cc_decoder_def_0 = variable_cc_decoder_def_0
 
     def get_samp_rate(self):
         return self.samp_rate
@@ -195,20 +190,13 @@ class top_block(gr.top_block, Qt.QWidget):
     def set_samp_rate(self, samp_rate):
         self.samp_rate = samp_rate
         self.qtgui_time_sink_x_0_0.set_samp_rate(self.samp_rate)
+        self.limesdr_sink_0.set_digital_filter(self.samp_rate,0)
 
-    def get_fft_bw(self):
-        return self.fft_bw
+    def get_code1(self):
+        return self.code1
 
-    def set_fft_bw(self, fft_bw):
-        self.fft_bw = fft_bw
-        self.qtgui_freq_sink_x_0_1.set_frequency_range(0, self.fft_bw)
-
-    def get_fc(self):
-        return self.fc
-
-    def set_fc(self, fc):
-        self.fc = fc
-        self.limesdr_sink_0.set_center_freq(self.fc, 0)
+    def set_code1(self, code1):
+        self.code1 = code1
 
 
 def main(top_block_cls=top_block, options=None):

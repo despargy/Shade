@@ -22,8 +22,12 @@ class TX:
             self.sdr_process = None
             self.file_name_temperature = paths.Paths().tx_file
             self.file_name_predefined_data = paths.Paths().tx_file_pre_data
+            self.file_img_spon = paths.Paths().tx_img_spon
+            self.file_img_fam = paths.Paths().tx_img_fam
             self.TX_code_file = 'sdr_TX.py'
             self.TX_code_sin = 'sin_TX.py'
+            self.TX_code_spon = 'img_TX.py'
+            self.TX_code_fam = 'fam_TX.py'
             self.pin_led_tx = pins.Pins().pin_led_tx
             GPIO.setmode(GPIO.BOARD)
             GPIO.setup(self.pin_led_tx, GPIO.OUT)
@@ -51,6 +55,8 @@ class TX:
         while not self.master.status_vector['KILL']:
 
             self.master.command_vector['SIN'] = 0
+            self.master.command_vector['SPON'] = 0
+
 
             if self.master.get_command('TX_SLEEP'):
                 self.master.command_vector['TX_SLEEP'] = 0
@@ -64,7 +70,7 @@ class TX:
             self.master.info_logger.write_info('TX: SDR TRANSMIT')
 
             #on transmition
-            while not self.master.get_command('SIN') and not self.master.get_command('TX_SLEEP') and not self.master.status_vector['KILL']:
+            while not self.master.get_command('SIN') and not self.master.get_command('TX_SLEEP') and not self.master.status_vector['KILL'] and not self.master.get_command('SPON'):
                 sleep(self.counterdown.tx_check_to_stop_transmition)
 
             #kill transmition of temp-pre
@@ -74,27 +80,72 @@ class TX:
             #close led
             self.led_off()
 
-            #SIN mode @TODO be done
-            if self.master.get_command('SIN'):
+            #SIN mode
+            if self.master.get_command('SIN') and not self.master.get_command('TX_SLEEP') and not self.master.status_vector['KILL']:
+
                 self.master.command_vector['SIN'] = 0
                 self.master.info_logger.write_info('TX: SIN COMMAND')
+
                 # open led
                 self.led_on()
 
                 # start transmition of temp-pre
                 threading.Thread(target=self.start_tx, args=(self.TX_code_sin,)).start()
                 self.master.info_logger.write_info('TX: SDR TRANSMIT SIN')
+
                 sleep(self.counterdown.tx_duration_sin)
-                #KILL SIN
+
                 # kill transmition of sin
-                self.master.info_logger.write_info('TX: SDR STOP MAIN TRANSMIT')
+                self.master.info_logger.write_info('TX: SDR STOP SIN TRANSMIT')
                 self.kill_tx(self.TX_code_sin)
+
+                # close led
+                self.led_off()
+
+            if  self.master.get_command('SPON') and not self.master.get_command('TX_SLEEP') and not self.master.status_vector['KILL']:
+
+                self.master.command_vector['SPON'] = 0
+                self.master.info_logger.write_info('TX: SPON COMMAND')
+
+                # open led
+                self.led_on()
+
+                # start transmition of spon image
+                threading.Thread(target=self.start_tx, args=(self.TX_code_spon,)).start()
+                self.master.info_logger.write_info('TX: SDR TRANSMIT SPON')
+
+                sleep(self.counterdown.tx_duration_img)
+
+                # kill transmition of spon
+                self.master.info_logger.write_info('TX: SDR STOP SPON TRANSMIT')
+                self.kill_tx(self.TX_code_spon)
+
+                # close led
+                self.led_off()
+
+                self.master.info_logger.write_info('TX: CALL VARVARIGOS')
+                sleep(self.counterdown.tx_wait_btw_images)
+
+                # open led
+                self.led_on()
+
+                # start transmition of spon image
+                threading.Thread(target=self.start_tx, args=(self.TX_code_fam,)).start()
+                self.master.info_logger.write_info('TX: SDR TRANSMIT SPON')
+
+                sleep(self.counterdown.tx_duration_img)
+
+                # kill transmition of spon
+                self.master.info_logger.write_info('TX: SDR STOP SPON TRANSMIT')
+                self.kill_tx(self.TX_code_fam)
 
                 # close led
                 self.led_off()
 
         # kill sdr process
         self.master.info_logger.write_info('TX: NON-AV')
+        # close led
+        self.led_off()
 
 
     def led_on(self):

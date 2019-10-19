@@ -10,8 +10,8 @@ class CounterDown:
         self.heat_time_updates_data = 5
 
         self.adc_time_checks_deploy = 10
-        self.adc_wait_manual_ends = 5
-        self.adc_wait_auto_ends = 10
+        self.adc_wait_manual_ends = 2
+        self.adc_wait_auto_ends = 2
         self.adc_auto_time_runs = 5
         self.adc_man_time_runs = 5
         self.adc_man_timeout_to_set_or_scan = 60
@@ -32,6 +32,8 @@ class CounterDown:
         self.tx_time_checks_deploy = 10
         self.tx_check_to_stop_transmition = 3
         self.tx_duration_sin = 60
+        self.tx_duration_img = 60
+        self.tx_wait_btw_images = 60
 
         self.reboot_low_wait = 10
 

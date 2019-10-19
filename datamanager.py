@@ -73,7 +73,7 @@ class DataManager:
                         self.read_ras_temp()
                         self.write_tx_file()
                         self.datalogger.write_info(self.get_log_data())
-                        time.sleep(5)
+                        time.sleep(10)
         
         def init_dict(self):
                 self.dictionary["temp_A"] = None
@@ -160,6 +160,9 @@ class DataManager:
                 except: 
                         self.infologger.write_error("Error: I2C: reading temperature A.")
                         self.master.status_vector["TEMP_A"] = 0
+                        self.dictionary['temp_A'] = None
+
+
 
         def read_temp_B(self):
                 try:
@@ -186,6 +189,8 @@ class DataManager:
                 except: 
                         self.infologger.write_error("Error: I2C: reading temperature B.")
                         self.master.status_vector["TEMP_B"] = 0
+                        self.dictionary['temp_B'] = None
+
 
                 
         def read_amp_temp(self):
@@ -211,6 +216,7 @@ class DataManager:
                 except: 
                         self.infologger.write_error("Error: I2C: reading amplifier temperature.")
                         self.master.status_vector["AMP_TEMP"] = 0
+                        self.dictionary['amp_temp'] = None
  
 
         def read_altitude(self, p0):
@@ -226,6 +232,9 @@ class DataManager:
                 except:
                         self.infologger.write_error("Error: I2C: reading altimeter.")
                         self.master.status_vector["ALTIMETER"] = 0
+                        self.dictionary['int_temp']= None
+                        self.dictionary['pressure'] = None
+                        self.dictionary['altitude'] = None
 
         def read_gps(self):
                 try:
@@ -260,6 +269,10 @@ class DataManager:
                 except:
                         self.infologger.write_error("Error: Serial: reading GPS receiver.")
                         self.master.status_vector["GPS"] = 0
+                        self.dictionary['time_gps'] = None
+                        self.dictionary['gps_y'] = None
+                        self.dictionary['gps_x'] = None
+                        self.dictionary['altitude_gps'] = None
 
 
         def dmm_to_dd(self, x):
@@ -282,6 +295,8 @@ class DataManager:
                 except:
                         self.infologger.write_error("Error: I2C: reading compass.")
                         self.master.status_vector["COMPASS"] = 0
+                        self.dictionary['angle_c'] = None
+
 
         def read_imu(self):
                 try:
@@ -301,9 +316,18 @@ class DataManager:
                 except:
                         self.infologger.write_error("Error: Serial: reading IMU.")
                         self.master.status_vector["IMU"] = 0
+                        self.dictionary["time_imu"] = None
+                        self.dictionary["accelX"] = None
+                        self.dictionary["accelY"] = None
+                        self.dictionary["accelZ"] = None
+                        self.dictionary["gyroX"] = None
+                        self.dictionary["gyroY"] = None
+                        self.dictionary["gyroZ"] = None
+                        self.dictionary["magX"] = None
+                        self.dictionary["magY"] = None
+                        self.dictionary["magZ"] = None
 	
         def read_color(self):
-                #@TODO TBD
                 white_thress = 290
                 black_thress = 18
                 try:
@@ -376,6 +400,7 @@ class DataManager:
                 except:
                         self.infologger.write_error("Error: I2C: reading infrared temperature.")
                         self.master.status_vector["INFRARED"]=0
+                        self.dictionary['inf_temp'] = None
 
 
         def read_ras_temp(self):
@@ -384,6 +409,7 @@ class DataManager:
                         self.dictionary['ras_temp'] = ras_temp
                 except:
                         self.infologger.write_error("Error: Ras: reading temperature")
+                        self.dictionary['ras_temp'] = None
 
 
         def write_tx_file(self):
@@ -399,10 +425,7 @@ class DataManager:
 	
         def get_tx_str(self):
                 return_string = "(UTC):  ,External temperature {}"
-                return return_string.format(
-                 self.dictionary["temp_A"],
-                 #self.dictionary["time_gps"],
-                )
+                return return_string.format(self.dictionary["temp_A"])
         
         
         	

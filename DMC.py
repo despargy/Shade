@@ -82,11 +82,12 @@ class DMC:
             self.master.status_vector['DEP_SUCS'] = 1
 
     def phase_sleep(self):
-        #@TODO sleep DMC Motor
         self.info_logger.write_info('DMC: PHASE SLEEP')
         self.master.status_vector['DMC_SLEEP'] = 1
         self.master.command_vector['DMC_AWAKE'] = 0  # re-init if a new cmd come
+        GPIO.output(self.motor_dmc.pin_enable, GPIO.HIGH)
         self.counterdown.countdown1(self.counterdown.dmc_time_to_sleep, 'DMC_AWAKE')
+        GPIO.output(self.motor_dmc.pin_enable, GPIO.LOW)
         self.master.command_vector['RET'] = 0  # re-init if a new cmd come
 
     def phase_check(self):

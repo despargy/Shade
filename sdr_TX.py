@@ -3,7 +3,7 @@
 ##################################################
 # GNU Radio Python Flow Graph
 # Title: Top Block
-# Generated: Fri Aug 30 18:06:51 2019
+# Generated: Sat Oct 19 17:40:18 2019
 ##################################################
 
 from distutils.version import StrictVersion
@@ -75,7 +75,7 @@ class top_block(gr.top_block, Qt.QWidget):
 
 
         self.variable_cc_decoder_def_0 = variable_cc_decoder_def_0 = map( (lambda a: fec.cc_decoder.make(4096, 7, 2, ([79,109]), 0, -1, fec.CC_STREAMING, False)), range(0,1) );
-        self.samp_rate = samp_rate = 500000
+        self.samp_rate = samp_rate = 50e3
         self.code1 = code1 = '010110011011101100010101011111101001001110001011010001101010001'
 
         ##################################################
@@ -134,10 +134,10 @@ class top_block(gr.top_block, Qt.QWidget):
         self.top_layout.addWidget(self._qtgui_time_sink_x_0_0_win)
         self.limesdr_sink_0 = limesdr.sink('1D4984C0B2BBE9', 0, '', '')
         self.limesdr_sink_0.set_sample_rate(samp_rate)
-        self.limesdr_sink_0.set_center_freq(433e6, 0)
+        self.limesdr_sink_0.set_center_freq(1.43e9, 0)
         self.limesdr_sink_0.set_bandwidth(5e6,0)
-        self.limesdr_sink_0.set_digital_filter(500e3,0)
-        self.limesdr_sink_0.set_gain(20,0)
+        self.limesdr_sink_0.set_digital_filter(samp_rate,0)
+        self.limesdr_sink_0.set_gain(60,0)
         self.limesdr_sink_0.set_antenna(255,0)
 
         self.digital_gmsk_mod_0 = digital.gmsk_mod(
@@ -146,10 +146,10 @@ class top_block(gr.top_block, Qt.QWidget):
         	verbose=False,
         	log=False,
         )
-        self.blocks_throttle_0 = blocks.throttle(gr.sizeof_char*1, 32000,True)
-        self.blocks_stream_mux_0 = blocks.stream_mux(gr.sizeof_char*1, (264/8, 1650304/8))
-        self.blocks_file_source_0_0 = blocks.file_source(gr.sizeof_char*1, '/home/beam/Desktop/in2.txt', True)
-        self.blocks_file_source_0 = blocks.file_source(gr.sizeof_char*1, '/home/beam/Desktop/SHADE/GnuRadio/in.txt', True)
+        self.blocks_throttle_0 = blocks.throttle(gr.sizeof_char*1, 32e3,True)
+        self.blocks_stream_mux_0 = blocks.stream_mux(gr.sizeof_char*1, (264/8, 1650632/8))
+        self.blocks_file_source_0_0 = blocks.file_source(gr.sizeof_char*1, '/home/pi/Desktop/Despar/Shade/tx_names.txt', True)
+        self.blocks_file_source_0 = blocks.file_source(gr.sizeof_char*1, '/home/pi/Desktop/Despar/Shade/tx_file.txt', True)
         self.blks2_packet_encoder_0_0 = grc_blks2.packet_mod_b(grc_blks2.packet_encoder(
         		samples_per_symbol=4,
         		bits_per_symbol=1,
@@ -194,6 +194,7 @@ class top_block(gr.top_block, Qt.QWidget):
     def set_samp_rate(self, samp_rate):
         self.samp_rate = samp_rate
         self.qtgui_time_sink_x_0_0.set_samp_rate(self.samp_rate)
+        self.limesdr_sink_0.set_digital_filter(self.samp_rate,0)
 
     def get_code1(self):
         return self.code1
