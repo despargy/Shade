@@ -20,6 +20,8 @@ class PlotInterface(ABC):
         else:
             self.ax = self.fig.add_subplot(*self.config["dimensions"])
 
+        self.ax.grid(True)
+
 
 
     def get_auto_scale(self):

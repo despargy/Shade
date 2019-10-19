@@ -12,17 +12,18 @@ class AnglePlot(plot_interface.PlotInterface):
         pass
 
     def read_data(self,data_array):
-        """Read data and appends em to dataset.
-        
-        Arguments:
-            data_array {list} -- array with data from a row
-        """
         value_type = self.config['value_type']
-        curr_value = data_array[self.index]
         
-        self.time = int(data_array[0])
+        try:
+            curr_value = data_array[self.index]
+        except:
+            curr_value = np.nan
+            self.time = 'Unavailable'
+        else:
+            self.time = int(data_array[0])
+
         #if value is none
-        if curr_value.strip() == 'None':
+        if str(curr_value).strip() == 'None':
             #break line
             curr_value = np.nan
         else:

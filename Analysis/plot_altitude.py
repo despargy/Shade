@@ -40,18 +40,22 @@ class PlotAltitude(plot_line.LinePlot):
             data_array {list} -- array with data from a row
         """
         value_type = self.config['value_type']
-        curr_value_alt = data_array[self.index_alt]
-        curr_value_gps_alt = data_array[self.index_gps_alt]
+        try:
+            curr_value_alt = data_array[self.index_alt]
+            curr_value_gps_alt = data_array[self.index_gps_alt]
+        except:
+            curr_value_alt = np.nan
+            curr_value_gps_alt = np.nan
         
 
         value_type = self.str_to_command(value_type)
         
-        if curr_value_alt.strip() == 'None':
+        if str(curr_value_alt).strip() == 'None':
             curr_value_alt = np.nan
         else:
             curr_value_alt  = value_type(curr_value_alt)
         
-        if curr_value_gps_alt.strip() == 'None':
+        if str(curr_value_gps_alt).strip() == 'None':
             curr_value_gps_alt = np.nan
         else:
             curr_value_gps_alt  = value_type(curr_value_gps_alt)
