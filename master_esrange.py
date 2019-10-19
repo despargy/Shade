@@ -13,6 +13,7 @@ import RPi.GPIO as GPIO
 import json
 import  Paths as paths
 import Pins as pins
+import os
 from Motor import MotorADC
 
 class Master:
@@ -124,7 +125,7 @@ class Master:
             return 0
 
     def reboot(self):
-        pass
+        os.system('sudo shutdown -r now')
 
 
 
