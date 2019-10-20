@@ -23,7 +23,7 @@ class HEAT(object):
             self.counterdown = CounterDown(master_)
             self.need_heating_A = False
             self.need_heating_B = False
-            self.temp_thresshold = -12
+            self.temp_thresshold = -20
             self.mean_temp_A = self.temp_thresshold
             self.mean_temp_B = self.temp_thresshold
             self.max_size = 10

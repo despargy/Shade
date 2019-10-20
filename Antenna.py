@@ -40,6 +40,7 @@ class Antenna:
             self.theta_antenna_pointing = theta_antenna_pointing
             self.overlap_thress = 380
             self.sign_for_counter = +1
+            self.angle_plot = 0
             Antenna.__instance = self
 
     @staticmethod

@@ -31,7 +31,7 @@ class CounterDown:
         self.timeout_cmd_steps = 60
         self.tx_time_checks_deploy = 10
         self.tx_check_to_stop_transmition = 3
-        self.tx_duration_sin = 60
+        self.tx_duration_sin = 2*60
         self.tx_duration_img = 60
         self.tx_wait_btw_images = 60
 

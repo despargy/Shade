@@ -165,6 +165,7 @@ class ADC:
     def log_last_position_after(self):
         self.info_logger.write_info('ADC: DONE: {}'.format(self.antenna_adc.counter_for_overlap))
         self.adcs_logger.write_info(' {}, {}, {}, {} '.format(self.antenna_adc.position, self.antenna_adc.counter_for_overlap, self.antenna_adc.theta_antenna_pointing, self.antenna_adc.theta))
+        self.antenna_adc.angle_plot = self.antenna_adc.theta_antenna_pointing
 
     def push_DMC_motor(self):
         self.motor_dmc.motor_push()
@@ -194,6 +195,8 @@ class ADC:
             self.antenna_adc.update_position(set_step/self.motor_adc.step_size, direction)
             self.info_logger.write_info('ADC: SET: ANTENNA AT {}'.format(self.antenna_adc.position))
             self.adcs_logger.write_info(' {}, {}, {}, {} '.format(self.antenna_adc.position, self.antenna_adc.counter_for_overlap, self.antenna_adc.position + self.compass, self.antenna_adc.theta))
+            self.antenna_adc.angle_plot = self.antenna_adc.position + self.compass
+
         else:
             self.info_logger.write_warning('ADC: Invalid SET_STEP')
 
@@ -225,6 +228,7 @@ class ADC:
         self.adcs_logger.write_info(
             ' {}, {}, {}, {} '.format(self.antenna_adc.position, self.antenna_adc.counter_for_overlap,
                                       self.antenna_adc.theta_antenna_pointing, self.antenna_adc.theta))
+        self.antenna_adc.angle_plot = self.antenna_adc.theta_antenna_pointing
 
     def calc_new_position(self):
     #calc GEOMETRY
@@ -255,7 +259,8 @@ class ADC:
         self.antenna_adc.theta = theta
         self.antenna_adc.theta_antenna_pointing = (self.antenna_adc.position + self.compass) % 360
         self.adcs_logger.write_info(' {}, {}, {}, {} '.format(self.antenna_adc.position, self.antenna_adc.counter_for_overlap, self.antenna_adc.theta_antenna_pointing, self.antenna_adc.theta))
-        if self.antenna_adc.theta_antenna_pointing < self.antenna_adc.theta:
+        self.antenna_adc.angle_plot = self.antenna_adc.theta_antenna_pointing
+    if self.antenna_adc.theta_antenna_pointing < self.antenna_adc.theta:
             dif1 = self.antenna_adc.theta - self.antenna_adc.theta_antenna_pointing
             dif2 = 360 - dif1
             if dif1 <= dif2:
@@ -305,18 +310,27 @@ class ADC:
 
         #clean overlaps
         if self.antenna_adc.counter_for_overlap > 360:
-            self.motor_adc.act(110, 0)  # anti-clockwise
-            self.antenna_adc.update_position(110 * self.motor_adc.step_size, 0)  # anti-clockwise
+            self.motor_adc.act(315, 0)  # anti-clockwise
+            self.antenna_adc.update_position(315 / self.motor_adc.step_size, 0)  # anti-clockwise
         elif self.antenna_adc.counter_for_overlap < -360:
-            self.motor_adc.act(110, 1)  # clockwise
-            self.antenna_adc.update_position(110 * self.motor_adc.step_size, 1)  # clockwise
+            self.motor_adc.act(315, 1)  # clockwise
+            self.antenna_adc.update_position(315 / self.motor_adc.step_size, 1)  # clockwise
+
+        # find direction
+        if self.antenna_adc.counter_for_overlap < 0:
+            self.dir_init = 1
+        else:
+            self.dir_init = 0
+
+        in_zero_point = False
+        self.stop_turn = False
 
         thread_act = Thread(target=self.threaded_function_act)
         thread_act.start()
 
-        in_zero_point = False
-        self.stop_turn = False
+
         while not in_zero_point and not self.master.status_vector['KILL'] and self.master.status_vector['INFRARED']:
+
             self.get_color_data()
             if (self.color_string == "WHITE"):
                 self.info_logger.write_info("ADC: WHITE")
@@ -330,18 +344,14 @@ class ADC:
                 self.info_logger.write_info("ADC: SAW BLACK")
 
         self.stop_turn = True
-        self.antenna_adc.update_position(self.counter_done/self.motor_adc.step_size ,self.dir_init)
+        self.antenna_adc.update_position(self.counter_done*self.motor_adc.smooth_steps / self.motor_adc.step_size,self.dir_init)
         self.get_compass_data()
         self.adcs_logger.write_info(' {}, {}, {}, {} '.format(self.antenna_adc.position, self.antenna_adc.counter_for_overlap, self.antenna_adc.position + self.compass, self.antenna_adc.theta))
-
+        self.antenna_adc.angle_plot = self.antenna_adc.position + self.compass
 
     def threaded_function_act(self):
-        # find direction
-        if self.antenna_adc.counter_for_overlap > 0:
-            self.dir_init = 0
-        else:
-            self.dir_init = 1
+
         self.counter_done = 0
         while not self.stop_turn:
-            self.counter_done += self.motor_adc.smooth_steps
+            self.counter_done += 1
             self.motor_adc.act_smooth(self.dir_init)

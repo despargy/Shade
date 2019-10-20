@@ -102,7 +102,7 @@ class Master:
         #self.thread_adc = threading.Thread(target=self.adc_FAKE).start()
         self.thread_dmc = threading.Thread(target=self.dmc.start).start()
         self.thread_heat = threading.Thread(target=self.heat.start).start()
-        self.thread_tx = threading.Thread(target=self.tx.start).start()
+        #self.thread_tx = threading.Thread(target=self.tx.start).start()
         self.info_logger.write_info('MASTER ESRANGE: SUBSYSTEMS THREADED')
 
     #@TODO rm adc_FAKE

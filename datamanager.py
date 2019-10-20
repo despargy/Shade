@@ -72,6 +72,7 @@ class DataManager:
                         self.read_inf_temp()
                         self.read_ras_temp()
                         self.write_tx_file()
+                        self.read_angle_antenna()
                         self.datalogger.write_info(self.get_log_data())
                         time.sleep(10)
         
@@ -99,10 +100,11 @@ class DataManager:
                 self.dictionary["magX"] = None
                 self.dictionary["magY"] = None
                 self.dictionary["magZ"] = None
-                       
-   
+                self.dictionary["angle_antenna"] = None
+
+
         def get_log_data(self):
-                return_string = "{} , {} , {} , {} , {} , {} , {} , {} , {} , {} , {} , {} , {} , {} , {} , {} , {} , {} , {}, {}, {}, {}, {}"
+                return_string = "{} , {}, {} , {} , {} , {} , {} , {} , {} , {} , {} , {} , {} , {} , {} , {} , {} , {} , {} , {}, {}, {}, {}, {}"
                 return return_string.format(
                  self.dictionary["temp_A"],
                  self.dictionary["temp_B"],
@@ -126,7 +128,8 @@ class DataManager:
                  self.dictionary["gyroZ"],
                  self.dictionary["magX"],
                  self.dictionary["magY"],
-                 self.dictionary["magZ"]
+                 self.dictionary["magZ"],
+                 self.dictionary["angle_antenna"]
                )
        
         def get_data(self, name):
@@ -328,8 +331,8 @@ class DataManager:
                         self.dictionary["magZ"] = None
 	
         def read_color(self):
-                white_thress = 290
-                black_thress = 18
+                white_thress = 500
+                black_thress = 50
                 try:
                         as7262.soft_reset()
                         hw_code, hw_version, fw_version = as7262.get_version()
@@ -426,9 +429,14 @@ class DataManager:
         def get_tx_str(self):
                 return_string = "(UTC):  ,External temperature {}"
                 return return_string.format(self.dictionary["temp_A"])
-        
-        
-        	
+
+        def read_angle_antenna(self):
+                try:
+                        self.dictionary["angle_antenna"] = self.master.adc.antenna_adc.angle_plot
+                except:
+                        self.infologger.write_error("Error: Reading antenna angle.")
+
+
 if __name__ == '__main__':
 	data_obj = DataManager()
 	data_obj.start()

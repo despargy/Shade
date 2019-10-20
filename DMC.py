@@ -1,7 +1,7 @@
 import time
 from Motor import MotorDMC
 from counterdown import CounterDown
-
+import RPi.GPIO as GPIO
 
 class DMC:
 

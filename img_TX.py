@@ -147,7 +147,7 @@ class top_block(gr.top_block, Qt.QWidget):
         	log=False,
         )
         self.blocks_throttle_0 = blocks.throttle(gr.sizeof_char*1, 32000,True)
-        self.blocks_file_source_0 = blocks.file_source(gr.sizeof_char*1, 'home/pi/Desktop/Despar/Shade/spon.jgp', False)
+        self.blocks_file_source_0 = blocks.file_source(gr.sizeof_char*1, '/home/pi/Desktop/Despar/Shade/spon.jpg', False)
         self.blks2_packet_encoder_0_0 = grc_blks2.packet_mod_b(grc_blks2.packet_encoder(
         		samples_per_symbol=4,
         		bits_per_symbol=1,

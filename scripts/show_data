@@ -1,0 +1,7 @@
+#!/bin/bash
+
+while true
+do
+	cat ../Logs/elink.data.log
+        sleep 5
+done
