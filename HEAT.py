@@ -76,6 +76,12 @@ class HEAT(object):
             elif not self.need_heating_B and self.master.status_vector["HEAT_B_ON"]:
                 self.pause_heat_B()
 
+            if self.master.get_command('HEAT_OPEN'):
+                self.info_logger.write_info("HEAT: OPEN MANUAL")
+                self.master.command_vector['HEAT_OPEN'] = 0
+                self.open_heat_A()
+                self.open_heat_B()
+
             sleep(self.counterdown.heat_time_runs)
 
         return 0

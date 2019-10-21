@@ -82,8 +82,6 @@ class GroundClient:
             log_socket.bind((host, port))
             log_socket.listen(5)
 
-            #TODO: check if work properly after comment this line
-            #while(not self.has_internet_connection()): time.sleep(3)
 
             try:
                 log_socket,addr = log_socket.accept()
@@ -129,7 +127,7 @@ class GroundClient:
                         log_socket.sendall("Received".encode('utf-8'))
                         logger.write_info(data)
                         time.sleep(0.2)
-                    except (ConnectionAbortedError, ConnectionResetError) as e:
+                    except:
                         self.info_logger.write_error('Lost connection when reading log: {log}'.format(log=data))
                         self.print_lost_connection()
                         break
@@ -261,14 +259,14 @@ class GroundClient:
                   [+] Please wait....
                     """.format(action=action))
                 break
-            except TimeoutError as e:
+            except (TimeoutError, BrokenPipeError ) as e:
                 print("""
                   [+] ElinkManager is unreachable
                   [+] Something went wrong!
                   [+] Try to reconnect...
                     """)
                 break
-            #print(f"{str(response)}")
+            print(response)
 
 
 

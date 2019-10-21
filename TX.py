@@ -72,6 +72,7 @@ class TX:
             #on transmition
             while not self.master.get_command('SIN') and not self.master.get_command('TX_SLEEP') and not self.master.status_vector['KILL'] and not self.master.get_command('SPON'):
                 sleep(self.counterdown.tx_check_to_stop_transmition)
+                self.master.info_logger.write_info('TX: SDR TRANSMIT')
 
             #kill transmition of temp-pre
             self.master.info_logger.write_info('TX: SDR STOP MAIN TRANSMIT')
@@ -123,7 +124,7 @@ class TX:
                 # close led
                 self.led_off()
 
-                self.master.info_logger.write_info('TX: CALL VARVARIGOS')
+                self.master.info_logger.write_info('TX: CALL VARVARIGOS BTW PHOTO')
                 sleep(self.counterdown.tx_wait_btw_images)
 
                 # open led
@@ -166,6 +167,7 @@ class TX:
 
         while not self.master.get_command('TX_AWAKE') and not self.master.status_vector['KILL']:
             sleep(self.counterdown.tx_check_to_stop_transmition)
+            self.info_logger.write_warning('TX: FORCE_TX_CLOSED')
 
         self.master.command_vector['TX_SLEEP'] = 0
         self.master.command_vector['TX_AWAKE'] = 0

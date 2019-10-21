@@ -65,6 +65,7 @@ class DataManager:
                         self.read_temp_A()
                         self.read_temp_B()
                         self.read_altitude(self.P0)
+                        self.read_color()
                         self.read_amp_temp()
                         self.read_gps()
                         self.read_compass()
@@ -74,7 +75,7 @@ class DataManager:
                         self.write_tx_file()
                         self.read_angle_antenna()
                         self.datalogger.write_info(self.get_log_data())
-                        time.sleep(10)
+                        time.sleep(3)
         
         def init_dict(self):
                 self.dictionary["temp_A"] = None
@@ -100,11 +101,12 @@ class DataManager:
                 self.dictionary["magX"] = None
                 self.dictionary["magY"] = None
                 self.dictionary["magZ"] = None
+                self.dictionary["color"] = None
                 self.dictionary["angle_antenna"] = None
 
 
         def get_log_data(self):
-                return_string = "{} , {}, {} , {} , {} , {} , {} , {} , {} , {} , {} , {} , {} , {} , {} , {} , {} , {} , {} , {}, {}, {}, {}, {}"
+                return_string = "{} , {}, {}, {} , {} , {} , {} , {} , {} , {} , {} , {} , {} , {} , {} , {} , {} , {} , {} , {} , {}, {}, {}, {}, {}"
                 return return_string.format(
                  self.dictionary["temp_A"],
                  self.dictionary["temp_B"],
@@ -129,6 +131,7 @@ class DataManager:
                  self.dictionary["magX"],
                  self.dictionary["magY"],
                  self.dictionary["magZ"],
+                 self.dictionary["color"],
                  self.dictionary["angle_antenna"]
                )
        
@@ -331,7 +334,7 @@ class DataManager:
                         self.dictionary["magZ"] = None
 	
         def read_color(self):
-                white_thress = 500
+                white_thress = 550
                 black_thress = 50
                 try:
                         as7262.soft_reset()
@@ -377,11 +380,12 @@ class DataManager:
                                 max_s = 'BLACK'
                         elif mean > white_thress :
                                 max_s = 'WHITE'
-                        return max_s
+                        self.dictionary["color"] = max_s
                 except:
                         self.infologger.write_error("Error: I2C: reading color.")
                         self.master.status_vector["INFRARED"]=0
-                        return 'ERROR'
+                        self.dictionary["color"] = None
+
 
         def read_inf_temp(self):
                 try:

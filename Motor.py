@@ -58,7 +58,7 @@ class MotorADC(Motor):
 
     def act_smooth(self, direction):
         #@TODO TBD
-        self.period = .05
+        self.period = .15
         self.p_high = 0.95
         self.p_low = 0.05
         count_steps = self.smooth_steps

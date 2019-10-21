@@ -303,7 +303,7 @@ class ADC:
         if self.master.status_vector["INFRARED"] == 0 :
             self.info_logger.write_warning('ADC: Invalid color data')
         else:
-            self.color_string = self.data_manager.read_color()
+            self.color_string = self.data_manager.get_data("color")
 
     #@TODO mod it to work
     def init_position(self):
@@ -322,36 +322,60 @@ class ADC:
         else:
             self.dir_init = 0
 
-        in_zero_point = False
         self.stop_turn = False
+        self.counter_done = 0
+        to_act_one = False
 
-        thread_act = Thread(target=self.threaded_function_act)
-        thread_act.start()
+        #thread_act = Thread(target=self.threaded_function_act)
+        #thread_act.start()
 
 
-        while not in_zero_point and not self.master.status_vector['KILL'] and self.master.status_vector['INFRARED']:
+        while not self.stop_turn and not self.master.status_vector['KILL'] and self.master.status_vector['INFRARED']:
 
             self.get_color_data()
             if (self.color_string == "WHITE"):
                 self.info_logger.write_info("ADC: WHITE")
                 self.info_logger.write_info("ADC: ZERO POSITION IS SET")
-                in_zero_point = True
+                if to_act_one:
+                    self.stop_turn = True
+                to_act_one = True
             elif (self.color_string == "RED"):
                 self.info_logger.write_info("ADC: SAW RED")
+                to_act_one = False
             elif (self.color_string == "BLUE"):
                 self.info_logger.write_info("ADC: SAW BLUE")
+                to_act_one = False
             elif (self.color_string == "BLACK"):
                 self.info_logger.write_info("ADC: SAW BLACK")
+                to_act_one = False
+            if not self.stop_turn and not to_act_one:
+                self.counter_done += 1
+                self.motor_adc.act_smooth(self.dir_init)
+            elif to_act_one:
+                sleep(4)
+                self.motor_adc.act(1, self.dir_init)
+                self.info_logger.write_info("ADC: NEXT STEP OF WHITE")
+            if self.counter_done > 190:
+                self.info_logger.write_info("ADC: CHANGE DIR_INIT")
+                if self.dir_init == 0:
+                    self.dir_init = 1
+                else:
+                    self.dir_init = 0
+                self.counter_done = 0
+            sleep(2)
 
-        self.stop_turn = True
-        self.antenna_adc.update_position(self.counter_done*self.motor_adc.smooth_steps / self.motor_adc.step_size,self.dir_init)
+        if self.stop_turn:
+            self.motor_adc.act(10,self.dir_init)
+            self.antenna_adc.position = 0
+            self.antenna_adc.counter_for_overlap = 0
+        else:
+            self.antenna_adc.update_position(self.counter_done*self.motor_adc.smooth_steps / self.motor_adc.step_size,self.dir_init)
         self.get_compass_data()
         self.adcs_logger.write_info(' {}, {}, {}, {} '.format(self.antenna_adc.position, self.antenna_adc.counter_for_overlap, self.antenna_adc.position + self.compass, self.antenna_adc.theta))
         self.antenna_adc.angle_plot = self.antenna_adc.position + self.compass
 
-    def threaded_function_act(self):
+    #def threaded_function_act(self):
 
-        self.counter_done = 0
-        while not self.stop_turn:
-            self.counter_done += 1
-            self.motor_adc.act_smooth(self.dir_init)
+        #while not self.stop_turn:
+            #self.counter_done += 1
+            #self.motor_adc.act_smooth(self.dir_init)

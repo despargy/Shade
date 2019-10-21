@@ -3,7 +3,7 @@
 ##################################################
 # GNU Radio Python Flow Graph
 # Title: Top Block
-# Generated: Sun Oct 20 19:01:04 2019
+# Generated: Sun Oct 20 18:54:54 2019
 ##################################################
 
 
@@ -70,6 +70,11 @@ def main(top_block_cls=top_block, options=None):
 
     tb = top_block_cls()
     tb.start()
+    try:
+        raw_input('Press Enter to quit: ')
+    except EOFError:
+        pass
+    tb.stop()
     tb.wait()
 
 
