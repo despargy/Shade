@@ -9,6 +9,22 @@ class RenderFigure():
         self.obj_class = obj_class
         self.fig_settings = self.get_figure_settings()
         self.fig = plt.figure()
+        self.time_index = self.get_time_index()
+
+
+
+    def format_time(self,time):
+        try:
+            time =  time.strip().split('.')[0]
+            t = iter(time)
+            return ":".join(a+b for a,b in zip(t,t))
+        except:
+            return "Unavailable"
+
+    def get_time_index(self):
+        with open('../settings.json') as json_file:
+            settings =  json.load(json_file)
+            return settings['data_manager']['columns']['time_gps']
 
 
     def get_pause_time(self):
@@ -74,6 +90,8 @@ class RenderFigure():
                 self.fig.canvas.flush_events()
 
                 self.set_data_objs()
+
+                self.fig.suptitle('UTC: {time}'.format(time=self.format_time(data_array[self.time_index])), fontsize=20)
 
                 #pause
                 plt.pause(self.get_pause_time())

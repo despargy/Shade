@@ -1,5 +1,4 @@
 import numpy as np
-import reader
 import render_figure
 import plot_interface
 import sys

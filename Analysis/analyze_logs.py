@@ -97,37 +97,6 @@ class Analyzer():
         print(*self.error_logs, sep='\n')
 
 
-def plot_heat():
-        style.use('ggplot')
-    
-        fig = plt.figure()
-        ax1 = fig.add_subplot(111)
-        lim = 0
-        def animate(i):
-            graph_data = open('info.log','r').read()
-            lines = graph_data.split('\n')
-            xs = []
-            ys = []
-            for line in lines:
-                if len(line) > 1:
-                    data = line.split()[3]
-                    x,y = data.split(',')
-                    xs.append(float(x))
-                    ys.append(float(y))
-            
-
-            ax1.clear()
-            x = float(x)
-            y = float(y)
-            ax1.set_xlim([max(0,x-100), x])
-            color = 'b'
-            if y > 50:
-                color = 'r'
-            ax1.plot(xs,ys, color=color)
-
-        
-        ani = animation.FuncAnimation(fig, animate , interval=1000)
-        plt.show()
 
 def print_prompt():
     print("""
@@ -176,9 +145,6 @@ if __name__ == '__main__':
         print_prompt()
         sys.exit(0)
 
-    if(sys.argv[1] == 'heat'):
-        plot_heat()
-        sys.exit(0)
     seconds = get_args()
     analyzers = create_analyzers(seconds)
 

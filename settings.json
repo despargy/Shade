@@ -9,10 +9,12 @@
       "ras_temp": 6,
       "pressure": 7,
       "altitude": 8,
+      "time_gps": 9,
       "gps_y": 10,
       "gps_x": 11,
       "altitude_gps": 12,
-      "angle_c": 13
+      "angle_c": 13,
+      "angle_index": -1
     }
   },
   "figures": {
@@ -83,6 +85,13 @@
         "dimensions": 121,
         "value_type": "float",
         "width": 0.05
+      },
+      "angle_index": {
+        "title": "angl ",
+        "projection": "polar",
+        "dimensions": 122,
+        "value_type": "float",
+        "width": 0.05
       }
     },
     "pressures": {
@@ -110,8 +119,9 @@
     "antennas": {
       "antenna_position": {
         "arrow_length": 10,
-        "ground_x": 1,
-        "ground_y": 2,
+        "ground_x": 67.879167,
+        "ground_y": 21.061944,
+        "ground_h": 468,
         "dimensions": [1, 1, 1],
         "value_type": "float"
       }
