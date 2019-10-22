@@ -87,32 +87,36 @@ class PlotAntenna():
                     continue
 
 
+                
+                min_x = min(self.gond_x , self.ground_x)
+                max_x = max(self.gond_x , self.ground_x)
+                
+                distance_x = max_x - min_x
+                min_y = min(self.gond_y, self.ground_y)
+                max_y = max(self.gond_y, self.ground_y)
 
                 #pause
                 plt.pause(0.000001)
-        
+
+                self.arrow_length = distance_x * 0.1
                 r_s , theta_s = self.cart2pol(0,self.arrow_length)
             
                 theta_s = math.radians(self.antenna_theta)
                 
                 x_s , y_s = self.pol2cart(r_s, theta_s)
                 ax.clear()
-
-                min_x = min(self.gond_x , self.ground_x)
-                max_x = max(self.gond_x , self.ground_x)
-
-                min_y = min(self.gond_y, self.ground_y)
-                max_y = max(self.gond_y, self.ground_y)
                 
-                ax.set_xlim(min_x - 15 , max_x + 15)
-                ax.set_ylim(min_y - 15 , max_y + 15)  
+                padding = distance_x * 0.15
+                ax.set_xlim(min_x - padding , max_x + padding)
+                ax.set_ylim(min_y - padding , max_y + padding)  
 
 
 
                 ax.grid(True)
                 ax.title.set_text('Antenna at {time}'.format(time=self.format_time(time)))
-                ax.arrow(self.gond_x, self.gond_y, x_s, y_s, head_width=0.3, head_length=0.7, fc='lightblue', ec='red')
+                ax.arrow(self.gond_x, self.gond_y, x_s, y_s,head_starts_at_zero=True, width=0.0003, head_width=0.0009, head_length=0.0004, fc='lightblue', ec='red')
                 ax.plot(self.ground_x , self.ground_y, 'o', color='black')
+                ax.plot([self.ground_x,self.gond_x], [self.ground_y, self.gond_y], '-.k') # dashdot black
         
         
         plt.show()

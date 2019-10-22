@@ -10,8 +10,8 @@
       "pressure": 7,
       "altitude": 8,
       "time_gps": 9,
-      "gps_y": 10,
-      "gps_x": 11,
+      "gps_x": 10,
+      "gps_y": 11,
       "altitude_gps": 12,
       "angle_c": 13,
       "angle_index": -1
@@ -46,7 +46,7 @@
         "x_label": "",
         "y_label": "",
         "limit": 50,
-        "danger_value": 0,
+        "danger_value": 80,
         "dimensions": [2, 3, 3],
         "value_type": "float"
       },
@@ -80,14 +80,14 @@
     },
     "angles": {
       "angle_c": {
-        "title": "angle_c title",
+        "title": "Experiment's Angle",
         "projection": "polar",
         "dimensions": 121,
         "value_type": "float",
         "width": 0.05
       },
       "angle_index": {
-        "title": "angl ",
+        "title": "Antenna's Angle",
         "projection": "polar",
         "dimensions": 122,
         "value_type": "float",

@@ -24,8 +24,9 @@ class PlotAltitude(plot_line.LinePlot):
         """Sets title , x and y label,
            initializes the x and y limits
         """
-        self.h_alt, = self.ax.plot(self.alt_x, lw=3)
-        self.h_gps_alt, = self.ax.plot(self.gps_alt_x, lw=3)
+        self.h_alt, = self.ax.plot(self.alt_x, lw=3 , label="Altitude")
+        self.h_gps_alt, = self.ax.plot(self.gps_alt_x, lw=3 , label="GPS Altitude")
+        self.ax.legend(bbox_to_anchor=(1.05, 1), loc='lower center', borderaxespad=0.)
         self.ax.set_ylim(0,100)
         self.ax.set_xlim(0,100)
         self.ax.title.set_text(self.config["title"])

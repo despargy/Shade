@@ -2,6 +2,7 @@ import render_figure
 import plot_interface
 import numpy as np
 import math
+from matplotlib import pyplot as plt
 
 class AnglePlot(plot_interface.PlotInterface):
 
@@ -16,11 +17,11 @@ class AnglePlot(plot_interface.PlotInterface):
         
         try:
             curr_value = data_array[self.index]
+            self.time = int(data_array[0])
         except:
             curr_value = np.nan
             self.time = 'Unavailable'
-        else:
-            self.time = int(data_array[0])
+
 
         #if value is none
         if str(curr_value).strip() == 'None':
@@ -36,6 +37,7 @@ class AnglePlot(plot_interface.PlotInterface):
     def set_data(self):
         self.ax.clear()
         self.ax.set_theta_zero_location('N')
+        self.ax.set_theta_direction(-1) 
         title = "{title}\nAngle : {theta}\nat {time}".format(title=self.config["title"], 
                                                                 theta= round(math.degrees(self.theta),2),
                                                                 time= self.time)
