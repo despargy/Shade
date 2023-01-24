@@ -1,5 +1,10 @@
 # Shade
 Software for SHADE experiment, BEXUS Cycles 12.
+SHADE (SDR Helix Antenna Deployment Experiment) from the Aristotle University of Thessaloniki, Greece – the first Greek-built experiment to be launched on BEXUS.
+
+The BEXUS (Balloon EXperiments for University Students) is a stratospheric balloon launched as part of the REXUS/BEXUS programme. Both BEXUS balloons lifted from SSC’s Esrange Space Centre in Arctic Sweden. 
+
+Supported by German Aerospace Center (DLR), European Space Agency (ESA), the Swedish National Space Agency (SNSA), ZARM.
 
 In different terminals run the ground and a master (there are different edition) programs.
 
